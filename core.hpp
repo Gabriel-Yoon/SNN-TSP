@@ -61,11 +61,11 @@ class core {
         double *wsum[2];
 
         // Spike Control
-        double *prosign[2];
-        /*
-        priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> queue_ext;
-        priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> queue_spk;
-        */
+        
+        list<pair<int, int>> inject_prosign;
+        priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> prosign;
+        //priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> spk_record_tape;
+        
 
         // Random Walk
 

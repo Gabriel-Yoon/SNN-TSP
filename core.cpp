@@ -18,7 +18,7 @@ core::core()
     num_neurons_bias[1] = neurons_hidden_bias;
 }
 
-void sm_core::initialize(char *fextspk, char *fexttime, char *fwij, char *fwij_gp, char *fwij_gm)
+void sm_core::initialize()
 {
 
     weight_matrix.resize(num_neurons[side_v]);
@@ -81,6 +81,8 @@ void sm_core::initialize(char *fextspk, char *fexttime, char *fwij, char *fwij_g
         last_spk_st[side_h][i] = -1;
         last_spk_in[side_h][i] = -1;
     }
+
+    
 }
 
 /*
