@@ -1,24 +1,10 @@
-#include <boost/property_tree/ptree.cpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp> // for lexical_cast<>()
-#include <iostream>
-
-#include "sm_core.hpp"
-#include "sm_param.hpp"
-#include "sm_export.hpp"
+#include "core.hpp"
+#include "simulation_parameters.hpp"
 
 using namespace std;
 
-sm_spk *spk_null;
-
-core::core(string param_file): param(param_file), rng_vth(3) {
-
-    boost::property_tree::ptree tree;
-    boost::property_tree::read_json(param_file, tree);
-
-    string cpu_str = "core0.";
-
+core::core()
+{
     // Number of Neurons
     neurons_visible_data = 25;
     neurons_visible_bias = 0;
@@ -30,63 +16,74 @@ core::core(string param_file): param(param_file), rng_vth(3) {
     num_neurons_datalabel[1] = neurons_hidden_data;
     num_neurons_bias[0] = neurons_visible_bias;
     num_neurons_bias[1] = neurons_hidden_bias;
-
-    // Random Walk Modulation
-    switch(param.rng_for_random_walk) {
-        case rng_lfsr32:
-            rng_rwalk = new sm_rng_1bit_lfsr32(param.rng_seed_for_random_walk);
-            break;
-        case rng_lfsr16:
-            rng_rwalk = new sm_rng_1bit_lfsr16(param.rng_seed_for_random_walk);
-            break;
-        case rng_lfsr8:
-            rng_rwalk = new sm_rng_1bit_lfsr8(param.rng_seed_for_random_walk);
-            break;
-        case rng_mt:
-            rng_rwalk = new sm_rng_1bit_mt(param.rng_seed_for_random_walk);
-            break;
-    }
-    
-    // Weight Reset Rate - Don't know the function yet
-    if ((param.wt_reset_rate < 0.0) || (param.wt_reset_rate > 1.0)) {
-        cerr << "Parameter wt_reset_rate should be set within 0.0-1.0." << endl;
-        exit(0);
-    }
-    if(param.wt_reset_rate != 1.0) {
-        rng_wt_reset_rate = new sm_rng_ureal01(param.wf_reset_rate_seed);
-    } else {
-        rng_wt_reset_rate = NULL;
-    }
-
 }
 
-void sm_core::print_params() {
-    cout<< "Simulation parameter list:"                     << endl;
-    cout<< "Neurons_v_data      : " << neurons_visible_data     << endl;
-    cout<< "Neurons_h_data      : " << neurons_hidden_data      << endl;
-    cout<< "Neurons_v_bias      : " << neurons_visible_bias     << endl;
-    cout<< "Neurons_h_bias      : " << neurons_hidden_bias      << endl;
-    cout<< "Neurons_v_label     : " << neurons_visible_label    << endl;
-    cout<< "Neurons_v           : " << num_neurons[side_v]      << endl;
-    cout<< "Neurons_h           : " << num_neurons[side_h]      << endl;
-    cout<< "pt_init             : " << fixed << setprecision(1) << param.pt_init << endl;
-    cout<< "float_epsilon_time  : " << scientific << setprecision(1) << FLOAT_EPSILON_TIME << endl;
-    cout<< "wlr_width           : " << param.wlr_width          << endl;
-    cout<< "stdp_window         : " << param.stdp_window        << endl;
-    cout<< "delay_spikein2out   : " << param.delay_spikein2out  << endl;
-    cout<< "refractory_time     : " << param.refractory_time    << endl;
-    cout<< "timestep            : " << param.timestep           << endl;
-    cout<< "wt_delta_g_set      : " << fixed << param.wt_delta_g_set << endl;
-    cout<< "wt_delta_g_reset    : " << fixed << param.wt_delta_g_reset << endl;
-    cout<< "steps_transition    : " << param.steps_transition   << endl;
-    cout<< "steps_data          : " << param.steps_data         << endl;
-    cout<< "steps_model         : " << param.steps_model        << endl;
-    double learning_rate = 1.0;
-    cout<< "weight_update_set   : " << fixed << setprecision(12) << learning_rate * param.wt_delta_g_set << endl;
-    cout<< "weight_update_reset : " << fixed << setprecision(12) << learning_rate * param.wt_delta_g_reset << endl;
-    cout<< fixed << setprecision(9);
+void sm_core::initialize(char *fextspk, char *fexttime, char *fwij, char *fwij_gp, char *fwij_gm)
+{
+
+    weight_matrix.resize(num_neurons[side_v]);
+    max_weight.resize(num_neurons[side_v]);
+    min_weight.resize(num_neurons[side_v]);
+    wt_delta_g_set.resize(num_neurons[side_v]);
+    wt_delta_g_reset.resize(num_neurons[side_v]);
+    for (int i = 0; i < num_neurons[side_v]; i++)
+    {
+        weight_matrix[i].resize(num_neurons[side_h]);
+        max_weight[i].resize(num_neurons[side_h]);
+        min_weight[i].resize(num_neurons[side_h]);
+        wt_delta_g_set[i].resize(num_neurons[side_h]);
+        wt_delta_g_reset[i].resize(num_neurons[side_h]);
+    }
+    if (rng_wt_set || rng_wt_reset)
+    {
+        weight_matrix_ideal.resize(num_neurons[side_v]);
+        for (int i = 0; i < num_neurons[side_v]; i++)
+        {
+            weight_matrix_ideal[i].resize(num_neurons[side_h]);
+        }
+    }
+
+    potential[side_v] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_v], 32);
+    potential[side_h] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_h], 32);
+
+    potential[side_v] = new double[num_neurons[side_v]];
+    potential[side_h] = new double[num_neurons[side_h]];
+
+    threshold[side_v] = new double[num_neurons[side_v]];
+    threshold[side_h] = new double[num_neurons[side_h]];
+
+    last_spk[side_v] = new double[num_neurons[side_v]];
+    last_spk[side_h] = new double[num_neurons[side_h]];
+
+    last_spk_st[side_v] = new double[num_neurons[side_v]];
+    last_spk_st[side_h] = new double[num_neurons[side_h]];
+
+    last_spk_in[side_v] = new double[num_neurons[side_v]];
+    last_spk_in[side_h] = new double[num_neurons[side_h]];
+
+    wsum[side_v] = new double[num_neurons_datalabel[side_v]];
+    wsum[side_h] = new double[num_neurons_datalabel[side_h]];
+
+    int i, j;
+    for (i = 0; i < num_neurons[side_v]; i++)
+    {
+        potential[side_v][i] = 0.0;
+        threshold[side_v][i] = 1;
+        last_spk[side_v][i] = -1;
+        last_spk_st[side_v][i] = -1;
+        last_spk_in[side_v][i] = -1;
+    }
+    for (i = 0; i < num_neurons[side_h]; i++)
+    {
+        potential[side_h][i] = 0.0;
+        threshold[side_h][i] = 1;
+        last_spk[side_h][i] = -1;
+        last_spk_st[side_h][i] = -1;
+        last_spk_in[side_h][i] = -1;
+    }
 }
 
+/*
 int sm_core::get_spk(sm_spk **spk_now, int *which_spk) {
     int num_spk_ext = queue_ext.size();
     int num_spk_int = queue_spk.size();
@@ -126,17 +123,21 @@ int sm_core::get_spk(sm_spk **spk_now, int *which_spk) {
 
     return 0;
 }
+*/
 
-void sm_core::ext_spike_load(char *fext, char *ftime) {
+void sm_core::ext_spike_load(char *fext, char *ftime)
+{
     ifstream isidx, istime;
     isidx.open(fext, ios::binary);
     istime.open(ftime, ios::binary);
 
-    if(isidx.fail()) {
+    if (isidx.fail())
+    {
         cout << "Error opening file " << fext << ". Exit" << endl;
         exit(1);
     }
-    if(istime.fail()) {
+    if (istime.fail())
+    {
         cout << "Error opening file " << ftime << ". Exit" << endl;
         exit(1);
     }
@@ -149,22 +150,25 @@ void sm_core::ext_spike_load(char *fext, char *ftime) {
     double time;
 
     //priority_queue<sm_spk_one, vector<sm_spk_one>, sm_spk_one>queue_ext_pri;
-    priority_queue<pair<double, sm_spk_one*>, vector<pair<double, sm_spk_one*>>, 
-    greater<pair<double, sm_spk_one*>>> queue_ext_pri;
+    priority_queue<pair<double, sm_spk_one *>, vector<pair<double, sm_spk_one *>>,
+                   greater<pair<double, sm_spk_one *>>>
+        queue_ext_pri;
 
-    while(1) {
-        isidx.getline(buf,20);
-        if((isidx.rdstate() & ifstream::eofbit) != 0) {
+    while (1)
+    {
+        isidx.getline(buf, 20);
+        if ((isidx.rdstate() & ifstream::eofbit) != 0)
+        {
             break;
         }
-        istime.read((char*)&time, sizeof(double));
+        istime.read((char *)&time, sizeof(double));
         side = strtol(buf, &ptr, 10);
         ptr++;
         neuron = strtol(ptr, NULL, 10);
 
         sm_spk_one *spk = new sm_spk_one;
         spk->time = time;
-        if(side == 0)
+        if (side == 0)
             spk->side = side_v;
         else
             spk->side = side_h;
@@ -173,13 +177,15 @@ void sm_core::ext_spike_load(char *fext, char *ftime) {
         count++;
     }
 
-    while(!queue_ext_pri.empty()) {
+    while (!queue_ext_pri.empty())
+    {
         sm_spk_one *spk_one = queue_ext_pri.top().second;
         queue_ext_pri.pop();
 
         // Dummy event to kick compare_threshold at the end of refractory time
         double ref_end_time = spk_one->time + param.refractory_time + FLOAT_EPSILON_TIME;
-        if(phase->query_phase_d_or_m(ref_end_time) == sm_model_phase) {
+        if (phase->query_phase_d_or_m(ref_end_time) == sm_model_phase)
+        {
             sm_spk *spk_ref = new sm_spk;
             spk_ref->time = ref_end_time;
             queue_ext.push(make_pair(ref_end_time, spk_ref));
@@ -189,9 +195,13 @@ void sm_core::ext_spike_load(char *fext, char *ftime) {
         spk_ext->spk.push_back(make_pair(spk_one->side, spk_one->neuron));
 
         //Find spikes at the same timing
-        while(!queue_ext_pri.empty()) {
+        while (!queue_ext_pri.empty())
+        {
             sm_spk_one *spk_next = queue_ext_pri.top().second;
-            if(spk_one->time != spk_next->time) { break; }
+            if (spk_one->time != spk_next->time)
+            {
+                break;
+            }
             spk_ext->spk.push_back(make_pair(spk_next->side, spk_next->neuron));
             delete spk_next;
             queue_ext_pri.pop();
@@ -207,7 +217,8 @@ void sm_core::ext_spike_load(char *fext, char *ftime) {
         int phase_now = phase->query_phase_d_or_m(spk_one->time);
 
         // Create reset event
-        if(param.hw_RES_EN) {
+        if (param.hw_RES_EN)
+        {
             sm_spk *spk_ext_reset = new sm_spk(*spk_ext);
             spk_ext_reset->time = time_fire2;
             spk_ext_reset->reset = true;
@@ -215,51 +226,77 @@ void sm_core::ext_spike_load(char *fext, char *ftime) {
         }
 
         // Push spike event to queue
-        if(!param.enable_gpgm) {
+        if (!param.enable_gpgm)
+        {
             spk_ext->time = time_fire2 + param.delay_spikeout2wlr + param.wlr_width;
-        } else {
-            if(phase_now == sm_data_phase) {
+        }
+        else
+        {
+            if (phase_now == sm_data_phase)
+            {
                 spk_ext->time = time_fire2 + param.delay_spikeout2wlr_data + param.wlr_width;
-            } else {
+            }
+            else
+            {
                 spk_ext->time = time_fire2 + param.delay_spikeout2wlr_model + param.wlr_width;
             }
         }
         queue_ext.push(make_pair(spk_ext->time, spk_ext));
 
         // WUP event
-        if(param.enable_learning) {
-            if(!param.enable_gpgm) {
+        if (param.enable_learning)
+        {
+            if (!param.enable_gpgm)
+            {
                 sm_spk *spk_wup = new sm_spk(*spk_ext); // WUP event
                 spk_wup->time = time_fire2 + param.delay_spikeout2wup;
                 queue_wup_ext.push(make_pair(spk_wup->time, spk_wup));
-            } else {
+            }
+            else
+            {
                 sm_spk *spk_wup_v = new sm_spk;
                 sm_spk *spk_wup_h = new sm_spk;
-                for(auto it = spk_ext->spk.begin(); it != spk_ext->spk.end(); it++) {
-                    if(it->first == side_v) {
+                for (auto it = spk_ext->spk.begin(); it != spk_ext->spk.end(); it++)
+                {
+                    if (it->first == side_v)
+                    {
                         spk_wup_v->spk.push_back(*it);
-                    } else {
+                    }
+                    else
+                    {
                         spk_wup_h->spk.push_back(*it);
                     }
                 }
-                if(spk_wup_v->spk.size() > 0) {
-                    if(phase_now == sm_data_phase) {
+                if (spk_wup_v->spk.size() > 0)
+                {
+                    if (phase_now == sm_data_phase)
+                    {
                         spk_wup_v->time = time_fire2 + param.delay_spikeout2td3;
-                    } else {
+                    }
+                    else
+                    {
                         spk_wup_v->time = time_fire2 + param.delay_spikeout2td3 - param.tset_width;
                     }
                     queue_wup_ext.push(make_pair(spk_wup_v->time, spk_wup_v));
-                } else {
+                }
+                else
+                {
                     delete spk_wup_v;
                 }
-                if(spk_wup_h->spk.size() > 0) {
-                    if(phase_now == sm_data_phase) {
+                if (spk_wup_h->spk.size() > 0)
+                {
+                    if (phase_now == sm_data_phase)
+                    {
                         spk_wup_h->time = time_fire2 + param.delay_spikeout2wup_data;
-                    } else {
+                    }
+                    else
+                    {
                         spk_wup_h->time = time_fire2 + param.delay_spikeout2wup_model;
                     }
                     queue_wup_ext.push(make_pair(spk_wup_h->time, spk_wup_h));
-                } else {
+                }
+                else
+                {
                     delete spk_wup_h;
                 }
             }
@@ -269,11 +306,13 @@ void sm_core::ext_spike_load(char *fext, char *ftime) {
     }
 }
 
-void sm_core::weight_load(int cell_type, char *fweight) {
+void sm_core::weight_load(int cell_type, char *fweight)
+{
     ifstream is;
     is.open(fweight, ios::binary);
-    if(is.fall()) {
-        cout<< "Error opening file " << fweight << ". Exit." << endl;
+    if (is.fall())
+    {
+        cout << "Error opening file " << fweight << ". Exit." << endl;
         exit(1);
     }
 
@@ -286,27 +325,39 @@ void sm_core::weight_load(int cell_type, char *fweight) {
     auto fsize = eofpos - begpos;
     auto dsize_wt = sizeof(double) * num_neurons[side_v] * num_neurons[side_h];
     auto dsize_st = sizeof(double) * num_neurons[side_v] * num_neurons[side_h];
-    if ((fsize != dsize_wt) && (fsize != (dsize_wt + dsize_st))) {
-        cout<< "Unexpected file size " << fsize << ". Exit." << endl;
+    if ((fsize != dsize_wt) && (fsize != (dsize_wt + dsize_st)))
+    {
+        cout << "Unexpected file size " << fsize << ". Exit." << endl;
         exit(1);
     }
 
     double weight;
 
-    for(int i = 0; i < num_neurons[side_v]; i++) {
-        for(int j = 0; j < num_neurons[side_h]; j++) {
-            is.read((char*)&weight, sizeof(double));
-            if(cell_type == wij_gp) {
-                if(weight > max_weight[i][j].Gp) {
+    for (int i = 0; i < num_neurons[side_v]; i++)
+    {
+        for (int j = 0; j < num_neurons[side_h]; j++)
+        {
+            is.read((char *)&weight, sizeof(double));
+            if (cell_type == wij_gp)
+            {
+                if (weight > max_weight[i][j].Gp)
+                {
                     weight = max_weight[i][j].Gp;
-                } else if(weight < min_weight[i][j].gp) {
+                }
+                else if (weight < min_weight[i][j].gp)
+                {
                     weight = min_weight[i][j].Gp;
                 }
                 weight_matrix[i][j].Gp = weight;
-            } else {
-                if(weight > max_weight[i][j].Gm) {
+            }
+            else
+            {
+                if (weight > max_weight[i][j].Gm)
+                {
                     weight = max_weight[i][j].Gm;
-                } else if(weight < min_weight[i][j].Gm) {
+                }
+                else if (weight < min_weight[i][j].Gm)
+                {
                     weight = min_weight[i][j].Gm;
                 }
                 weight_matrix[i][j].Gm = weight;
@@ -314,27 +365,41 @@ void sm_core::weight_load(int cell_type, char *fweight) {
         }
     }
 
-    if(rng_wt_set || rng_wt_reset) {
-        if(fsize == dsize_wt) {
+    if (rng_wt_set || rng_wt_reset)
+    {
+        if (fsize == dsize_wt)
+        {
             // First epoch. Set ideal weight
-            for(int i = 0; i < num_neurons[side_v]; i++) {
-                for(int j = 0; j < num_neurons[side_h]; j++) {
+            for (int i = 0; i < num_neurons[side_v]; i++)
+            {
+                for (int j = 0; j < num_neurons[side_h]; j++)
+                {
                     double var = rng_wt_set->get_val();
-                    if(cell_type == wij_gp) {
+                    if (cell_type == wij_gp)
+                    {
                         weight_matrix_ideal[i][j].Gp = weight_matrix[i][j].Gp + var;
-                    } else {
+                    }
+                    else
+                    {
                         weight_matrix_ideal[i][j].Gm = weight_matrix[i][j].Gm + var;
                     }
                 }
             }
-        } else {
+        }
+        else
+        {
             // Load ideal weight
-            for(int i = 0; i < num_neurons[side_v]; i++) {
-                for(int j = 0; j < num_neurons[side_h]; j++) {
-                    is.read((char*)&weight, sizeof(double));
-                    if(cell_type == wij_gp) {
+            for (int i = 0; i < num_neurons[side_v]; i++)
+            {
+                for (int j = 0; j < num_neurons[side_h]; j++)
+                {
+                    is.read((char *)&weight, sizeof(double));
+                    if (cell_type == wij_gp)
+                    {
                         weight_matrix_ideal[i][j].Gp = weight;
-                    } else {
+                    }
+                    else
+                    {
                         weight_matrix_ideal[i][j].Gm = weight;
                     }
                 }
@@ -345,27 +410,36 @@ void sm_core::weight_load(int cell_type, char *fweight) {
     is.close();
 }
 
-template<int is_spk, int is_rng> void sm_core::run_loop(double tnow, double tpre, sm_spk &spk_now, int which_spk, double &simtick, int &new_spk) {
+template <int is_spk, int is_rng>
+void sm_core::run_loop(double tnow, double tpre, sm_spk &spk_now, int which_spk, double &simtick, int &new_spk)
+{
     EVENT_TIME_DUMP(tnow);
-    if(is_spk) {
-        if(param.enable_learning)
+    if (is_spk)
+    {
+        if (param.enable_learning)
             weight_update(tnow);
     }
 
-    potential_update_by_leak(tnow-tpre);
+    potential_update_by_leak(tnow - tpre);
     export_ptn(tnow);
 
-    if(is_spk) {
+    if (is_spk)
+    {
         potential_update_by_spk(spk_now, which_spk);
         export_ptn(tnow);
         sm_spk *spk_export;
-        if(which_spk == spk_type_ext) {
+        if (which_spk == spk_type_ext)
+        {
             spk_export = queue_ext.top().second;
             export_spk(*spk_export, spk_type_ext);
-        } else if(which_spk == spk_type_int) {
+        }
+        else if (which_spk == spk_type_int)
+        {
             spk_export = queue_spk.top().second;
             export_spk(*spk_export, spk_type_int);
-        } else if(which_spk == spk_type_both) {
+        }
+        else if (which_spk == spk_type_both)
+        {
             spk_export = queue_ext.top().second;
             export_spk(*spk_export, spk_type_ext);
             spk_export = queue_spk.top().second;
@@ -373,12 +447,17 @@ template<int is_spk, int is_rng> void sm_core::run_loop(double tnow, double tpre
         }
     }
 
-    if(is_rng) {
-        if(param.enable_random_walk) {
+    if (is_rng)
+    {
+        if (param.enable_random_walk)
+        {
             potential_update_by_random_walk();
             export_ptn(tnow);
-        } else if(param.enable_stochastic_vth) {
-            threshold_update_stochastic();s
+        }
+        else if (param.enable_stochastic_vth)
+        {
+            threshold_update_stochastic();
+            s
         }
         simtick += param.timestep_rng;
     }
@@ -386,7 +465,8 @@ template<int is_spk, int is_rng> void sm_core::run_loop(double tnow, double tpre
     new_spk = compare_threshold(tnow);
 }
 
-double sm_core::run() {
+double sm_core::run()
+{
 
     double tend = param.num_of_label * param.num_of_image * phase->get_time_per_image();
     double tnow = 0.0;
@@ -402,96 +482,127 @@ double sm_core::run() {
 
     long int loop_count = 0;
 
-    if(!param.enable_gpgm) {
+    if (!param.enable_gpgm)
+    {
         weight_save(wij_gp, "wij_first.bin");
-    } else {
+    }
+    else
+    {
         weight_save(wij_gp, "wij_first_gp.bin")
-        weight_save(wij_gm, "wij_first_gm.bin")
+            weight_save(wij_gm, "wij_first_gm.bin")
     }
     get_spk(&spk_now, &which_spk);
 
     cout << setprecision(9);
 
-    while(1) {
+    while (1)
+    {
 
 #ifdef DEBUG_LOOP
-                cout << "------LOOP------" << endl;
+        cout << "------LOOP------" << endl;
 #endif
-                // get spike event
-                if(is_spk) {
-                    if(which_spk == spk_type_ext) {
-                        delete queue_ext.top().second;
-                        queue_ext.pop();
-                    } else if(which_spk == spk_type_int) {
-                        delete queue_spk.top().second;
-                        queue_spk.pop();
-                    } else if(which_spk == spk_type_both) {
-                        delete queue_ext.top().second;
-                        queue_ext.pop();
-                        delete queue_spk.top().second;
-                        queue_spk.pop();
-                    }
-                }
+        // get spike event
+        if (is_spk)
+        {
+            if (which_spk == spk_type_ext)
+            {
+                delete queue_ext.top().second;
+                queue_ext.pop();
+            }
+            else if (which_spk == spk_type_int)
+            {
+                delete queue_spk.top().second;
+                queue_spk.pop();
+            }
+            else if (which_spk == spk_type_both)
+            {
+                delete queue_ext.top().second;
+                queue_ext.pop();
+                delete queue_spk.top().second;
+                queue_spk.pop();
+            }
+        }
 
-                if(new_spk || is_spk) {
-                    new_spk = 0;
-                    is_spk = 0;
-                    get_spk(&spk_now, &which_spk);
-                }
+        if (new_spk || is_spk)
+        {
+            new_spk = 0;
+            is_spk = 0;
+            get_spk(&spk_now, &which_spk);
+        }
 
 #ifdef DEBUG_LOOP
-                cout << "simtick " << simtick << " spk time " << spk_now->time << endl;
+        cout << "simtick " << simtick << " spk time " << spk_now->time << endl;
 #endif
-                if(fabs(simtick - spk_now->time) < FLOAT_EPSILON_TIME) { // simtick == spk_now.time
-                    tnow = simtick;
-                    if(tnow > tend) break;
-                    is_spk = 1;
-                    if(spk_now->reset == true) {
-                        potential_reset(*spk_now); // Reset before or after run_loop()???
-                        run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                        tpre = tnow;
-                    } else if(spk_now->st == true) {
-                        last_spk_st_update(*spk_now);
-                        run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                        tpre = tnow;
-                    } else {
-                        run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                        tpre = tnow;
-                    }
-                } else if(simtick < spk_now->time) {
-                    tnow = simtick;
-                    if(tnow > tend) break;
-                    is_spk = 0;
-                    run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                    tpre = tnow;
-                } else { // if simtick > spk_now.time
-                    tnow = spk_now->time;
-                    if(tnow > tend) break;
-                    is_spk = 1;
-                    if(spk_now->reset == true) {
-                        potential_reset(*spk_now);
-                    } else if(spk_now->st == true) {
-                        last_spk_st_update(*spk_now);
-                    } else {
-                        run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                        tpre = tnow;
-                    }
-                }
+        if (fabs(simtick - spk_now->time) < FLOAT_EPSILON_TIME)
+        { // simtick == spk_now.time
+            tnow = simtick;
+            if (tnow > tend)
+                break;
+            is_spk = 1;
+            if (spk_now->reset == true)
+            {
+                potential_reset(*spk_now); // Reset before or after run_loop()???
+                run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+                tpre = tnow;
+            }
+            else if (spk_now->st == true)
+            {
+                last_spk_st_update(*spk_now);
+                run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+                tpre = tnow;
+            }
+            else
+            {
+                run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+                tpre = tnow;
+            }
+        }
+        else if (simtick < spk_now->time)
+        {
+            tnow = simtick;
+            if (tnow > tend)
+                break;
+            is_spk = 0;
+            run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+            tpre = tnow;
+        }
+        else
+        { // if simtick > spk_now.time
+            tnow = spk_now->time;
+            if (tnow > tend)
+                break;
+            is_spk = 1;
+            if (spk_now->reset == true)
+            {
+                potential_reset(*spk_now);
+            }
+            else if (spk_now->st == true)
+            {
+                last_spk_st_update(*spk_now);
+            }
+            else
+            {
+                run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+                tpre = tnow;
+            }
+        }
 
-                loop_count++;
+        loop_count++;
     }
 
     cout << "Save final wij matrix to wij_last.bin" << endl;
-    if(!param.enable_gpgm) {
+    if (!param.enable_gpgm)
+    {
         weight_save(wij_gp, "wij_last.bin");
-    } else {
+    }
+    else
+    {
         weight_save(wij_gp, "wij_last_gp.bin");
         weight_save(wij_gm, "wij_last_gm.bin");
     }
     cout << "loop_count " << loop_count << endl;
 
     return tnow;
-
 }
 
 /*

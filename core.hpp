@@ -1,6 +1,5 @@
-
-#ifndef __CORE_HPP__
-#define __CORE_HPP__
+#ifndef CORE
+#define CORE
 
 #include <vector>
 #include <string>
@@ -8,10 +7,8 @@
 #ifdef ENABLE_AVX
 #include <x86intrin.h>
 #endif
-
-#include "smsim.hpp"
 #include "simulation_parameters.hpp"
-#include "sm_rng.hpp"
+
 
 struct sm_pcmcell {
     double Gp; // bipolar only use Gp
@@ -57,42 +54,42 @@ class core {
 
         vector<vector<struct sm_pcmcell>> max_weight;
         vector<vector<struct sm_pcmcell>> min_weight;
-            /* bipolar use this for both set and reset */
+        
+        /* bipolar use this for both set and reset */
         vector<vector<struct sm_pcmcell>> wt_delta_g_set;
         vector<vector<struct sm_pcmcell>> wt_delta_g_reset;
         double *wsum[2];
 
         // Spike Control
+        double *prosign[2];
+        /*
         priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> queue_ext;
         priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> queue_spk;
+        */
 
         // Random Walk
+
+        /*
         sm_rng_1bit *rng_rwalk;
         sm_rng_1bit *rng_ps2;
         sm_rng_ureal01 rng_vth;
         sm_rng_normal *rng_wt_set; // master & circuit
         sm_rng_normal *rngwt_reset; // circuit
         sm_rng_ureal01 *rng_wt_reset_rate; // circuit
-        
-    
+        */
+
     public:
-        core(std::string param_file);
-
-        void initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, char* fwij_gm);
-        void print_params();
-        void print();
-
-        double run();
-
-// int put_spk(sm_spk *spk_new);
+        core();
 
     private:
         void assemble_prosign();
+
+        // NOT YET DEFINED Functions
+
+
+    /*
         inline void ext_spike_load(char *fext, char *ftime);
         void weight_load(int cell_type, char *fweight);
-
-        template<int is_spk, int is_rng>
-        void run_loop(double tnow, double tpre, sm_spk &spk_now, int which_spk, double &simtick, int &new_spk);
 
         // Potential-update-related methods: implemented in sm_potential.cpp
         void potential_update_by_random_walk();
@@ -108,15 +105,8 @@ class core {
         void last_spk_st_update(sm_spk &spk_now);
 
         int compare_threshold(double tnow);
-        
-        void threshold_update_stochastic();
-
-        // Weight update method: implemented in synapse_control.cpp
-        inline void weight_set_gp(int v_idx, int h_idx);
-        inline void weight_set_gm(int v_idx, int h_idx);
-        inline void weight_reset_gp(int v_idx, int h_idx);
-        inline void weight_reset_gm(int v_idx, int h_idx);
+    */
 
 };
 
-#endif // __SM_CORE_HPP
+#endif

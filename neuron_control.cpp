@@ -39,27 +39,24 @@ template<int side> void core::potential_update_by_spk_core(sm_spk &spk_now, doub
 }
 
 void core::potential_update_by_spk(sm_spk &spk_now, int which_spk) {
+    // bzero initialize wsum with 0 in the length of num_neurons
     bzero((void*)wsum[side_v], sizeof(double) * num_neurons_datalabel[side_v]);
     bzero((void*)wsum[side_h], sizeof(double) * num_neurons_datalabel[side_h]);
-
+    
     int spk_side_v = 0;
     int spk_side_h = 0;
     for(auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
         if(it->first == side_v) {
-            assert(it->second < num_neurons[side_v]);
+            assert(it->second < num_neurons[side_v]); //debug error check
             spk_side_v = 1;
-#ifdef DEBUG_SPK
             cout << "spike v " << it->second << endl;
-#endif
             for(int i = 0; i < num_neurons_datalabel[side_h]; i++) {
                 wsum[side_h][i] += (weight_matrix[it->second][i].Gp - weight_matrix[it->second][i].Gm);
             }
         } else { // side_h
             assert(it->second < num_neurons[side_h]);
             spk_side_h = 1;
-#ifdef DEBUG_SPK
             cout << "spike h " << it->second << endl;
-#endif
             for(int i = 0; i < num_neurons_datalabel[side_v]; i++) {
                 wsum[side_v][i] += (weight_matrix[i][it->second].Gp - weight_matrix[i][it->second].Gm);
             }

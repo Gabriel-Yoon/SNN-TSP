@@ -1,5 +1,5 @@
-#ifndef __SIMULATION_PARAMETERS_HPP__
-#define __SIMULATION_PARAMETERS_HPP__
+#ifndef SIMULATION_PARAMETERS
+#define SIMULATION_PARAMETERS
 
 #include <string>
 #include <vector>
@@ -7,6 +7,8 @@
 /* Simulation parameter definitions */ 
 
 #define FLOAT_EPSILON_TIME 1e-10
+
+using namespace std;
 
 struct simulation_parameters {
 
@@ -38,7 +40,7 @@ struct simulation_parameters {
     double wt_delta_g_set;
     double wt_delta_g_set_sigma_cycle;
     int wt_delta_g_set_seed_cycle;
-    double wt_delata_g_set_sigma_device; 
+    double wt_delta_g_set_sigma_device;
     int wt_delta_g_set_seed_device;
     double wt_delta_g_reset;
     double wt_delta_g_reset_sigma_cycle;
@@ -60,11 +62,8 @@ struct simulation_parameters {
 
     int rng_for_random_walk;
     int rng_seed_for_random_walk;
-    int rng_for_ps2;
-    int rng_seed_for_ps2;
 
     bool enable_learning;
-    bool enable_ps2;
     bool enable_random_walk;
     bool enable_stochastic_vth;
     bool enable_gpgm;
@@ -73,7 +72,9 @@ struct simulation_parameters {
     bool hw_RES_EN;
     bool hw_RES_BLK;
 
-    SimulationParameters(std::string param_file);
+    simulation_parameters();
+    void print_parameters();
+
 };
 
 enum : int {
@@ -90,4 +91,4 @@ enum : int {
 
 extern char side_chr[2];
 
-#endif // __PARAMETERS_HPP__
+#endif

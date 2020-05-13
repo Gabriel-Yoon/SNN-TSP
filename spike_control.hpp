@@ -1,3 +1,6 @@
+#ifndef SPIKE_CONTROL
+#define SPIKE_CONTROL
+
 #include <vector>
 #include <string>
 #include <list>
@@ -52,3 +55,5 @@ struct spk_cmp {
         return a.first > b.first;
     }
 };
+
+#endif
