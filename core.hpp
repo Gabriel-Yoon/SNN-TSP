@@ -33,20 +33,23 @@ class core {
         simulation_parameters param;
 
         // Neuron
-        int neurons_visible_data;
-        int neurons_visible_label;
+        int num_city = 5;
+
+        int neurons_visible_city;
         int neurons_visible_bias;
-        int neurons_hidden_data;
+        int neurons_hidden_city;
         int neurons_hidden_bias;
         int num_neurons[2];
-        int num_neurons_datalabel[2];
         int num_neurons_bias[2];
+
+        double WTA_network[2];
         
-        double *potential[2];
-        double *threshold[2];
-        double *last_spk[2];    // Used for weight_update
-        double *last_spk_st[2]; // Used for SI_PAUSE in neuron
-        double *last_spk_in[2]; // Used for IN_PAUSE in neuron
+        double *potential[num_city];
+        double *threshold[num_city];
+        double *last_spk[num_city];    // Used for weight_update
+        double *last_spk_st[num_city]; // Used for SI_PAUSE in neuron
+        double *last_spk_in[num_city]; // Used for IN_PAUSE in neuron
+
 
         // Synapse
         vector<vector<struct sm_pcmcell>> weight_matrix;
@@ -58,11 +61,16 @@ class core {
         /* bipolar use this for both set and reset */
         vector<vector<struct sm_pcmcell>> wt_delta_g_set;
         vector<vector<struct sm_pcmcell>> wt_delta_g_reset;
+        
         double *wsum[2];
+
 
         // Spike Control
         
         list<pair<int, int>> inject_prosign;
+        // the format of the inject_prosign is <WTA network number, city_idx>
+        // Aware of the neuron_idx = (WTA network number) * num_city + city_idx
+
         priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> prosign;
         //priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> spk_record_tape;
         
@@ -83,7 +91,7 @@ class core {
 
     private:
         void assemble_prosign();
-
+        void prosign_load();
         // NOT YET DEFINED Functions
 
 

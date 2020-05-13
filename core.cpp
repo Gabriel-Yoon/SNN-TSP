@@ -6,21 +6,22 @@ using namespace std;
 core::core()
 {
     // Number of Neurons
-    neurons_visible_data = 25;
+    neurons_visible_city = num_city * num_city;
     neurons_visible_bias = 0;
-    neurons_hidden_data = 25;
+    neurons_hidden_city = num_city * num_city;
     neurons_hidden_bias = 0;
-    num_neurons[0] = (neurons_visible_data + neurons_visible_bias);
-    num_neurons[1] = (neurons_hidden_data + neurons_hidden_bias);
-    num_neurons_datalabel[0] = neurons_visible_data;
-    num_neurons_datalabel[1] = neurons_hidden_data;
+    
+    num_neurons[0] = neurons_visible_city;
+    num_neurons[1] = neurons_hidden_city;
+    
     num_neurons_bias[0] = neurons_visible_bias;
     num_neurons_bias[1] = neurons_hidden_bias;
+
 }
 
 void sm_core::initialize()
 {
-
+    // Weight matrix, will be used
     weight_matrix.resize(num_neurons[side_v]);
     max_weight.resize(num_neurons[side_v]);
     min_weight.resize(num_neurons[side_v]);
@@ -43,269 +44,34 @@ void sm_core::initialize()
         }
     }
 
-    potential[side_v] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_v], 32);
-    potential[side_h] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_h], 32);
+    // Neuron Info, will only be used in the hidden side of the neuron
+    // because the visible side will only act as the external injection purpose.
+    potential[num_city] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_v], 32);
+    potential[num_city] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_h], 32);
 
-    potential[side_v] = new double[num_neurons[side_v]];
-    potential[side_h] = new double[num_neurons[side_h]];
-
-    threshold[side_v] = new double[num_neurons[side_v]];
-    threshold[side_h] = new double[num_neurons[side_h]];
-
-    last_spk[side_v] = new double[num_neurons[side_v]];
-    last_spk[side_h] = new double[num_neurons[side_h]];
-
-    last_spk_st[side_v] = new double[num_neurons[side_v]];
-    last_spk_st[side_h] = new double[num_neurons[side_h]];
-
-    last_spk_in[side_v] = new double[num_neurons[side_v]];
-    last_spk_in[side_h] = new double[num_neurons[side_h]];
-
-    wsum[side_v] = new double[num_neurons_datalabel[side_v]];
-    wsum[side_h] = new double[num_neurons_datalabel[side_h]];
-
-    int i, j;
-    for (i = 0; i < num_neurons[side_v]; i++)
-    {
-        potential[side_v][i] = 0.0;
-        threshold[side_v][i] = 1;
-        last_spk[side_v][i] = -1;
-        last_spk_st[side_v][i] = -1;
-        last_spk_in[side_v][i] = -1;
-    }
-    for (i = 0; i < num_neurons[side_h]; i++)
-    {
-        potential[side_h][i] = 0.0;
-        threshold[side_h][i] = 1;
-        last_spk[side_h][i] = -1;
-        last_spk_st[side_h][i] = -1;
-        last_spk_in[side_h][i] = -1;
+    for (int i = 0; i < num_city; i++){
+        potential[i] = new double[num_city];
+        threshold[i] = new double[num_city];
+        last_spk[i] = new double[num_city];
+        last_spk_st[i] = new double[num_city];
+        last_spk_in[i] = new double[num_city];
+        wsum[i] = new double[num_city];
     }
 
-    
+    for (i = 0; i < num_city; i++){
+        for (j = 0; j < num_city; j++ ){
+            potential[i][j] = 0.0;
+            threshold[i][j] = 1;
+            last_spk[i][j] = -1;
+            last_spk_st[i][j] = -1;
+            last_spk_in[i][j] = -1;
+        }
+    }   
 }
 
-/*
-int sm_core::get_spk(sm_spk **spk_now, int *which_spk) {
-    int num_spk_ext = queue_ext.size();
-    int num_spk_int = queue_spk.size();
-
-    if(num_spk_ext == 0) {
-        if(num_spk_int == 0) { // No More event
-            *spk_now = spk_null;
-            return -1;
-        }
-        *spk_now = queue_spk.top().second;
-        *which_spk = spk_type_int;
-        return 0;
-    } else if(num_spk_int == 0) {
-        *spk_now = queue_ext.top().second;
-        *which_spk = spk_type_ext;
-        return 0;
-    }
-
-    sm_spk *spk_ext = queue_ext.top().second;
-    sm_spk *spk_int = queue_spk.top().second;
-    if(fabs(spk_ext->time - spk_int->time) < FLOAT_EPSILON_TIME) {
-        if((spk_ext->reset == spk_int->reset) && (spk_ext->st == spk_int->st)) {
-            spk_ext->merge(*spk_int);
-            *spk_now = spk_ext;
-            *which_spk = spk_type_both;
-        } else {
-            *spk_now = spk_ext;
-            *which_spk = spk_type_ext;
-        }
-    } else if(spk_ext->time < spk_int->time) {
-        *spk_now = spk_ext;
-        *which_spk = spk_type_ext;
-    } else { // spk_ext->time > spk_int->time
-        *spk_now = spk_int;
-        *which_spk = spk_type_int;
-    }
-
-    return 0;
-}
-*/
-
-void sm_core::ext_spike_load(char *fext, char *ftime)
+void sm_core::prosign_load()
 {
-    ifstream isidx, istime;
-    isidx.open(fext, ios::binary);
-    istime.open(ftime, ios::binary);
-
-    if (isidx.fail())
-    {
-        cout << "Error opening file " << fext << ". Exit" << endl;
-        exit(1);
-    }
-    if (istime.fail())
-    {
-        cout << "Error opening file " << ftime << ". Exit" << endl;
-        exit(1);
-    }
-
-    char buf[20];
-    char *ptr;
-    int count = 0;
-    int side;
-    int neuron;
-    double time;
-
-    //priority_queue<sm_spk_one, vector<sm_spk_one>, sm_spk_one>queue_ext_pri;
-    priority_queue<pair<double, sm_spk_one *>, vector<pair<double, sm_spk_one *>>,
-                   greater<pair<double, sm_spk_one *>>>
-        queue_ext_pri;
-
-    while (1)
-    {
-        isidx.getline(buf, 20);
-        if ((isidx.rdstate() & ifstream::eofbit) != 0)
-        {
-            break;
-        }
-        istime.read((char *)&time, sizeof(double));
-        side = strtol(buf, &ptr, 10);
-        ptr++;
-        neuron = strtol(ptr, NULL, 10);
-
-        sm_spk_one *spk = new sm_spk_one;
-        spk->time = time;
-        if (side == 0)
-            spk->side = side_v;
-        else
-            spk->side = side_h;
-        spk->neuron = neuron;
-        queue_ext_pri.push(make_pair(time, spk));
-        count++;
-    }
-
-    while (!queue_ext_pri.empty())
-    {
-        sm_spk_one *spk_one = queue_ext_pri.top().second;
-        queue_ext_pri.pop();
-
-        // Dummy event to kick compare_threshold at the end of refractory time
-        double ref_end_time = spk_one->time + param.refractory_time + FLOAT_EPSILON_TIME;
-        if (phase->query_phase_d_or_m(ref_end_time) == sm_model_phase)
-        {
-            sm_spk *spk_ref = new sm_spk;
-            spk_ref->time = ref_end_time;
-            queue_ext.push(make_pair(ref_end_time, spk_ref));
-        }
-
-        sm_spk *spk_ext = new sm_spk; // Actual spike event
-        spk_ext->spk.push_back(make_pair(spk_one->side, spk_one->neuron));
-
-        //Find spikes at the same timing
-        while (!queue_ext_pri.empty())
-        {
-            sm_spk_one *spk_next = queue_ext_pri.top().second;
-            if (spk_one->time != spk_next->time)
-            {
-                break;
-            }
-            spk_ext->spk.push_back(make_pair(spk_next->side, spk_next->neuron));
-            delete spk_next;
-            queue_ext_pri.pop();
-        }
-
-        // Create last_spk_st update event for ST_PAUSE
-        sm_spk *spk_st_update = new sm_spk(*spk_ext);
-        spk_st_update->time = spk_one->time;
-        spk_st_update->st = true;
-        queue_ext.push(make_pair(spk_st_update->time, spk_st_update));
-
-        double time_fire2 = spk_one->time + param.delay_spikein2out;
-        int phase_now = phase->query_phase_d_or_m(spk_one->time);
-
-        // Create reset event
-        if (param.hw_RES_EN)
-        {
-            sm_spk *spk_ext_reset = new sm_spk(*spk_ext);
-            spk_ext_reset->time = time_fire2;
-            spk_ext_reset->reset = true;
-            queue_ext.push(make_pair(time_fire2, spk_ext_reset));
-        }
-
-        // Push spike event to queue
-        if (!param.enable_gpgm)
-        {
-            spk_ext->time = time_fire2 + param.delay_spikeout2wlr + param.wlr_width;
-        }
-        else
-        {
-            if (phase_now == sm_data_phase)
-            {
-                spk_ext->time = time_fire2 + param.delay_spikeout2wlr_data + param.wlr_width;
-            }
-            else
-            {
-                spk_ext->time = time_fire2 + param.delay_spikeout2wlr_model + param.wlr_width;
-            }
-        }
-        queue_ext.push(make_pair(spk_ext->time, spk_ext));
-
-        // WUP event
-        if (param.enable_learning)
-        {
-            if (!param.enable_gpgm)
-            {
-                sm_spk *spk_wup = new sm_spk(*spk_ext); // WUP event
-                spk_wup->time = time_fire2 + param.delay_spikeout2wup;
-                queue_wup_ext.push(make_pair(spk_wup->time, spk_wup));
-            }
-            else
-            {
-                sm_spk *spk_wup_v = new sm_spk;
-                sm_spk *spk_wup_h = new sm_spk;
-                for (auto it = spk_ext->spk.begin(); it != spk_ext->spk.end(); it++)
-                {
-                    if (it->first == side_v)
-                    {
-                        spk_wup_v->spk.push_back(*it);
-                    }
-                    else
-                    {
-                        spk_wup_h->spk.push_back(*it);
-                    }
-                }
-                if (spk_wup_v->spk.size() > 0)
-                {
-                    if (phase_now == sm_data_phase)
-                    {
-                        spk_wup_v->time = time_fire2 + param.delay_spikeout2td3;
-                    }
-                    else
-                    {
-                        spk_wup_v->time = time_fire2 + param.delay_spikeout2td3 - param.tset_width;
-                    }
-                    queue_wup_ext.push(make_pair(spk_wup_v->time, spk_wup_v));
-                }
-                else
-                {
-                    delete spk_wup_v;
-                }
-                if (spk_wup_h->spk.size() > 0)
-                {
-                    if (phase_now == sm_data_phase)
-                    {
-                        spk_wup_h->time = time_fire2 + param.delay_spikeout2wup_data;
-                    }
-                    else
-                    {
-                        spk_wup_h->time = time_fire2 + param.delay_spikeout2wup_model;
-                    }
-                    queue_wup_ext.push(make_pair(spk_wup_h->time, spk_wup_h));
-                }
-                else
-                {
-                    delete spk_wup_h;
-                }
-            }
-        }
-
-        delete spk_one;
-    }
+    return 0;
 }
 
 void sm_core::weight_load(int cell_type, char *fweight)

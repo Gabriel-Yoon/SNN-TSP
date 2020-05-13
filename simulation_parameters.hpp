@@ -15,6 +15,7 @@ struct simulation_parameters {
     // Timestep for RandomWalk
     double timestep;
     double timestep_rng;
+    double timestep_injection;
 
     // Spike modulation
     double wlr_width;
@@ -63,10 +64,9 @@ struct simulation_parameters {
     int rng_for_random_walk;
     int rng_seed_for_random_walk;
 
-    bool enable_learning;
     bool enable_random_walk;
-    bool enable_stochastic_vth;
     bool enable_gpgm;
+    bool enable_simulated_annealing;
 
     bool hw_ISO_MOD;
     bool hw_RES_EN;

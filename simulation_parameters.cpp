@@ -13,9 +13,10 @@ simulation_parameters::simulation_parameters() {
 
     timestep = 1e-6;
     timestep_rng = 10e-6;
+    timestep_injection = 10e-6;
 
     wlr_width = 40e-9;
-    stdp_window =2e-3 - FLOAT_EPSILON_TIME;
+    stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
     refractory_time = 4e-3 - FLOAT_EPSILON_TIME;
     delay_spikein2out = 100e-9;
     delay_spikeout2wlr = 0.0;
@@ -52,17 +53,10 @@ simulation_parameters::simulation_parameters() {
     min_weight_sigma = 0.0;
     min_weight_seed = 9;
 
-    enable_learning = true;
     string stochastic_method = "random_walk";
-    if(stochastic_method == "random_walk") {
-        enable_random_walk = true;
-    } else if(stochastic_method == "stochastic_vth") {
-        enable_stochastic_vth = true;
-    } else {
-        cerr <<"Invalid value specified for stochastic_method: " << stochastic_method << ". Exiting." << endl;
-        exit(0);
-    }
+    enable_random_walk = true;
     enable_gpgm = true;
+    enable_simulated_annealing = false;
 
     hw_ISO_MOD = false;
     hw_RES_EN = false;
