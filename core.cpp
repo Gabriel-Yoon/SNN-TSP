@@ -6,9 +6,9 @@ using namespace std;
 core::core()
 {
     // Number of Neurons
-    neurons_visible_city = num_city * num_city;
+    neurons_visible_city = num_city * num_city/2;
     neurons_visible_bias = 0;
-    neurons_hidden_city = num_city * num_city;
+    neurons_hidden_city = num_city * num_city/2;
     neurons_hidden_bias = 0;
     
     num_neurons[0] = neurons_visible_city;
@@ -66,120 +66,15 @@ void sm_core::initialize()
             last_spk_st[i][j] = -1;
             last_spk_in[i][j] = -1;
         }
-    }   
-}
-
-void sm_core::prosign_load()
-{
-    return 0;
+    }
 }
 
 void sm_core::weight_load(int cell_type, char *fweight)
 {
-    ifstream is;
-    is.open(fweight, ios::binary);
-    if (is.fall())
-    {
-        cout << "Error opening file " << fweight << ". Exit." << endl;
-        exit(1);
-    }
-
-    // Check file size
-    is.seekg(0, ios::end);
-    auto eofpos = is.tellg();
-    is.clear();
-    is.seekg(0, ios::beg);
-    auto begpos = is.tellg();
-    auto fsize = eofpos - begpos;
-    auto dsize_wt = sizeof(double) * num_neurons[side_v] * num_neurons[side_h];
-    auto dsize_st = sizeof(double) * num_neurons[side_v] * num_neurons[side_h];
-    if ((fsize != dsize_wt) && (fsize != (dsize_wt + dsize_st)))
-    {
-        cout << "Unexpected file size " << fsize << ". Exit." << endl;
-        exit(1);
-    }
-
-    double weight;
-
-    for (int i = 0; i < num_neurons[side_v]; i++)
-    {
-        for (int j = 0; j < num_neurons[side_h]; j++)
-        {
-            is.read((char *)&weight, sizeof(double));
-            if (cell_type == wij_gp)
-            {
-                if (weight > max_weight[i][j].Gp)
-                {
-                    weight = max_weight[i][j].Gp;
-                }
-                else if (weight < min_weight[i][j].gp)
-                {
-                    weight = min_weight[i][j].Gp;
-                }
-                weight_matrix[i][j].Gp = weight;
-            }
-            else
-            {
-                if (weight > max_weight[i][j].Gm)
-                {
-                    weight = max_weight[i][j].Gm;
-                }
-                else if (weight < min_weight[i][j].Gm)
-                {
-                    weight = min_weight[i][j].Gm;
-                }
-                weight_matrix[i][j].Gm = weight;
-            }
-        }
-    }
-
-    if (rng_wt_set || rng_wt_reset)
-    {
-        if (fsize == dsize_wt)
-        {
-            // First epoch. Set ideal weight
-            for (int i = 0; i < num_neurons[side_v]; i++)
-            {
-                for (int j = 0; j < num_neurons[side_h]; j++)
-                {
-                    double var = rng_wt_set->get_val();
-                    if (cell_type == wij_gp)
-                    {
-                        weight_matrix_ideal[i][j].Gp = weight_matrix[i][j].Gp + var;
-                    }
-                    else
-                    {
-                        weight_matrix_ideal[i][j].Gm = weight_matrix[i][j].Gm + var;
-                    }
-                }
-            }
-        }
-        else
-        {
-            // Load ideal weight
-            for (int i = 0; i < num_neurons[side_v]; i++)
-            {
-                for (int j = 0; j < num_neurons[side_h]; j++)
-                {
-                    is.read((char *)&weight, sizeof(double));
-                    if (cell_type == wij_gp)
-                    {
-                        weight_matrix_ideal[i][j].Gp = weight;
-                    }
-                    else
-                    {
-                        weight_matrix_ideal[i][j].Gm = weight;
-                    }
-                }
-            }
-        }
-    }
-
-    is.close();
+    
 }
 
-template <int is_spk, int is_rng>
-void sm_core::run_loop(double tnow, double tpre, sm_spk &spk_now, int which_spk, double &simtick, int &new_spk)
+template <int is_spk, int is_rng> void sm_core::run_loop(double tnow, double tpre, sm_spk &spk_now, int which_spk, double &simtick, int &new_spk)
 {
     EVENT_TIME_DUMP(tnow);
     if (is_spk)
@@ -238,7 +133,7 @@ double sm_core::run()
 
     double tend = param.num_of_label * param.num_of_image * phase->get_time_per_image();
     double tnow = 0.0;
-    double tpre = 0.0;
+    double injection_tick = param.timestep_injection;
     double simtick = param.timestep_rng;
 
     sm_spk *spk_now;
@@ -246,19 +141,8 @@ double sm_core::run()
     int is_spk = 0;
     int new_spk = 0;
 
-    int sm_phase = sm_model_phase;
-
     long int loop_count = 0;
 
-    if (!param.enable_gpgm)
-    {
-        weight_save(wij_gp, "wij_first.bin");
-    }
-    else
-    {
-        weight_save(wij_gp, "wij_first_gp.bin")
-            weight_save(wij_gm, "wij_first_gm.bin")
-    }
     get_spk(&spk_now, &which_spk);
 
     cout << setprecision(9);

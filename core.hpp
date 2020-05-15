@@ -29,27 +29,25 @@ class core {
     
     private:
         
-        // Simulation Parameter Declare
+        // Simulation Parameters
         simulation_parameters param;
 
-        // Neuron
+        // Neurons
         int num_city = 5;
 
         int neurons_visible_city;
         int neurons_visible_bias;
         int neurons_hidden_city;
         int neurons_hidden_bias;
+
         int num_neurons[2];
         int num_neurons_bias[2];
-
-        double WTA_network[2];
         
         double *potential[num_city];
         double *threshold[num_city];
         double *last_spk[num_city];    // Used for weight_update
         double *last_spk_st[num_city]; // Used for SI_PAUSE in neuron
         double *last_spk_in[num_city]; // Used for IN_PAUSE in neuron
-
 
         // Synapse
         vector<vector<struct sm_pcmcell>> weight_matrix;
@@ -90,8 +88,8 @@ class core {
         core();
 
     private:
-        void assemble_prosign();
-        void prosign_load();
+        void assemble_prosign(int tnow, int new_spk);
+        void weight_setup();
         // NOT YET DEFINED Functions
 
 
