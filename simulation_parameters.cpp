@@ -18,6 +18,7 @@ simulation_parameters::simulation_parameters() {
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
     refractory_time = 4e-3 - FLOAT_EPSILON_TIME;
+    delay_scanchain = 0.0;
     delay_spikein2out = 100e-9;
     delay_spikeout2wlr = 0.0;
     delay_spikeout2wlr_data = 0.0;

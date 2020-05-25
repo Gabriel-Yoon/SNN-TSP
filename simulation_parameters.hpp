@@ -21,6 +21,7 @@ struct simulation_parameters {
     double wlr_width;
     double stdp_window;
     double refractory_time;
+    double delay_scanchain;
     double delay_spikein2out;
     double delay_spikeout2wlr;
     double delay_spikeout2wlr_data;

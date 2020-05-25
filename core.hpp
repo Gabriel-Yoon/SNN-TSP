@@ -31,7 +31,7 @@ class core {
         
         // Simulation Parameters
         simulation_parameters param;
-
+        const vector<vector<int64>> distance_matrix;
         // Neurons
         int num_city = 5;
 
@@ -42,12 +42,16 @@ class core {
 
         int num_neurons[2];
         int num_neurons_bias[2];
-        
+        int WTA[num_city+1][num_city+1]; // indexing array
+
         double *potential[num_city];
         double *threshold[num_city];
         double *last_spk[num_city];    // Used for weight_update
         double *last_spk_st[num_city]; // Used for SI_PAUSE in neuron
         double *last_spk_in[num_city]; // Used for IN_PAUSE in neuron
+
+        priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> queue_ext;
+        priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> queue_spk;
 
         // Synapse
         vector<vector<struct sm_pcmcell>> weight_matrix;
@@ -61,7 +65,6 @@ class core {
         vector<vector<struct sm_pcmcell>> wt_delta_g_reset;
         
         double *wsum[2];
-
 
         // Spike Control
         

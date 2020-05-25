@@ -9,68 +9,91 @@
 
 using namespace std;
 
-int core::compare_threshold(double tnow, int side)
+template<int side> void core::potential_update_by_spk_core(sm_spk &spk_now, double *wsum) {
+    double last_spk_refractory = spk_now.time - param.refractory_time;
+    if(last_spk_refractory < 0.0) last_spk_refractory = 0.0;
+
+    for(int idx = 0; idx < num_neurons[side]; idx++) {
+        bool not_in_ref_st = last_spk_st[side][idx] < last_spk_refractory;
+        bool not_in_ref_in = last_spk_in[side][idx] < last_spk_refractory;
+        if(not_in_ref_st && (!param.hw_ISO_MOD || not_int_ref_in))
+            potential[side][idx] += wsum[side][idx] * param.pt.alpha;
+    }
+}
+
+void core::potential_update_by_spk(sm_spk &spk_now, int which_spk) {
+
+    // Clear out wsum
+    bzero((void*)wsum[side_v], sizeof(double) * num_neurons[side_v]);
+    bzero((void*)wsum[side_h], sizeof(double) * num_neurons[side_h]);
+
+    int spk_side_v = 0;
+    int spk_side_h = 0;
+    for(auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        if(it->first == side_v) {
+            assert(it->second < num_neurons[side_v]);
+            spk_side_v = 1;
+            int a = it->second / 5 + 1;
+            int b = it->second % 5 + 1;
+            printf('spike at WTA[%d][%d]\n', a, b);
+
+            for(int i = 0; i < num_neurons[side_h]; i++) {
+                wsum[side_h][i] += (weight_matrix[it->second][i].Gp - weight_matrix[it->second][i].Gm);
+            }
+        } else { // side_h
+            assert(it->second < num_neurons[side_h]);
+            spk_side_h = 1;
+            int a = it->second / 5 + 1;
+            int b = it->second % 5 + 1;
+            printf('spike at WTA[%d][%d]\n', a, b);
+
+            for(int i = 0; i < num_neurons[side_v]; i++) {
+                wsum[side_v][i] += (weight_matrix[i][it->second].Gp - weight_matrix[i][it->second].Gm);
+            }
+        }
+    }
+
+    if(spk_side_h) potential_update_by_spk_core<side_v>(spk_now, wsum[side_v]);
+    if(spk_side_v) potential_update_by_spk_core<side_h>(spk_now, wsum[side_h]);
+}
+
+void core::potential_reset(sm_spk &spk_now) {
+    for(auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        potential[it->first][it->second] = param.pt_init;
+    }
+}
+
+void core::last_spk_st_update(sm_spk &spk_now) {
+    for(auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        last_spk_st[it->first][it->second] = spk_now.time;
+    }
+}
+
+int core::compare_threshold(double tnow)
 {
     sm_spk *new_spk = new sm_spk;
     sm_spk *new_spk_reset = new sm_spk;
     double time_in_ref = tnow - param.refractory_time;
     int which_side = side;
 
-    // Search for neurons that have higher potential than the threshold value
-    for(int wta_num = which_side; wta_num < num_city; wta_num +=2) { // exclude bias neuron
-        for(int idx = 0; idxx < num_city; idx++){
-            bool compared = potential[wta_num][idx] > threshold[wta_num][idx];
-            bool not_in_ref = last_spk_st[wta_num][idx] < time_in_ref;
-            
-            if(!compared) continue;
+    for (int h_idx = 0; h_idx < num_neurons[side_h]; h_idx++){
+        bool compared = potential[side_h][h_idx] > threshold[side_h][h_idx];
+        bool not_in_ref = last_spk_st[side_h][h_idx] < time_in_ref;
 
-            // Create reset spike event
-            if(param.hw_RES_EN || not_in_ref || !param.hw_RES_BLK) {
+        if(!compared) continue;
+        
+        // Create reset spike event
+        if(param.hw_RES_EN || not_in_ref || !param.hw_RES_BLK) {
             new_spk_reset->spk.push_back(make_pair(side_h, h_idx));
-            }
+        }
 
-            // CAP_ISO = ST_PAUSE || (IN_PAUSE && hw_ISO_MOD)
-            // ST_PAUSE == IN_PAUSE in hidden neruons (always internal)
-            // ST_PAUSE = high while in refractory time by INT_SPK
-            // RESET = (CAP_ISO_RE && RES_EN) || (INT_SPK && (!(CAP_ISO && hw_RES_BLK)))
-            //       = (INT_SPK && RES_EN) || (INT_SPK && (!(CAP_ISO && hw_RES_BLK)))
-            //       = INT_SPK && (RES_EN || !CAP_ISO || !hw_RES_BLK)
-            // INT_SPK = compared
-            // CAP_ISO = !not_in_ref
-
-            // Create spike event
-            if(not_in_ref) {
-                last_spk_st[wta_num][idx] = tnow;
-                new_spk->spk.push_back(make_pair(wta_num, idx))
-            }
+        // Spike event checkboard 'last_spk_st' mark / spike event
+        if(not_in_ref) {
+            last_spk_st[side_h][h_idx] = tnow;
+            new_spk->spk.push_back(make_pair(side_h, h_idx))
         }
     }
 
-    // Prepare to update the potential of the neighboring WTA Networks.
-
-
-    
-    // Select target visible neurons
-    int v_idx_start = 0;
-    int v_idx_end = num_neurons_datalabel[side_v];
-    // Decide the neurons in  internal spike mode
-    if(param.enable_learning) {
-        if(phase->query_phase_d_or_m(tnow) == sm_data_phase) {
-            //v_idx_start = 0;
-            v_idx_end = 0;
-        } else {
-            //v_idx_start = 0;
-            //v_idx_end = param.num_neurons[side_V] - param.neurons_bias;
-        }
-    } else {
-        if(param.inference_by_label) {
-            //v_idx_start = 0;
-            v_idx_end = neurons_visible_data; // NUM_NRN_I_DATA
-        } else {
-            v_idx_start = neurons_visible_data;
-            //v_idx_end = param.num_neurons[side_v] - param.neurons_bias;
-        }
-    }
 
     double time_fire2 = tnow + param.delay_spikein2out;
 
@@ -87,16 +110,8 @@ int core::compare_threshold(double tnow, int side)
 
     // Push spike to queue
     if(new_spk->spk.size() != 0) {
+        new_spk->time = time_fire2 + param.delay_scanchain + param.wlr_width;
 
-        if(!param.enable_gpgm) {
-            new_spk->time = time_fire2 + param.delay_spikeout2wlr + param.wlr_width;
-        } else {
-            if(phase_now == sm_data_phase) {
-                new_spk->time = time_fire2 + param.delay_spikeout2wlr_data + param.wlr_width;
-            } else {
-                new_spk->time = time_fire2 + param.delay_spikeout2wlr_model + param.wlr_width;
-            }
-        }
         queue_spk.push(make_pair(new_spk->time, new_spk));
         spike_flag = 1;
 
@@ -104,8 +119,6 @@ int core::compare_threshold(double tnow, int side)
         sm_spk *spk_ref = new sm_spk;
         spk_ref->time = tnow + param.refractory_time + FLOAT_EPSILON_TIME;
         queue_spk.push(make_pair(spk_ref->time, spk_ref));
-
-
     } else {
         delete new_spk;
     }
