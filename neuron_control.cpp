@@ -21,7 +21,7 @@ template<int side> void core::potential_update_by_spk_core(sm_spk &spk_now, doub
     }
 }
 
-void core::potential_update_by_spk(sm_spk &spk_now, int which_spk) {
+void core::potential_update_by_spk(sm_spk &spk_now) {
 
     // Clear out wsum
     bzero((void*)wsum[side_v], sizeof(double) * num_neurons[side_v]);
