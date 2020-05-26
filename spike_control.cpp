@@ -1,6 +1,8 @@
 #include "spike_control.hpp"
 #include "core.hpp"
 
+
+/*
 void core::assemble_prosign(sm_spk *spk_now, bool overlap, int new_spk)
 {
 	// overlap should be defined as the boolean which tells
@@ -31,5 +33,3 @@ void core::assemble_prosign(sm_spk *spk_now, bool overlap, int new_spk)
 */  
 
 
-
-}

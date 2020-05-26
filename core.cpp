@@ -1,3 +1,6 @@
+
+#include <iostream>
+
 #include "core.hpp"
 #include "simulation_parameters.hpp"
 
@@ -37,7 +40,7 @@ core::core()
 
 }
 
-void sm_core::initialize()
+void core::initialize()
 {
     // Weight matrix, will be used
     weight_matrix.resize(num_neurons[side_v]);
@@ -53,19 +56,11 @@ void sm_core::initialize()
         wt_delta_g_set[i].resize(num_neurons[side_h]);
         wt_delta_g_reset[i].resize(num_neurons[side_h]);
     }
-    if (rng_wt_set || rng_wt_reset)
-    {
-        weight_matrix_ideal.resize(num_neurons[side_v]);
-        for (int i = 0; i < num_neurons[side_v]; i++)
-        {
-            weight_matrix_ideal[i].resize(num_neurons[side_h]);
-        }
-    }
 
     // Neuron Info, will only be used in the hidden side of the neuron
     // because the visible side will only act as the external injection purpose.
-    potential[num_city] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_v], 32);
-    potential[num_city] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_h], 32);
+    potential[2] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_v], 32);
+    potential[2] = (double *)_mm_malloc(sizeof(double) * num_neurons[side_h], 32);
 
     potential[side_v] = new double[num_neurons[side_v]];
     potential[side_h] = new double[num_neurons[side_h]];
@@ -109,74 +104,38 @@ void sm_core::initialize()
     }
 }
 
-void sm_core::weight_load(int cell_type, char *fweight)
+void core::weight_load(int cell_type, char *fweight)
 {
 
 }
 
-template <int is_spk, int is_rng> void sm_core::run_loop(double tnow, double tpre, sm_spk &spk_now, int which_spk, double &simtick, int &new_spk)
-{
-    EVENT_TIME_DUMP(tnow);
-    if (is_spk)
-    {
-        if (param.enable_learning)
-            weight_update(tnow);
-    }
+template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk) {
 
     potential_update_by_leak(tnow - tpre);
-    export_ptn(tnow);
 
-    if (is_spk)
-    {
+    if (is_spk) {
         potential_update_by_spk(spk_now, which_spk);
-        export_ptn(tnow);
-        sm_spk *spk_export;
-        if (which_spk == spk_type_ext)
-        {
-            spk_export = queue_ext.top().second;
-            export_spk(*spk_export, spk_type_ext);
-        }
-        else if (which_spk == spk_type_int)
-        {
-            spk_export = queue_spk.top().second;
-            export_spk(*spk_export, spk_type_int);
-        }
-        else if (which_spk == spk_type_both)
-        {
-            spk_export = queue_ext.top().second;
-            export_spk(*spk_export, spk_type_ext);
-            spk_export = queue_spk.top().second;
-            export_spk(*spk_export, spk_type_int);
-        }
     }
 
-    if (is_rng)
-    {
-        if (param.enable_random_walk)
-        {
+    if (is_rng) {
+        if (param.enable_random_walk) {
             potential_update_by_random_walk();
-            export_ptn(tnow);
-        }
-        else if (param.enable_stochastic_vth)
-        {
-            threshold_update_stochastic();
-            s
         }
         simtick += param.timestep_rng;
     }
 
     new_spk = compare_threshold(tnow);
+
 }
 
-double sm_core::run()
-{
+double core::run() {
 
-    double tend = param.num_of_label * param.num_of_image * phase->get_time_per_image();
+    double tend = 10;
     double tnow = 0.0;
-    double injection_tick = param.timestep_injection;
+    double tpre = 0.0;
     double simtick = param.timestep_rng;
 
-    sm_spk *spk_now;
+    sm_spk* spk_now;
     int which_spk = 0;
     int is_spk = 0;
     int new_spk = 0;
@@ -185,95 +144,61 @@ double sm_core::run()
 
     get_spk(&spk_now, &which_spk);
 
-    cout << setprecision(9);
+    while (1) {
 
-    while (1)
-    {
-
-#ifdef DEBUG_LOOP
         cout << "------LOOP------" << endl;
-#endif
+
         // get spike event
-        if (is_spk)
-        {
-            if (which_spk == spk_type_ext)
-            {
-                delete queue_ext.top().second;
-                queue_ext.pop();
-            }
-            else if (which_spk == spk_type_int)
-            {
-                delete queue_spk.top().second;
-                queue_spk.pop();
-            }
-            else if (which_spk == spk_type_both)
-            {
-                delete queue_ext.top().second;
-                queue_ext.pop();
-                delete queue_spk.top().second;
-                queue_spk.pop();
-            }
+        if (is_spk) {
+            delete queue_ext.top().second;
+            queue_ext.pop();
         }
 
-        if (new_spk || is_spk)
-        {
+        if (new_spk || is_spk) {
             new_spk = 0;
             is_spk = 0;
             get_spk(&spk_now, &which_spk);
         }
 
-#ifdef DEBUG_LOOP
         cout << "simtick " << simtick << " spk time " << spk_now->time << endl;
-#endif
-        if (fabs(simtick - spk_now->time) < FLOAT_EPSILON_TIME)
-        { // simtick == spk_now.time
+
+        if (fabs(simtick - spk_now->time) < FLOAT_EPSILON_TIME) { // simtick == spk_now.time
             tnow = simtick;
-            if (tnow > tend)
-                break;
+            if (tnow > tend) break;
             is_spk = 1;
-            if (spk_now->reset == true)
-            {
+            if (spk_now->reset == true) {
                 potential_reset(*spk_now); // Reset before or after run_loop()???
                 run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                 tpre = tnow;
             }
-            else if (spk_now->st == true)
-            {
+            else if (spk_now->st == true) {
                 last_spk_st_update(*spk_now);
                 run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                 tpre = tnow;
             }
-            else
-            {
+            else {
                 run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                 tpre = tnow;
             }
         }
-        else if (simtick < spk_now->time)
-        {
+        else if (simtick < spk_now->time) {
             tnow = simtick;
-            if (tnow > tend)
-                break;
+            if (tnow > tend) break;
             is_spk = 0;
             run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
             tpre = tnow;
         }
-        else
-        { // if simtick > spk_now.time
+        else { // if simtick > spk_now.time
             tnow = spk_now->time;
-            if (tnow > tend)
-                break;
+            if (tnow > tend) break;
             is_spk = 1;
-            if (spk_now->reset == true)
-            {
+            if (spk_now->reset == true) {
                 potential_reset(*spk_now);
             }
-            else if (spk_now->st == true)
-            {
+            else if (spk_now->st == true) {
                 last_spk_st_update(*spk_now);
             }
-            else
-            {
+            else {
                 run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                 tpre = tnow;
             }
@@ -282,54 +207,51 @@ double sm_core::run()
         loop_count++;
     }
 
-    cout << "Save final wij matrix to wij_last.bin" << endl;
-    if (!param.enable_gpgm)
-    {
-        weight_save(wij_gp, "wij_last.bin");
-    }
-    else
-    {
-        weight_save(wij_gp, "wij_last_gp.bin");
-        weight_save(wij_gm, "wij_last_gm.bin");
-    }
-    cout << "loop_count " << loop_count << endl;
-
     return tnow;
+
 }
 
-/*
-void sm_core::weight_save(int cell_type, string filename) {
-    ofstream os;
-    os.open(filename, ios::binary);
+int core::get_spk(sm_spk** spk_now, int* which_spk) {
+    int num_spk_ext = queue_ext.size();
+    int num_spk_int = queue_spk.size();
 
-    for(int i = 0; i < num_neurons[side_v]; i++) {
-        for(int j = 0; j < num_neurons[sode_h]; j++) {
-            if(cell_type == wij_gp) {
-                os.write((char*)&(weight_matrix[i][j].Gp), sizeof(double));
-            } else {
-                os.write((char*)&(weight_matrix[i][j].Gm), sizeof(double));
-            }
-        }
+    if (num_spk_ext == 0) {
+        if (num_spk_int == 0) { // No More event
+            //*spk_now = spk_null;
+            return -1;
+        }// only num_spk_int exists
+        *spk_now = queue_spk.top().second;
+        *which_spk = spk_type_int;
+        return 0;
+    }
+    else if (num_spk_int == 0) {
+        *spk_now = queue_ext.top().second;
+        *which_spk = spk_type_ext;
+        return 0;
     }
 
-    if(param.wt_Delta_g_set_sigma_cycle) {
-        for(int i = 0; i < num_neurons[side_V]; i++) {
-            for(int j = 0; j < num_neurons[side_h]; j++) {
-                if(cell_type == wij_gp) {
-                    os.write((char*)&(weight_matrix_ideal[i][j].Gp), sizeof(double));
-                } else {
-                    os.write((char*)&(weight_matrix_ideal[i][j].Gm), sizeof(double));
-                }
-            }
+    sm_spk* spk_ext = queue_ext.top().second;
+    sm_spk* spk_int = queue_spk.top().second;
+
+    if (fabs(spk_ext->time - spk_int->time) < FLOAT_EPSILON_TIME) {
+        if ((spk_ext->reset == spk_int->reset) && (spk_ext->st == spk_int->st)) {
+            spk_ext->merge(*spk_int);
+            *spk_now = spk_ext;
+            *which_spk = spk_type_both;
+        }
+        else {
+            *spk_now = spk_ext;
+            *which_spk = spk_type_ext;
         }
     }
+    else if (spk_ext->time < spk_int->time) {
+        *spk_now = spk_ext;
+        *which_spk = spk_type_ext;
+    }
+    else { // spk_ext->time > spk_int->time
+        *spk_now = spk_int;
+        *which_spk = spk_type_int;
+    }
 
-    os.close();
+    return 0;
 }
-
-#ifdef DEBUG_LOOP
-#define EVENT_TIME_DUMP(t)          printf("event_now.time: %.09f\n", t)
-#else
-#define EVENT_TIME_DUMP(t)
-#endif
-*/

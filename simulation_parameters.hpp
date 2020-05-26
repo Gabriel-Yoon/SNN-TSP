@@ -79,6 +79,13 @@ struct simulation_parameters {
 };
 
 enum : int {
+    spk_type_both,
+    spk_type_ext,
+    spk_type_int,
+    spk_null
+};
+
+enum : int {
     rng_lfsr32,
     rng_lfsr16,
     rng_lfsr8,

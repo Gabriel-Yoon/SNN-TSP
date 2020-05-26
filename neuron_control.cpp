@@ -1,11 +1,11 @@
 // Control Potential of Neurons
 #include <cassert>
 #include <iostream>
-#include <strings.h>
+#include <math.h>
 
-#include "smsim.hpp"
+#include "spike_control.hpp"
 #include "core.hpp"
-#include "sm_rng.hpp"
+
 
 using namespace std;
 
@@ -16,16 +16,16 @@ template<int side> void core::potential_update_by_spk_core(sm_spk &spk_now, doub
     for(int idx = 0; idx < num_neurons[side]; idx++) {
         bool not_in_ref_st = last_spk_st[side][idx] < last_spk_refractory;
         bool not_in_ref_in = last_spk_in[side][idx] < last_spk_refractory;
-        if(not_in_ref_st && (!param.hw_ISO_MOD || not_int_ref_in))
-            potential[side][idx] += wsum[side][idx] * param.pt.alpha;
+        if(not_in_ref_st && (!param.hw_ISO_MOD || not_in_ref_in))
+            potential[side][idx] += wsum[side][idx] * param.pt_alpha;
     }
 }
 
 void core::potential_update_by_spk(sm_spk &spk_now, int which_spk) {
 
     // Clear out wsum
-    bzero((void*)wsum[side_v], sizeof(double) * num_neurons[side_v]);
-    bzero((void*)wsum[side_h], sizeof(double) * num_neurons[side_h]);
+    memset((void*)wsum[side_v], 0, sizeof(double) * num_neurons[side_v]);
+    memset((void*)wsum[side_h], 0, sizeof(double) * num_neurons[side_h]);
 
     int spk_side_v = 0;
     int spk_side_h = 0;
@@ -35,7 +35,7 @@ void core::potential_update_by_spk(sm_spk &spk_now, int which_spk) {
             spk_side_v = 1;
             int a = it->second / 5 + 1;
             int b = it->second % 5 + 1;
-            printf('spike at WTA[%d][%d]\n', a, b);
+            printf("spike at WTA[%d][%d]\n", a, b);
 
             for(int i = 0; i < num_neurons[side_h]; i++) {
                 wsum[side_h][i] += (weight_matrix[it->second][i].Gp - weight_matrix[it->second][i].Gm);
@@ -45,7 +45,7 @@ void core::potential_update_by_spk(sm_spk &spk_now, int which_spk) {
             spk_side_h = 1;
             int a = it->second / 5 + 1;
             int b = it->second % 5 + 1;
-            printf('spike at WTA[%d][%d]\n', a, b);
+            printf("spike at WTA[%d][%d]\n", a, b);
 
             for(int i = 0; i < num_neurons[side_v]; i++) {
                 wsum[side_v][i] += (weight_matrix[i][it->second].Gp - weight_matrix[i][it->second].Gm);
@@ -74,7 +74,6 @@ int core::compare_threshold(double tnow)
     sm_spk *new_spk = new sm_spk;
     sm_spk *new_spk_reset = new sm_spk;
     double time_in_ref = tnow - param.refractory_time;
-    int which_side = side;
 
     for (int h_idx = 0; h_idx < num_neurons[side_h]; h_idx++){
         bool compared = potential[side_h][h_idx] > threshold[side_h][h_idx];
@@ -90,10 +89,9 @@ int core::compare_threshold(double tnow)
         // Spike event checkboard 'last_spk_st' mark / spike event
         if(not_in_ref) {
             last_spk_st[side_h][h_idx] = tnow;
-            new_spk->spk.push_back(make_pair(side_h, h_idx))
+            new_spk->spk.push_back(make_pair(side_h, h_idx));
         }
     }
-
 
     double time_fire2 = tnow + param.delay_spikein2out;
 
@@ -126,55 +124,98 @@ int core::compare_threshold(double tnow)
     return spike_flag;
 }
 
-/*
-template<int side> void sm_core::potential_update_by_random_walk_core() {
+template<int side> void core::potential_update_by_random_walk_core() {
 
-    int start_neuron = 0;
-    if(!param.enable_learning && (side == side_v)) {
-        start_neuron = neurons_visible_data;
-    }
-
-#ifndef ENABLE_AVX
-    for(int i  = start_neuron; i < num_neurons_datalabel[side]; i++) {
-        int val = rng_rwalk->get_val() * 2 - 1; // 1 or -1
+    for (int i = 0; i < num_neurons[side]; i++) {
+        int val = 1; // 1 or -1
         potential[side][i] += (param.random_walk_step * val) * (1 + param.random_walk_mismatch * val);
     }
-#else
-    int interval = sizeof(__m256d) / sizeof(double);
-    int start_simd = (start_neuron % interval == 0) ? start_neuron : ((int)(start_neuron / interval) + 1) * interval;
-    int end_simd = (num_neurons_datalabel[side] % interval == 0) ? num_neurons_datalabel[side]
-                                        : (int)(num_neurons_datalabel[side] / interval) * interval;
-
-    for(int i = start_neuron; i < start_simd; i++) {
-        int val = rng_walk->get_val() * 2 - 1; // 1 or -1
-        potential[side][i] += (param.random_walk_step * val) * (1 + param.random_walk_mismatch * val);
-    }
-
-    __m256d veczero = _mm256_setzero_pd();
-    __m256d step_plus = _mm256_set1_pd(param.random_walk_step * (1.0 + param.random_walk_mismatch));
-    __m256d step_minus = _mm256_set1_pd(-param.random_walk_step * (1.0 - param.random_walk_mismatch));
-    for(int i = start_simd; i < end_simd; i += interval) {
-        __m256 rng_val = _mm256_set_pd(rng_rwalk->get_val(),
-                                        rng_rwalk->get_val(),
-                                        rng_rwalk->get_val(),
-                                        rng_rwalk->get_val());
-        __m256d pt = _mm256_load_pd(&potential[side][i]);
-        __m256d val = _mm256_blendv_pd(step_plus, step_minus, _mm256_cmp_pd(rng_val, veczero, _CMP_EQ_OQ));
-        _mm256_store_pd(&potential[side][i], _mm256_add_pd(pt, val));
-    }
-
-    for(int i = end_simd; i < num_neurons_datalabel[side]; i++) {
-        int val = rng_rwalk->get_val() * 2 - 1; // 1 or -1
-        potential[side][i] += (param.random_walk_step * val) * (1 + param.random_walk_mismatch * val);
-    }
-#endif
 
 }
 
-void sm_core::potential_update_by_random_walk() {
-    SPK_DUMP_H("r");
-
+void core::potential_update_by_random_walk() {
     potential_update_by_random_walk_core<side_h>();
     potential_update_by_random_walk_core<side_v>();
 }
-*/
+
+
+
+template<int side> void core::potential_update_by_leak_core(double tdiff) {
+
+    double exp_val = exp(-tdiff / param.pt_lk_tau);
+    for (int i = 0; i < num_neurons[side]; i++) {
+        potential[side][i] *= exp_val;
+    }
+
+}
+
+void core::potential_update_by_leak(double tdiff) {
+    potential_update_by_leak_core<side_h>(tdiff);
+    potential_update_by_leak_core<side_v>(tdiff);
+}
+
+
+void core::ext_spike_load(double tend) {
+
+    int side;
+    int neuron = 0;
+    double time;
+    double injection_step = fmod(tend, param.timestep_injection);
+    priority_queue<pair<double, sm_spk_one*>, vector<pair<double, sm_spk_one*>>,greater<pair<double, sm_spk_one*>>> queue_ext_pri;
+
+    for (int i = 0; i < injection_step; i++) {
+        sm_spk_one* spk = new sm_spk_one;
+        spk->time = i * param.timestep_injection;
+        spk->side = side_h;
+        spk->neuron = neuron;
+        queue_ext_pri.push(make_pair(time, spk));
+    }
+  
+    while (!queue_ext_pri.empty()) {
+        sm_spk_one* spk_one = queue_ext_pri.top().second;
+        queue_ext_pri.pop();
+
+        // Dummy event to kick compare_threshold at the end of refractory time
+        double ref_end_time = spk_one->time + param.refractory_time + FLOAT_EPSILON_TIME;
+        sm_spk* spk_ref = new sm_spk;
+        spk_ref->time = ref_end_time;
+        queue_ext.push(make_pair(ref_end_time, spk_ref));
+
+        sm_spk* spk_ext = new sm_spk; // Actual spike event
+        spk_ext->spk.push_back(make_pair(spk_one->side, spk_one->neuron));
+
+        //Find spikes at the same timing
+        while (!queue_ext_pri.empty()) {
+            sm_spk_one* spk_next = queue_ext_pri.top().second;
+            if (spk_one->time != spk_next->time) { break; }
+            spk_ext->spk.push_back(make_pair(spk_next->side, spk_next->neuron));
+            delete spk_next;
+            queue_ext_pri.pop();
+        }
+
+        // Create last_spk_st update event for ST_PAUSE
+        sm_spk* spk_st_update = new sm_spk(*spk_ext);
+        spk_st_update->time = spk_one->time;
+        spk_st_update->st = true;
+        queue_ext.push(make_pair(spk_st_update->time, spk_st_update));
+
+        double time_fire2 = spk_one->time + param.delay_spikein2out;
+
+        // Create reset event
+        if (param.hw_RES_EN) {
+            sm_spk* spk_ext_reset = new sm_spk(*spk_ext);
+            spk_ext_reset->time = time_fire2;
+            spk_ext_reset->reset = true;
+            queue_ext.push(make_pair(time_fire2, spk_ext_reset));
+        }
+
+        // Push spike event to queue
+
+        spk_ext->time = time_fire2 + param.delay_spikeout2wlr + param.wlr_width;
+
+        queue_ext.push(make_pair(spk_ext->time, spk_ext));
+
+
+        delete spk_one;
+    }
+}
