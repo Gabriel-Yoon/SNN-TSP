@@ -8,6 +8,64 @@
         int h_idx_i = h_idx / num_city + 1;
         int h_idx_j = h_idx % num_city + 1:
 */
+/*
+template<bool same_WTA, bool same_city> void core::weight_setup_loop(int num_city) {
+
+    if(same_WTA){
+    	if(same_city){ // self connection
+
+    	}
+    }
+
+}
+*/
+
+void core::weight_setup(int num_city){
+	
+	int v_WTA, v_city, h_WTA, h_city;
+	// i : WTA Network, j : City
+    for (int v_idx = 0; v_idx < num_neurons[side_v]; v_idx++){
+        for (int h_idx = 0; h_idx < num_neurons[side_h]; h_idx++){
+            double &weight = weight_matrix[v_idx][h_idx].Gp;
+			double max_w = 10;
+        	double min_w = 0;
+        	double distance = distance_matrix[v_idx][h_idx];
+
+            v_WTA = v_idx / num_city + 1;
+            v_city = v_idx % num_city + 1;
+            h_WTA = h_idx / num_city + 1;
+            h_city = h_idx % num_city + 1;
+
+            bool same_WTA = (v_WTA == h_WTA);
+            bool same_city = (v_city == h_city);
+
+            if(same_WTA){
+            	if(same_city){
+            		weight = 0;
+            	}
+            	else{ // in the same_WTA but btw different cities
+            		weight = - 10e-6;
+            	}
+            }
+            else if(fabs((v_WTA % num_city)-(h_WTA % num_city)) == 1){ // adjacent WTA
+            	if(same_city){
+            		weight = - 100e-6;
+            	}else{
+            		weight = distance * 10e-6;
+            	}
+            }
+            else{ //non-adjacent WTA networks
+            	if(same_city){
+            		weight = - 100e-6; // inhibition btw same cities
+            	}else{
+            		weight = 0;
+            	}
+
+            }
+            weight_setup_loop<same_WTA, same_city>(num_city);
+        }
+    }
+}
 
 inline void core::weight_set_gp(int v_idx, int h_idx) {
         double &weight = weight_matrix[v_idx][h_idx].Gp;

@@ -82,7 +82,6 @@ enum : int {
     spk_type_both,
     spk_type_ext,
     spk_type_int,
-    spk_null
 };
 
 enum : int {

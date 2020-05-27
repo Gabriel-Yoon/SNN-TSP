@@ -104,11 +104,6 @@ void core::initialize()
     }
 }
 
-void core::weight_load(int cell_type, char *fweight)
-{
-
-}
-
 template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk) {
 
     potential_update_by_leak(tnow - tpre);

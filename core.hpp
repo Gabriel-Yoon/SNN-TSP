@@ -41,7 +41,7 @@ private:
 
     int num_neurons[2];
     int num_neurons_bias[2];
-    int WTA[5]; // indexing array
+    // int WTA[5]; // indexing array - maybe not needed!
 
     double* potential[2];
     double* threshold[2];
@@ -98,10 +98,6 @@ private:
 
     template<int is_spk, int is_rng> void run_loop(double tnow, double tpre, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk);
 
-    // NOT YET DEFINED Functions
-
-    void weight_load(int cell_type, char* fweight);
-
     // Potential-update-related methods: implemented in sm_potential.cpp
     void potential_update_by_random_walk();
     template<int side> void potential_update_by_random_walk_core();
@@ -118,6 +114,8 @@ private:
     int compare_threshold(double tnow);
 
     // Weight-update methods
+    //template<bool same_WTA, bool same_city> void weight_setup_loop(int num_city);
+    void weight_setup(int num_city);
     inline void weight_set_gp(int v_idx, int h_idx);
 
 };
