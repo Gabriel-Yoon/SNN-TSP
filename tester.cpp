@@ -20,10 +20,7 @@ struct cmp {
 };
 
 int main(void) {
-
-    
-    core mycore();
+	core mycore;
     mycore.initialize();
-    double simulation_time = mycore.run();
-    return 0;
+    double a = mycore.run();
 }

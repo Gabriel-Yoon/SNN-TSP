@@ -13,7 +13,7 @@ simulation_parameters::simulation_parameters() {
 
     timestep = 1e-6;
     timestep_rng = 10e-6;
-    timestep_injection = 10e-6;
+    timestep_injection = 20e-6;
 
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
