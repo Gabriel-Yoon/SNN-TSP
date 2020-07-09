@@ -32,7 +32,7 @@ private:
 	vector<vector<double>> distance_matrix;
 
 	// Neurons
-	int num_city = 10;
+	int num_city = 4;
 
 	int neurons_visible_city;
 	int neurons_visible_bias;

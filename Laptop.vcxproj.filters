@@ -30,9 +30,6 @@
     <ClCompile Include="synapse_setting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="testcenter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="tester.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
