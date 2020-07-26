@@ -32,7 +32,7 @@ private:
 	vector<vector<double>> distance_matrix;
 
 	// Neurons
-	int num_city = 4;
+	int num_city = 6;
 
 	int neurons_visible_city;
 	int neurons_visible_bias;
@@ -115,6 +115,9 @@ private:
 	void last_spk_st_update(sm_spk& spk_now);
 
 	int compare_threshold(double tnow);
+
+	// Export method
+	void export_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 
 	// Weight-update methods
 

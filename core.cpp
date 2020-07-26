@@ -1,4 +1,4 @@
-
+#include <fstream>
 #include <iostream>
 
 #include "core.hpp"
@@ -113,6 +113,15 @@ void core::initialize()
 
 }
 
+void core::export_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
+
+    // spk_now information transfer
+    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        exportFile << spk_now.time << "," << it->first << "," << it->second << "\n";
+    }
+    
+}
+
 int core::get_spk(sm_spk** spk_now, int* which_spk) {
     
     cout << "-<Start> get_spk" << endl;
@@ -199,26 +208,10 @@ void core::ext_spike_load(double tend) {
         queue_ext_pri.push(make_pair(spk->time, spk));
     }
 
-
-    // Only two events will be covered : Potential reset event and Actual spike event
+    
     while (!queue_ext_pri.empty()) {
         sm_spk_one* spk_one = queue_ext_pri.top().second;
         queue_ext_pri.pop();
-
-        /*
-        // Dummy event to kick compare_threshold at the end of refractory time
-        double ref_end_time = spk_one->time + param.refractory_time + FLOAT_EPSILON_TIME;
-        sm_spk* spk_ref = new sm_spk;
-        spk_ref->time = ref_end_time;
-        queue_ext.push(make_pair(ref_end_time, spk_ref));
-
-        // Create last_spk_st update event for ST_PAUSE
-        sm_spk* spk_st_update = new sm_spk(*spk_ext);
-        spk_st_update->time = spk_one->time;
-        spk_st_update->st = true;
-        queue_ext.push(make_pair(spk_st_update->time, spk_st_update));
-
-        */
 
         // Formulate Spike Template
         sm_spk* spk_ext = new sm_spk;
@@ -226,7 +219,19 @@ void core::ext_spike_load(double tend) {
 
         double time_fire2 = spk_one->time + param.delay_spikein2out;
 
-        // Create reset event
+        // 1. Dummy event to kick compare_threshold at the end of refractory time
+        double ref_end_time = spk_one->time + param.refractory_time + FLOAT_EPSILON_TIME;
+        sm_spk* spk_ref = new sm_spk;
+        spk_ref->time = ref_end_time;
+        queue_ext.push(make_pair(ref_end_time, spk_ref));
+
+        // 2. Create last_spk_st update event for ST_PAUSE
+        sm_spk* spk_st_update = new sm_spk(*spk_ext);
+        spk_st_update->time = spk_one->time;
+        spk_st_update->st = true;
+        queue_ext.push(make_pair(spk_st_update->time, spk_st_update));
+
+        // 3. Create reset event
         if (param.hw_RES_EN) {
             sm_spk* spk_ext_reset = new sm_spk(*spk_ext);
             spk_ext_reset->time = time_fire2;
@@ -265,7 +270,30 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
 
 double core::run() {
 
-    double tend = 1;
+    // Setting the export file
+    ofstream exportFile;
+
+    string filename;
+    string str1 = std::to_string(num_city);
+    string str2 = std::to_string(param.same_WTA_diff_cities);
+    string str3 = std::to_string(param.adj_WTA_same_cities);
+    string str4 = std::to_string(param.non_adj_WTA_same_cities);
+
+    filename.append("TSP_ ");
+    filename.append("num_city ");
+    filename.append(str1);
+    filename.append("same_WTA_diff_cities= ");
+    filename.append(str2);
+    filename.append("adj_WTA_same_cities= ");
+    filename.append(str3);
+    filename.append("non_adj_WTA_same_cities= ");
+    filename.append(str4);
+    filename.append(".csv");
+    
+    exportFile.open(filename);
+    exportFile << "time" << "," << "side" << "," << "index" << "\n";
+
+    double tend = 0.03;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -280,8 +308,13 @@ double core::run() {
     ext_spike_load(tend); //get queue_ext ready
     get_spk(&spk_now, &which_spk);
     
+    // export test script
     cout << spk_now->time << endl;
+
+    //exportFile << spk_now->time << "," << spk_now->spk.begin()->first << "," << spk_now->spk.end()->second << "\n";
+    // export_to_csv(exportFile, *spk_now, tend);
     
+
     while (1) {
 
         cout << "------------------------------------------LOOP------------------------------------------" << endl;
@@ -332,6 +365,7 @@ double core::run() {
             else {
                 cout << "CASE 1-3" << endl;
                 run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+                export_to_csv(exportFile, *spk_now, tend);
                 tpre = tnow;
             }
         }
@@ -358,22 +392,26 @@ double core::run() {
             else {
                 cout << "CASE 3-3" << endl;
                 run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+                export_to_csv(exportFile, *spk_now, tend);
                 tpre = tnow;
             }
         }
-        
-        // Traveling route check
+
+        // [FILE EXPORT] Traveling route check + file export
         for (int i = 1; i < num_city+1; i++) {
             for (int j = 1; j < num_city+1; j++) {
+                int idx = (i - 1) * num_city + (j - 1);
+                //mywriteoutfile.write(str.c_str(), potential[side_h][idx]);
                 if (WTA[i][j]) {
                     printf("Travel city %d at step %d\n", j, i);
                 }
             }
+            //mywriteoutfile << endl;
         }
-
+        
         loop_count++;
     }
-    
+    exportFile.close();
     return tnow;
 
 }

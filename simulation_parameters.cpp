@@ -15,6 +15,10 @@ simulation_parameters::simulation_parameters() {
     timestep_rng = 10e-6;
     timestep_injection = 20e-6;
 
+    same_WTA_diff_cities = -0.2;
+    adj_WTA_same_cities = -0.2;
+    non_adj_WTA_same_cities = -0.2;
+
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
     refractory_time = 4e-3 - FLOAT_EPSILON_TIME;
