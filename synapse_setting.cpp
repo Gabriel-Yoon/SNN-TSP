@@ -32,13 +32,13 @@ void core::weight_setup(){
                     weight_flag = "0";
             	}
             	else{ // in the same_WTA but btw different cities
-                    weight_matrix[v_idx][h_idx].Gp = - 0.4;
+                    weight_matrix[v_idx][h_idx].Gp = param.same_WTA_diff_cities;
                     weight_flag = "-";
             	}
             }
             else if(fabs((v_WTA )-(h_WTA )) == 1 || fabs((v_WTA)-(h_WTA)) == (num_city-1)){ // adjacent WTA
             	if(v_city == h_city){ // adjacent WTA - same city = inhibition!
-                    weight_matrix[v_idx][h_idx].Gp = - 0.4;
+                    weight_matrix[v_idx][h_idx].Gp = param.adj_WTA_same_cities;
                     weight_flag = "/";
             	}else{ // THE MOST IMPORTANT PART OF THE TRAVELING SALESMAN PROBLEM
                     weight_matrix[v_idx][h_idx].Gp = distance*0.0001+0.1;
@@ -47,7 +47,7 @@ void core::weight_setup(){
             }
             else if(fabs((v_WTA % num_city) - (h_WTA % num_city)) != 1) { //non-adjacent WTA networks
             	if(v_city == h_city){
-                    weight_matrix[v_idx][h_idx].Gp = - 0.4; // inhibition btw same cities
+                    weight_matrix[v_idx][h_idx].Gp = param.non_adj_WTA_same_cities; // inhibition btw same cities
                     weight_flag = "|";
             	}else{ // no connection
                     weight_matrix[v_idx][h_idx].Gp = 0;

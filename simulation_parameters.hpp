@@ -17,6 +17,11 @@ struct simulation_parameters {
     double timestep_rng;
     double timestep_injection;
 
+    // TSP Inhibition Weight Setup
+    double same_WTA_diff_cities;
+    double adj_WTA_same_cities;
+    double non_adj_WTA_same_cities;
+
     // Spike modulation
     double wlr_width;
     double stdp_window;
