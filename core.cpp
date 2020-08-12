@@ -113,13 +113,24 @@ void core::initialize()
 
 }
 
-void core::export_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
+void core::export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
 
-    // spk_now information transfer
+    // [FILE EXPORT] Export spike time and neuron index to csv file
     for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
-        exportFile << spk_now.time << "," << it->first << "," << it->second << "\n";
+        exportFile << spk_now.time << "," << it->first << "," << it->second+1 << "\n";
     }
-    
+}
+
+void core::export_potential_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
+
+    // [FILE EXPORT] Export neuron potentials to csv file
+    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        exportFile << spk_now.time << ",";
+        for (int i = 0; i < num_neurons[side_h]; i++) {
+            exportFile << potential[side_h][i] << ",";
+        }
+        exportFile << "\n";
+    }
 }
 
 int core::get_spk(sm_spk** spk_now, int* which_spk) {
@@ -270,30 +281,8 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
 
 double core::run() {
 
-    // Setting the export file
-    ofstream exportFile;
-
-    string filename;
-    string str1 = std::to_string(num_city);
-    string str2 = std::to_string(param.same_WTA_diff_cities);
-    string str3 = std::to_string(param.adj_WTA_same_cities);
-    string str4 = std::to_string(param.non_adj_WTA_same_cities);
-
-    filename.append("TSP_ ");
-    filename.append("num_city ");
-    filename.append(str1);
-    filename.append("same_WTA_diff_cities= ");
-    filename.append(str2);
-    filename.append("adj_WTA_same_cities= ");
-    filename.append(str3);
-    filename.append("non_adj_WTA_same_cities= ");
-    filename.append(str4);
-    filename.append(".csv");
-    
-    exportFile.open(filename);
-    exportFile << "time" << "," << "side" << "," << "index" << "\n";
-
-    double tend = 0.03;
+    /* Simulation settings */
+    double tend = 0.01;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -314,6 +303,63 @@ double core::run() {
     //exportFile << spk_now->time << "," << spk_now->spk.begin()->first << "," << spk_now->spk.end()->second << "\n";
     // export_to_csv(exportFile, *spk_now, tend);
     
+    /* [FILE EXPORT] Setting the export file */
+    ofstream exportFile_potential;
+    ofstream exportFile_spike;
+
+    string filename;
+    string str1 = std::to_string(num_city);
+    string str2 = std::to_string(param.same_WTA_diff_cities);
+    string str3 = std::to_string(param.adj_WTA_same_cities);
+    string str4 = std::to_string(param.non_adj_WTA_same_cities);
+    string str5 = std::to_string(tend);
+
+    filename.append("TSP_ ");
+    filename.append("num_city=");
+    filename.append(str1);
+    filename.append(" ");
+    filename.append("same_WTA_diff_cities= ");
+    filename.append(str2);
+    filename.append(" ");
+    filename.append("adj_WTA_same_cities= ");
+    filename.append(str3);
+    filename.append(" ");
+    filename.append("non_adj_WTA_same_cities= ");
+    filename.append(str4);
+    filename.append("tend= ");
+    filename.append(str5);
+    filename.append(".csv");
+
+
+    // [FILE EXPORT] POTENTIAL FILE
+    string filename_potential;
+    filename_potential.append("Potential_");
+    filename_potential.append(filename);
+
+    exportFile_potential.open(filename_potential);
+    exportFile_potential << "time" << ",";
+    for (int i = 1; i <= num_neurons[side_h]; i++) {
+        exportFile_potential << "neuron_" << i << ",";
+    }
+    exportFile_potential << "\n";
+
+    // [FILE EXPORT] Export initial potential
+    exportFile_potential << 0 << ",";
+    for (int i = 0; i < num_neurons[side_h]; i++) {
+        exportFile_potential << potential[side_h][i] << ",";
+    }
+    exportFile_potential << "\n";
+
+
+    // [FILE EXPORT] SPIKE FILE
+    string filename_spike;
+    filename_spike.append("Spike_");
+    filename_spike.append(filename);
+
+    exportFile_spike.open(filename_spike);
+    exportFile_spike << "time" << "," << "neuron_index" << "\n";
+
+    /* [FILE EXPORT] END */
 
     while (1) {
 
@@ -365,7 +411,8 @@ double core::run() {
             else {
                 cout << "CASE 1-3" << endl;
                 run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                export_to_csv(exportFile, *spk_now, tend);
+                export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
+                export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
                 tpre = tnow;
             }
         }
@@ -392,7 +439,8 @@ double core::run() {
             else {
                 cout << "CASE 3-3" << endl;
                 run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                export_to_csv(exportFile, *spk_now, tend);
+                export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
+                export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
                 tpre = tnow;
             }
         }
@@ -411,7 +459,8 @@ double core::run() {
         
         loop_count++;
     }
-    exportFile.close();
+    exportFile_potential.close();
+
     return tnow;
 
 }

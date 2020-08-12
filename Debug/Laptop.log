@@ -1,1 +1,4 @@
-﻿  Laptop.vcxproj -> C:\Users\ASUS\Documents\GitHub\SNN-TSP\SNN-TSP\Debug\Laptop.exe
+﻿  core.cpp
+C:\Users\Gabriel\source\repos\SNN-TSP\core.cpp(93,12): warning C4101: 'j' :참조되지 않은 지역 변수입니다.
+C:\Users\Gabriel\source\repos\SNN-TSP\core.cpp(210,12): warning C4101: 'time' :참조되지 않은 지역 변수입니다.
+  Laptop.vcxproj -> C:\Users\Gabriel\source\repos\SNN-TSP\Debug\Laptop.exe

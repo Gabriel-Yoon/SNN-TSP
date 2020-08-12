@@ -117,7 +117,8 @@ private:
 	int compare_threshold(double tnow);
 
 	// Export method
-	void export_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
+	void export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
+	void export_potential_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 
 	// Weight-update methods
 
