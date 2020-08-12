@@ -1,2 +1,4 @@
 C:\Users\Gabriel\source\repos\SNN-TSP\Debug\Laptop.exe
 C:\Users\Gabriel\source\repos\SNN-TSP\Debug\Laptop.pdb
+C:\Users\윤영빈\source\repos\SNN-TSP\Debug\Laptop.exe
+C:\Users\윤영빈\source\repos\SNN-TSP\Debug\Laptop.pdb

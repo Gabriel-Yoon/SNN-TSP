@@ -133,6 +133,31 @@ void core::export_potential_info_to_csv(ofstream& exportFile, sm_spk& spk_now, d
     }
 }
 
+void core::export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
+
+    bool travel_flag = false;
+
+    // [FILE EXPORT] Export neuron potentials to csv file
+    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        exportFile << spk_now.time << ",";
+        for (int i = 1; i < num_city+1; i++) {
+            for (int j = 1; j < num_city + 1; j++) {
+                if (WTA[i][j]) {
+                    exportFile << j << ",";
+                    travel_flag = true;
+                }
+
+                if (!travel_flag) {
+                    exportFile << 0 << ",";
+                }
+
+                travel_flag = false;
+            }
+        }
+        exportFile << "\n";
+    }
+}
+
 int core::get_spk(sm_spk** spk_now, int* which_spk) {
     
     cout << "-<Start> get_spk" << endl;
@@ -303,9 +328,11 @@ double core::run() {
     //exportFile << spk_now->time << "," << spk_now->spk.begin()->first << "," << spk_now->spk.end()->second << "\n";
     // export_to_csv(exportFile, *spk_now, tend);
     
-    /* [FILE EXPORT] Setting the export file */
+
+    ///* [FILE EXPORT] Setting the export file *///
     ofstream exportFile_potential;
     ofstream exportFile_spike;
+    ofstream exportFile_travel;
 
     string filename;
     string str1 = std::to_string(num_city);
@@ -332,7 +359,7 @@ double core::run() {
 
 
     // [FILE EXPORT] POTENTIAL FILE
-    string filename_potential;
+    string filename_potential; // Make new filemane for potential csv file
     filename_potential.append("Potential_");
     filename_potential.append(filename);
 
@@ -351,6 +378,8 @@ double core::run() {
     exportFile_potential << "\n";
 
 
+
+
     // [FILE EXPORT] SPIKE FILE
     string filename_spike;
     filename_spike.append("Spike_");
@@ -359,7 +388,22 @@ double core::run() {
     exportFile_spike.open(filename_spike);
     exportFile_spike << "time" << "," << "neuron_index" << "\n";
 
-    /* [FILE EXPORT] END */
+
+
+
+    // [FILE EXPORT] TRAVEL ROUTE FILE
+    string filename_travel;
+    filename_travel.append("Travel_");
+    filename_travel.append(filename);
+
+    exportFile_travel.open(filename_travel);
+    exportFile_travel << "time" << ",";
+    for (int i = 1; i <= num_city+1; i++) {
+        exportFile_travel << "step_" << i << ",";
+    }
+    exportFile_travel << "\n";
+
+    ///* [FILE EXPORT] END *///
 
     while (1) {
 
@@ -451,7 +495,7 @@ double core::run() {
                 int idx = (i - 1) * num_city + (j - 1);
                 //mywriteoutfile.write(str.c_str(), potential[side_h][idx]);
                 if (WTA[i][j]) {
-                    printf("Travel city %d at step %d\n", j, i);
+                    printf("Step %d : City %d\n", j, i);
                 }
             }
             //mywriteoutfile << endl;
@@ -460,6 +504,8 @@ double core::run() {
         loop_count++;
     }
     exportFile_potential.close();
+    exportFile_spike.close();
+    exportFile_travel.close();
 
     return tnow;
 
