@@ -137,7 +137,7 @@ void core::export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, doub
 
     bool travel_flag = false;
 
-    // [FILE EXPORT] Export neuron potentials to csv file
+    // [FILE EXPORT] Export travel sequence to csv file
     for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
         exportFile << spk_now.time << ",";
         for (int i = 1; i < num_city+1; i++) {
@@ -146,13 +146,14 @@ void core::export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, doub
                     exportFile << j << ",";
                     travel_flag = true;
                 }
-
-                if (!travel_flag) {
-                    exportFile << 0 << ",";
-                }
-
-                travel_flag = false;
             }
+
+            // No city involved in the step 'i', then export 0 as default
+            if (!travel_flag) {
+                exportFile << 0 << ",";
+            }
+
+            travel_flag = false;
         }
         exportFile << "\n";
     }
@@ -398,7 +399,7 @@ double core::run() {
 
     exportFile_travel.open(filename_travel);
     exportFile_travel << "time" << ",";
-    for (int i = 1; i <= num_city+1; i++) {
+    for (int i = 1; i < num_city; i++) {
         exportFile_travel << "step_" << i << ",";
     }
     exportFile_travel << "\n";
@@ -457,7 +458,7 @@ double core::run() {
                 run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                 export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
                 export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
-                export_travel_info_to_csv(exportFile_spike, *spk_now, tend);
+                export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
             }
         }
@@ -486,7 +487,7 @@ double core::run() {
                 run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                 export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
                 export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
-                export_travel_info_to_csv(exportFile_spike, *spk_now, tend);
+                export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
             }
         }

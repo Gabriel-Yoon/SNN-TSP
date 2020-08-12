@@ -131,6 +131,12 @@ int core::compare_threshold(double tnow){
             }
             else if (WTA_condition_checker == 1) {
                 printf("Modify travel route at step %d from city %d to city %d\n", h_WTA, previous_route_city, h_city);
+                if (WTA[h_WTA][previous_route_city]) {
+                    printf("WTA[h_WTA][previous_route_city] is true");
+                }
+                else {
+                    printf("WTA[h_WTA][previous_route_city] is false");
+                }
                 WTA[h_WTA][previous_route_city] = false;
                 WTA[h_WTA][h_city] = true;
             }
