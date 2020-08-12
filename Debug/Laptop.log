@@ -1,4 +1,12 @@
 ﻿  core.cpp
 C:\Users\윤영빈\source\repos\SNN-TSP\core.cpp(93,12): warning C4101: 'j': unreferenced local variable
-C:\Users\윤영빈\source\repos\SNN-TSP\core.cpp(209,12): warning C4101: 'time': unreferenced local variable
+C:\Users\윤영빈\source\repos\SNN-TSP\core.cpp(234,12): warning C4101: 'time': unreferenced local variable
+  neuron_control.cpp
+C:\Users\윤영빈\source\repos\SNN-TSP\neuron_control.cpp(201,19): warning C4244: 'initializing': conversion from '_Rep' to 'unsigned int', possible loss of data
+          with
+          [
+              _Rep=std::chrono::system_clock::rep
+          ]
+C:\Users\윤영빈\source\repos\SNN-TSP\neuron_control.cpp(238): message : see reference to function template instantiation 'void core::potential_update_by_random_walk_core<side_h>(void)' being compiled
+  Generating Code...
   Laptop.vcxproj -> C:\Users\윤영빈\source\repos\SNN-TSP\Debug\Laptop.exe
