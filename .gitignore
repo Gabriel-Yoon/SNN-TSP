@@ -1,1 +1,7 @@
 *.opendb
+*.ipch
+*.csv
+
+v16/
+ipch/
+
