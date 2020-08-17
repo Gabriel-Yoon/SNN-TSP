@@ -1,8 +1,15 @@
-﻿  neuron_control.cpp
+﻿  core.cpp
+C:\Users\Gabriel\source\repos\SNN-TSP\core.cpp(107,12): warning C4101: 'j' :참조되지 않은 지역 변수입니다.
+C:\Users\Gabriel\source\repos\SNN-TSP\core.cpp(249,12): warning C4101: 'time' :참조되지 않은 지역 변수입니다.
+  neuron_control.cpp
 C:\Users\Gabriel\source\repos\SNN-TSP\neuron_control.cpp(244,19): warning C4244: '초기화 중': '_Rep'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
           with
           [
               _Rep=std::chrono::system_clock::rep
           ]
 C:\Users\Gabriel\source\repos\SNN-TSP\neuron_control.cpp(294): message : 컴파일되는 함수 템플릿 인스턴스화 'void core::potential_update_by_random_walk_core<side_h>(double)'에 대한 참조를 확인하세요.
+  simulation_parameters.cpp
+  synapse_setting.cpp
+C:\Users\Gabriel\source\repos\SNN-TSP\synapse.hpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+  코드를 생성하고 있습니다...
   Laptop.vcxproj -> C:\Users\Gabriel\source\repos\SNN-TSP\Debug\Laptop.exe

@@ -65,11 +65,11 @@ void core::weight_setup(){
                 weight = min_w;
             }
 
-            cout << weight_flag;
+            //cout << weight_flag;
         }
-        printf("\n");
+        //printf("\n");
     }
-    printf("\n");
+    //printf("\n");
     cout << "[END] WEIGHT_SETUP" << endl;
 }
 
