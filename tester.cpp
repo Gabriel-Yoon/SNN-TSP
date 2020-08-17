@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <stdio.h>
+#include <stdlib.h>  
+#include <windows.h> // Sleep ÇÔ¼ö
 
 #include "core.hpp"
 
@@ -21,16 +24,10 @@ struct cmp {
 };
 
 int main(void) {
+    system("color 0A");
     core mycore;
     mycore.initialize();
     double a = mycore.run();
-
-    // Make three vectors, each of length 100 filled with 1s, 2s, and 3s
-    vector<int> vec1(100, 1);
-    vector<int> vec2(100, 2);
-    
-    // Wrap into a vector
-    vector<pair<string, vector<int>>> vals = {{"Time", vec1}, {"Neuron Index", vec2}};
 
     return 0;
 }

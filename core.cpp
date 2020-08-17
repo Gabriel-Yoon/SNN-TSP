@@ -1,8 +1,22 @@
 #include <fstream>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>  
+#include <windows.h> // Sleep ÇÔ¼ö
 
 #include "core.hpp"
 #include "simulation_parameters.hpp"
+
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 60
+
+void printProgress(double percentage) {
+    int val = (int)(percentage * 100);
+    int lpad = (int)(percentage * PBWIDTH);
+    int rpad = PBWIDTH - lpad;
+    printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+    fflush(stdout);
+}
 
 using namespace std;
 
@@ -307,7 +321,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
 
 double core::run() {
 
-    /* Simulation settings */
+    /* ------------------------------------------Simulation settings------------------------------------------ */
     double tend = 1;
     double tnow = 0.0;
     double tpre = 0.0;
@@ -385,9 +399,6 @@ double core::run() {
     }
     exportFile_potential << "\n";
 
-
-
-
     // [FILE EXPORT] SPIKE FILE
     string filename_spike;
     filename_spike.append("Spike_");
@@ -395,9 +406,6 @@ double core::run() {
 
     exportFile_spike.open(filename_spike);
     exportFile_spike << "time" << "," << "side"<< "," << "neuron_index" << "\n";
-
-
-
 
     // [FILE EXPORT] TRAVEL ROUTE FILE
     string filename_travel;
@@ -413,10 +421,18 @@ double core::run() {
 
     ///* [FILE EXPORT] END *///
 
-    while (1) {
+    // Console progress bar
+    double consolepercentage;
 
-        cout << "------------------------------------------LOOP------------------------------------------" << endl;
-        cout << "tnow : " << tnow << endl;
+    // ------------------------------------------------------------------------------------LOOP------------------------------------------------------------------------------------ START //
+
+    while (tnow<=tend) {
+
+        consolepercentage = tnow / tend;
+        printProgress(consolepercentage);
+
+        //cout << "------------------------------------------LOOP------------------------------------------" << endl;
+        //cout << "tnow : " << tnow << endl;
 
         // First WTA zeroing process
         for (int i = 0; i < num_city; i++) {
@@ -447,7 +463,7 @@ double core::run() {
             get_spk(&spk_now, &which_spk);
         }
 
-        cout << "simtick " << simtick << " spk time " << spk_now->time << endl;
+        //cout << "simtick " << simtick << " spk time " << spk_now->time << endl;
 
         if (fabs(simtick - spk_now->time) < FLOAT_EPSILON_TIME) { // simtick == spk_now.time
             tnow = simtick;

@@ -130,6 +130,8 @@ int core::compare_threshold(double tnow){
     sm_spk *new_spk_reset = new sm_spk;
     double time_in_ref = tnow - param.refractory_time;
     bool two_spikes_in_one_WTA = false;
+    int WTA_condition_checker = 0;
+    int previous_route_city = 0;
 
     for (int i = 1; i < num_city + 1; i++) {
         for (int j = 1; j < num_city + 1; j++) {
@@ -145,9 +147,7 @@ int core::compare_threshold(double tnow){
 
             if (compared && not_in_ref) {
 
-                //printf("Potential over threshold at WTA[%d][%d]\n", h_WTA, h_city);
-                int WTA_condition_checker = 0;
-                int previous_route_city = 0;
+                //printf("Potential over threshold at WTA[%d][%d]\n", h_WTA, h_city);                              
 
                 for (int idx = 1; idx < num_city + 1; idx++) {
                     if (WTA[h_WTA][idx]) {
@@ -157,7 +157,7 @@ int core::compare_threshold(double tnow){
                 }
                 //printf("************************************************************\n");
                 if (WTA_condition_checker == 0) {
-                    printf("New travel route at step %d\n", h_WTA);
+                    //printf("New travel route at step %d\n", h_WTA);
                     WTA[h_WTA][h_city] = true;
                 }
                 else if (WTA_condition_checker == 1) {
@@ -166,7 +166,7 @@ int core::compare_threshold(double tnow){
                     WTA[h_WTA][h_city] = true;
                 }
                 else {
-                    //printf("WTA condition error at step %d !!\n", h_WTA);
+                    printf("WTA condition error at step %d !!\n", h_WTA);
                 }
 
                 // Initialize the checker and the previous route city
@@ -188,6 +188,10 @@ int core::compare_threshold(double tnow){
                 //cout << "ST UPDATE COMPLETE" << endl;
                 new_spk->spk.push_back(make_pair(side_h, h_idx));
             }
+
+            WTA_condition_checker = 0;
+            previous_route_city = 0;
+
         }
         two_spikes_in_one_WTA = false;
     }
