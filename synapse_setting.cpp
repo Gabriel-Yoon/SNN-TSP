@@ -9,8 +9,24 @@ using namespace std;
 
 void core::weight_setup(){
 	
-    cout << "[START} WEIGHT_SETUP" << endl;
+    // Initializing max element as INT_MIN 
+    double max_distance = 0;
 
+    // checking each element of matrix 
+    // if it is greater than maxElement, 
+    // update maxElement
+
+    for (int i = 0; i < num_city; i++) {
+        for (int j = 0; j < num_city; j++) {
+            if (distance_matrix[i][j] > max_distance) {
+                max_distance = distance_matrix[i][j];
+            }
+        }
+    }
+
+    cout << "[START] WEIGHT_SETUP" << endl;
+    cout << max_distance << endl;
+    cout << 0.5 - 0.0001 * max_distance << endl;
 	int v_WTA, v_city, h_WTA, h_city;
 	// i : WTA Network, j : City
     for (int v_idx = 0; v_idx < num_neurons[side_v]; v_idx++){
@@ -41,7 +57,7 @@ void core::weight_setup(){
                     weight_matrix[v_idx][h_idx].Gp = param.adj_WTA_same_cities;
                     weight_flag = "/";
             	}else{ // THE MOST IMPORTANT PART OF THE TRAVELING SALESMAN PROBLEM
-                    weight_matrix[v_idx][h_idx].Gp = distance*0.0001+0.00001;
+                    weight_matrix[v_idx][h_idx].Gp = 0.1 + (1- distance/max_distance)*0.1;
                     weight_flag = "*";
             	}
             }

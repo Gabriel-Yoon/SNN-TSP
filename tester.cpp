@@ -27,7 +27,18 @@ int main(void) {
     system("color 0A");
     core mycore;
     mycore.initialize();
+    
+    
     double a = mycore.run();
+
+    /*
+    // TSP Inhibition Weight Setup
+    double same_WTA_diff_cities = -0.1;
+    double adj_WTA_same_cities = -0.1;
+    double non_adj_WTA_same_cities = -0.1;
+
+    mycore.weight_setup(same_WTA_diff_cities, adj_WTA_same_cities, non_adj_WTA_same_cities);
+    */
 
     return 0;
 }
