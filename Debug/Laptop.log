@@ -1,4 +1,0 @@
-﻿  core.cpp
-C:\Users\윤영빈\source\repos\SNN-TSP\core.cpp(93,12): warning C4101: 'j': unreferenced local variable
-C:\Users\윤영빈\source\repos\SNN-TSP\core.cpp(235,12): warning C4101: 'time': unreferenced local variable
-  Laptop.vcxproj -> C:\Users\윤영빈\source\repos\SNN-TSP\Debug\Laptop.exe
