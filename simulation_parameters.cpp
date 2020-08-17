@@ -16,9 +16,9 @@ simulation_parameters::simulation_parameters() {
     timestep_injection = 20e-5;
 
     // Inhibition rate
-    same_WTA_diff_cities = -0.1;
-    adj_WTA_same_cities = -0.1;
-    non_adj_WTA_same_cities = -0.1;
+    same_WTA_diff_cities = -0.3;
+    adj_WTA_same_cities = -0.3;
+    non_adj_WTA_same_cities = -0.3;
 
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;

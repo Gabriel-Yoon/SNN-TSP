@@ -7,8 +7,10 @@
 #include "core.hpp"
 #include "simulation_parameters.hpp"
 
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 60
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 100
+
+using namespace std;
 
 void printProgress(double percentage) {
     int val = (int)(percentage * 100);
@@ -17,8 +19,6 @@ void printProgress(double percentage) {
     printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
     fflush(stdout);
 }
-
-using namespace std;
 
 core::core()
 {
