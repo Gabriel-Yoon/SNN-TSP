@@ -15,11 +15,13 @@ template<int side> void core::potential_update_by_spk_core(sm_spk &spk_now, doub
     if(last_spk_refractory < 0.0) last_spk_refractory = 0.0;
 
     for(int idx = 0; idx < num_neurons[side]; idx++) {
+        int h_WTA = idx / num_city + 1;
+        int h_city = idx % num_city + 1;
+
         bool not_in_ref_st = last_spk_st[side][idx] < last_spk_refractory;
         bool not_in_ref_in = last_spk_in[side][idx] < last_spk_refractory;
-        if (not_in_ref_st && (!param.hw_ISO_MOD || not_in_ref_in)) {
-            int h_WTA = idx / num_city + 1;
-            int h_city = idx % num_city + 1;
+        bool not_in_cap_iso = WTA[h_WTA][h_city].iso;
+        if (not_in_ref_st && (!param.hw_ISO_MOD || not_in_ref_in) && not_in_cap_iso) {
             if (wsum[idx] * param.pt_alpha != 0) {
                 //printf("Potential of WTA[%d][%d] rose by %lf \n", h_WTA, h_city, wsum[idx] * param.pt_alpha);
             }
@@ -52,12 +54,16 @@ void core::potential_update_by_spk(sm_spk &spk_now) {
         int h_WTA = it->second / num_city + 1;
         int h_city = it->second % num_city + 1;
         
-        if(it->first == side_v) {
+        for (int i = 1; i < num_city; i++) {
+            WTA[i][h_city].iso = true;
+        }
+
+        if(it->first == side_v) { // This only happens for external spike at city 1.
             
             spk_side_v = 1;
 
-            if (WTA[h_WTA][h_city] == false) {
-                WTA[h_WTA][h_city] = true;
+            if (WTA[h_WTA][h_city].route == false) {
+                WTA[h_WTA][h_city].route = true;
                 //printf("WTA[%d][%d] was false but turned on!\n", h_WTA, h_city);
             }
 
@@ -73,12 +79,23 @@ void core::potential_update_by_spk(sm_spk &spk_now) {
 
             spk_side_v = 1;
 
+            if (WTA[h_WTA][h_city].route == false) {
+                WTA[h_WTA][h_city].route = true;
+                //printf("WTA[%d][%d] was false but turned on!\n", h_WTA, h_city);
+            }
+
             //printf("[INT] Spike is generating at WTA[%d][%d]\n", h_WTA, h_city);
 
             for(int i = 0; i < num_neurons[side_v]; i++) {
-                wsum[side_h][i] += (weight_matrix[i][it->second].Gp - weight_matrix[i][it->second].Gm);
+                wsum[side_h][i] += (weight_matrix[it->second][i].Gp - weight_matrix[it->second][i].Gm);
             }
             
+        }
+
+        for (int wta_num = 1; wta_num < num_city; wta_num++) {
+            if (WTA[wta_num][h_city].iso == true) {
+                wsum[side_h][num_city * (wta_num - 1) + (h_city - 1)] = 0;
+            }
         }
         
     }
@@ -118,7 +135,15 @@ void core::potential_reset(sm_spk &spk_now) {
 
 void core::last_spk_st_update(sm_spk &spk_now) {
     for(auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        int h_WTA = it->second / num_city + 1;
+        int h_city = it->second % num_city + 1;
+        
         last_spk_st[it->first][it->second] = spk_now.time;
+        
+        for (int i = 1; i < num_city + 1; i++) {
+            WTA[i][h_city].iso = false;
+        }
+
     }
 }
 
@@ -145,12 +170,12 @@ int core::compare_threshold(double tnow){
             int h_WTA = i;
             int h_city = j;
 
-            if (compared && not_in_ref) {
+            if (compared && not_in_ref && WTA[i][j].iso != true) {
 
                 //printf("Potential over threshold at WTA[%d][%d]\n", h_WTA, h_city);                              
 
                 for (int idx = 1; idx < num_city + 1; idx++) {
-                    if (WTA[h_WTA][idx]) {
+                    if (WTA[h_WTA][idx].route) {
                         previous_route_city = idx;
                         WTA_condition_checker++;
                     }
@@ -158,12 +183,12 @@ int core::compare_threshold(double tnow){
                 //printf("************************************************************\n");
                 if (WTA_condition_checker == 0) {
                     //printf("New travel route at step %d\n", h_WTA);
-                    WTA[h_WTA][h_city] = true;
+                    WTA[h_WTA][h_city].route = true;
                 }
                 else if (WTA_condition_checker == 1) {
                     //printf("Modify travel route at step %d from city %d to city %d\n", h_WTA, previous_route_city, h_city);
-                    WTA[h_WTA][previous_route_city] = false;
-                    WTA[h_WTA][h_city] = true;
+                    WTA[h_WTA][previous_route_city].route = false;
+                    WTA[h_WTA][h_city].route = true;
                 }
                 else {
                     printf("WTA condition error at step %d !!\n", h_WTA);

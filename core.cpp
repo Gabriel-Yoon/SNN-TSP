@@ -90,13 +90,16 @@ void core::initialize()
         {1972, 579, 1260, 987, 371, 999, 701, 2099, 600, 1162, 1200, 504, 0},
     };
 
-    
-    
-    for (int i = 0; i < num_city+1; i++) {
-        for (int j = 0; j < num_city+1; j++) {
-            WTA[i][j] = false;
+    WTA.resize(num_city+1);
+    for (int i = 0; i < num_city+1; i++)
+    {
+        WTA[i].resize(num_city + 1);
+    }
+    for (int i = 0; i < num_city + 1; i++) {
+        for (int j = 0; j < num_city + 1; j++) {
+            WTA[i][j].route = false;
+            WTA[i][j].iso = false;
         }
-        
     }
     
 
@@ -190,7 +193,7 @@ void core::export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, doub
         exportFile << spk_now.time << ",";
         for (int i = 1; i < num_city+1; i++) {
             for (int j = 1; j < num_city + 1; j++) {
-                if (WTA[i][j]) {
+                if (WTA[i][j].route) {
                     exportFile << j << ",";
                     travel_flag = true;
                 }
@@ -356,7 +359,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 10;
+    double tend = 0.1;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -556,7 +559,7 @@ double core::run() {
             for (int j = 1; j < num_city+1; j++) {
                 int idx = (i - 1) * num_city + (j - 1);
                 //mywriteoutfile.write(str.c_str(), potential[side_h][idx]);
-                if (WTA[i][j]) {
+                if (WTA[i][j].route) {
                     //printf("Step %d : City %d\n", i, j);
                 }
             }

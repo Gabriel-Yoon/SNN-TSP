@@ -8,6 +8,11 @@
 #include "simulation_parameters.hpp"
 
 
+struct WTA_condition {
+	bool route; // bipolar only use Gp
+	bool iso;
+};
+
 struct sm_pcmcell {
 	double Gp; // bipolar only use Gp
 	double Gm;
@@ -42,7 +47,7 @@ private:
 	int num_neurons[2];
 	int num_neurons_bias[2];
 	
-	bool WTA[11][11]; // traveling order marking array
+	vector<vector<struct WTA_condition>> WTA; // traveling order marking array
 
 	double* potential[2];
 	double* threshold[2];
