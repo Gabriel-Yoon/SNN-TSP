@@ -75,6 +75,7 @@ struct simulation_parameters {
     bool enable_simulated_annealing;
 
     bool hw_ISO_MOD;
+    bool hw_CAP_ISO;
     bool hw_RES_EN;
     bool hw_RES_BLK;
 

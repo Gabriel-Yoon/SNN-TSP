@@ -18,10 +18,18 @@ template<int side> void core::potential_update_by_spk_core(sm_spk &spk_now, doub
         int h_WTA = idx / num_city + 1;
         int h_city = idx % num_city + 1;
 
+        for (int i = 1; i < num_city + 1; i++) {
+            // Same city in other WTA network CAP_ISO
+            WTA[i][h_city].iso = true;
+            // Other city in the same WTA network CAP_ISO
+            WTA[h_WTA][i].iso = true;
+        }
+
         bool not_in_ref_st = last_spk_st[side][idx] < last_spk_refractory;
         bool not_in_ref_in = last_spk_in[side][idx] < last_spk_refractory;
         bool not_in_cap_iso = WTA[h_WTA][h_city].iso;
         if (not_in_ref_st && (!param.hw_ISO_MOD || not_in_ref_in) && not_in_cap_iso) {
+            
             if (wsum[idx] * param.pt_alpha != 0) {
                 //printf("Potential of WTA[%d][%d] rose by %lf \n", h_WTA, h_city, wsum[idx] * param.pt_alpha);
             }
@@ -39,7 +47,7 @@ template<int side> void core::potential_update_by_spk_core(sm_spk &spk_now, doub
     }
 }
 
-void core::potential_update_by_spk(sm_spk &spk_now) {
+void core::potential_update_by_spk(sm_spk& spk_now) {
 
     //cout << "- <Start> Potential Update by Spike" << endl;
 
@@ -49,17 +57,13 @@ void core::potential_update_by_spk(sm_spk &spk_now) {
 
     int spk_side_v = 0;
     int spk_side_h = 0;
-    for(auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
-        
+    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+
         int h_WTA = it->second / num_city + 1;
         int h_city = it->second % num_city + 1;
-        
-        for (int i = 1; i < num_city; i++) {
-            WTA[i][h_city].iso = true;
-        }
 
-        if(it->first == side_v) { // This only happens for external spike at city 1.
-            
+        if (it->first == side_v) { // This only happens for external spike at city 1.
+
             spk_side_v = 1;
 
             if (WTA[h_WTA][h_city].route == false) {
@@ -70,12 +74,13 @@ void core::potential_update_by_spk(sm_spk &spk_now) {
             //printf("[EXT] Spike is generating at WTA[%d][%d]\n", h_WTA, h_city);
 
 
-            for(int i = 0; i < num_neurons[side_h]; i++) {
+            for (int i = 0; i < num_neurons[side_h]; i++) {
                 wsum[side_h][i] += (weight_matrix[it->second][i].Gp - weight_matrix[it->second][i].Gm);
             }
 
-        } else { // side_h
-            // This stands for internal spikes!
+        }
+        else { // side_h
+         // This stands for internal spikes!
 
             spk_side_v = 1;
 
@@ -86,10 +91,10 @@ void core::potential_update_by_spk(sm_spk &spk_now) {
 
             //printf("[INT] Spike is generating at WTA[%d][%d]\n", h_WTA, h_city);
 
-            for(int i = 0; i < num_neurons[side_v]; i++) {
+            for (int i = 0; i < num_neurons[side_v]; i++) {
                 wsum[side_h][i] += (weight_matrix[it->second][i].Gp - weight_matrix[it->second][i].Gm);
             }
-            
+
         }
 
         for (int wta_num = 1; wta_num < num_city; wta_num++) {
@@ -97,7 +102,7 @@ void core::potential_update_by_spk(sm_spk &spk_now) {
                 wsum[side_h][num_city * (wta_num - 1) + (h_city - 1)] = 0;
             }
         }
-        
+
     }
 
     // Set other neurons in Constraint WTA to be 0
@@ -106,19 +111,19 @@ void core::potential_update_by_spk(sm_spk &spk_now) {
     }
 
 
-    if(spk_side_h) potential_update_by_spk_core<side_v>(spk_now, wsum[side_v]);
-    if(spk_side_v) potential_update_by_spk_core<side_h>(spk_now, wsum[side_h]);
+    if (spk_side_h) potential_update_by_spk_core<side_v>(spk_now, wsum[side_v]);
+    if (spk_side_v) potential_update_by_spk_core<side_h>(spk_now, wsum[side_h]);
 
     //cout << "- <End> Potential Update by Spike\n" << endl;
 
 }
 
-void core::potential_reset(sm_spk &spk_now) {
-    
+void core::potential_reset(sm_spk& spk_now) {
+
     //cout << "- <Start> Potential Reset" << endl;
-    
-    for(auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
-        
+
+    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+
         // For Constraint.. external spike at 1,1
         if (it->first == side_v && it->second == 0) {
             potential[side_h][it->second] = param.pt_init;
@@ -126,24 +131,40 @@ void core::potential_reset(sm_spk &spk_now) {
         else {
             potential[side_h][it->second] = param.pt_init;
         }
-        
+
         //printf("Potential reset on WTA[%d][%d]\n", it->second / num_city + 1, it->second % num_city + 1);
     }
     //cout << "- <End> Potential Reset\n" << endl;
 
 }
 
-void core::last_spk_st_update(sm_spk &spk_now) {
-    for(auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+void core::cap_iso_update(sm_spk& spk_now) {
+    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
         int h_WTA = it->second / num_city + 1;
         int h_city = it->second % num_city + 1;
-        
-        last_spk_st[it->first][it->second] = spk_now.time;
-        
-        for (int i = 1; i < num_city + 1; i++) {
-            WTA[i][h_city].iso = false;
+
+        // cap_iso_update is called at the advent of the spike generation
+
+
+        // cap_iso_update is called at the end of the refractory time
+        if (fabs(spk_now.time - last_spk_st[it->first][it->second]) <= FLOAT_EPSILON_TIME) {
+            // CAP_ISO back to normal
+            for (int i = 1; i < num_city + 1; i++) {
+                // Same city in other WTA network CAP_ISO
+                WTA[i][h_city].iso = false;
+                // Other city in the same WTA network CAP_ISO
+                WTA[h_WTA][i].iso = false;
+            }
         }
 
+
+    }
+
+}
+
+void core::last_spk_st_update(sm_spk& spk_now) {
+    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        last_spk_st[it->first][it->second] = spk_now.time;
     }
 }
 
@@ -206,7 +227,8 @@ int core::compare_threshold(double tnow){
             if (param.hw_RES_EN || not_in_ref || !param.hw_RES_BLK) {
                 new_spk_reset->spk.push_back(make_pair(side_h, h_idx));
             }
-
+            
+            // Mark spike time into the last_spk_st board
             // Spike event checkboard 'last_spk_st' mark / spike event
             if (not_in_ref) {
                 last_spk_st[side_h][h_idx] = tnow;
@@ -237,6 +259,7 @@ int core::compare_threshold(double tnow){
         queue_spk.push(make_pair(time_fire2, new_spk_reset));
         //cout << "Reset event loaded to queue_spk at : " << new_spk_reset->time << endl;
         spike_flag = 1;
+
     } else {
         delete new_spk_reset;
     }
@@ -246,13 +269,15 @@ int core::compare_threshold(double tnow){
         new_spk->time = time_fire2 + param.delay_scanchain + param.wlr_width;
 
         queue_spk.push(make_pair(new_spk->time, new_spk));
-        //cout << "Spike event loaded to queue_spk at : " << new_spk->time << endl;
+        
         spike_flag = 1;
 
         // Dummy event to kick compare_threshold at the end of refractory time
         sm_spk *spk_ref = new sm_spk;
         spk_ref->time = tnow + param.refractory_time + FLOAT_EPSILON_TIME;
+        spk_ref->st = true;
         queue_spk.push(make_pair(spk_ref->time, spk_ref));
+
     } else {
         delete new_spk;
     }
@@ -277,6 +302,12 @@ template<int side> void core::potential_update_by_random_walk_core(double tnow) 
 
     for (int i = 0; i < num_neurons[side]; i++) {
         
+        int h_WTA = i / num_city + 1;
+        int h_city = i % num_city + 1;
+
+        bool not_in_cap_iso = WTA[h_WTA][h_city].iso;
+        if (not_in_cap_iso) continue;
+
         if (dist(generator) < 0) {
             val = -1;
         }
@@ -284,15 +315,13 @@ template<int side> void core::potential_update_by_random_walk_core(double tnow) 
             val = 1;
         }
         
-
         if (potential[side][i] + (param.random_walk_step * val) * (1 + param.random_walk_mismatch * val) <= 0) {
             potential[side][i] = 0;
         }
         else {
             potential[side][i] += (param.random_walk_step * val) * (1 + param.random_walk_mismatch * val);
         }
-        int h_WTA = i / num_city + 1;
-        int h_city = i % num_city + 1;
+        
         
         double last_spk_refractory = tnow - param.refractory_time;
         bool not_in_ref_st = last_spk_st[side][i] < last_spk_refractory;

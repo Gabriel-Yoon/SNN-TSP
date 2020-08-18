@@ -117,8 +117,8 @@ private:
 	template<int side> void potential_update_by_spk_core(sm_spk& spk_now, double *wsum);
 
 	void potential_reset(sm_spk& spk_now);
+	void cap_iso_update(sm_spk& spk_now);
 	void last_spk_st_update(sm_spk& spk_now);
-
 	int compare_threshold(double tnow);
 
 	// Export method

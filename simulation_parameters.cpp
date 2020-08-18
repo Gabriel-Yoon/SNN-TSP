@@ -16,9 +16,9 @@ simulation_parameters::simulation_parameters() {
     timestep_injection = 20e-5;
 
     // TSP Inhibition Weight Setup
-    same_WTA_diff_cities = -0.2;
-    adj_WTA_same_cities = -0.4;
-    non_adj_WTA_same_cities = -0.2;
+    same_WTA_diff_cities = -0.1;
+    adj_WTA_same_cities = -0.2;
+    non_adj_WTA_same_cities = -0.1;
 
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
@@ -65,6 +65,7 @@ simulation_parameters::simulation_parameters() {
     enable_simulated_annealing = false;
 
     hw_ISO_MOD = false;
+    hw_CAP_ISO = true;
     hw_RES_EN = true;
     hw_RES_BLK = false;
 

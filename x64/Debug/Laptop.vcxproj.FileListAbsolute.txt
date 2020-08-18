@@ -1,0 +1,2 @@
+C:\Users\ASUS\Documents\GitHub\SNN-TSP\SNN-TSP\x64\Debug\Laptop.exe
+C:\Users\ASUS\Documents\GitHub\SNN-TSP\SNN-TSP\x64\Debug\Laptop.pdb
