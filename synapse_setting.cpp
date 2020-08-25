@@ -25,8 +25,6 @@ void core::weight_setup(){
     }
 
     cout << "[START] WEIGHT_SETUP" << endl;
-    cout << max_distance << endl;
-    cout << 0.5 - 0.0001 * max_distance << endl;
 	int v_WTA, v_city, h_WTA, h_city;
 	// i : WTA Network, j : City
     for (int v_idx = 0; v_idx < num_neurons[side_v]; v_idx++){

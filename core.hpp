@@ -9,7 +9,7 @@
 
 
 struct WTA_condition {
-	bool route; // bipolar only use Gp
+	bool route;
 	bool iso;
 };
 
@@ -37,7 +37,7 @@ private:
 	vector<vector<double>> distance_matrix;
 
 	// Neurons
-	int num_city = 6;
+	int num_city = 26;
 
 	int neurons_visible_city;
 	int neurons_visible_bias;
@@ -117,8 +117,10 @@ private:
 	template<int side> void potential_update_by_spk_core(sm_spk& spk_now, double *wsum);
 
 	void potential_reset(sm_spk& spk_now);
-	void cap_iso_update(sm_spk& spk_now);
+	void wta_condition_update(sm_spk& spk_now, double tnow);
+	void cap_iso_update();
 	void last_spk_st_update(sm_spk& spk_now);
+
 	int compare_threshold(double tnow);
 
 	// Export method

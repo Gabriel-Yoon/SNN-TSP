@@ -41,8 +41,9 @@ void core::initialize()
 {
     // int non_adj_WTA_same_cities = 1;
     cout << "[START] CORE_INITIALIZATION" << endl;
-    /*
-    // TSP dataset from "https://people.sc.fsu.edu/~jburkardt/datasets/tsp/tsp.html"
+    
+    // FRI26 TSP dataset from "https://people.sc.fsu.edu/~jburkardt/datasets/tsp/tsp.html"
+    // Answer : 1-25-24-23-26-22-21-17-18-20-19-16-11-12-13-15-14-10-9-8-7-5-6-4-3-2-1
     distance_matrix = {
         {0,   83,  93, 129, 133, 139, 151, 169, 135, 114, 110,  98,  99,  95,  81, 152, 159, 181, 172, 185, 147, 157, 185, 220, 127, 181},
         {83,   0,  40,  53,  62,  64,  91, 116,  93,  84,  95,  98,  89,  68,  67, 127, 156, 175, 152, 165, 160, 180, 223, 268, 179, 197},
@@ -71,8 +72,8 @@ void core::initialize()
         {127, 179, 157, 197, 194, 202, 188, 188, 155, 136, 116, 100, 111, 132, 122, 139, 109, 125, 141, 148,  80,  65,  64,  93,   0,  90},
         {181, 197, 161, 190, 182, 190, 160, 148, 128, 121, 103,  99, 107, 130, 130,  95,  51,  51,  81,  79,  37,  27,  58, 107,  90,   0},
     };
-    */
     
+    /*
     // TSP dataset from "https://developers.google.com/optimization/routing/tsp#c++"
     distance_matrix = {
         {0, 2451, 713, 1018, 1631, 1374, 2408, 213, 2571, 875, 1420, 2145, 1972},
@@ -90,13 +91,15 @@ void core::initialize()
         {1972, 579, 1260, 987, 371, 999, 701, 2099, 600, 1162, 1200, 504, 0},
     };
 
-    WTA.resize(num_city+1);
+    */
+
+    WTA.resize((int)(num_city + 1));
     for (int i = 0; i < num_city+1; i++)
     {
-        WTA[i].resize(num_city + 1);
+        WTA[i].resize((int)(num_city + 1));
     }
-    for (int i = 0; i < num_city + 1; i++) {
-        for (int j = 0; j < num_city + 1; j++) {
+    for (int i = 1; i < num_city + 1; i++) {
+        for (int j = 1; j < num_city + 1; j++) {
             WTA[i][j].route = false;
             WTA[i][j].iso = false;
         }
@@ -184,16 +187,29 @@ void core::export_potential_info_to_csv(ofstream& exportFile, sm_spk& spk_now, d
     }
 }
 
+/*
+void core::export_last_spk_st_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
+for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+        int h_WTA = it->second / num_city + 1;
+        int h_city = it->second % num_city + 1;
+        exportFile << spk_now.time << ",";
+
+        for (int i = 0; i < num_neurons[side_h]; i++) {
+            exportFile << last_spk_st[side_h][i] << ",";
+        }
+*/
 void core::export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
 
     bool travel_flag = false;
 
     // [FILE EXPORT] Export travel sequence to csv file
     for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
+
         exportFile << spk_now.time << ",";
-        for (int i = 1; i < num_city+1; i++) {
+
+        for (int i = 1; i < num_city + 1; i++) {
             for (int j = 1; j < num_city + 1; j++) {
-                if (WTA[i][j].route) {
+                if (WTA[i][j].route==true) {
                     exportFile << j << ",";
                     travel_flag = true;
                 }
@@ -309,10 +325,14 @@ void core::ext_spike_load(double tend) {
 
         // 1. Dummy event to kick compare_threshold at the end of refractory time
         double ref_end_time = spk_one->time + param.refractory_time + FLOAT_EPSILON_TIME;
-        sm_spk* spk_ref = new sm_spk;
+        sm_spk* spk_ref = new sm_spk(*spk_ext);
         spk_ref->time = ref_end_time;
+        if (param.hw_CAP_ISO) {
+            spk_ref->iso = true;
+        }
         queue_ext.push(make_pair(ref_end_time, spk_ref));
 
+        spk_ext->iso = false;
         // 2. Create last_spk_st update event for ST_PAUSE
         sm_spk* spk_st_update = new sm_spk(*spk_ext);
         spk_st_update->time = spk_one->time;
@@ -329,6 +349,9 @@ void core::ext_spike_load(double tend) {
 
         // Push spike event to queue
         spk_ext->time = time_fire2 + param.delay_spikeout2wlr + param.wlr_width;
+        if (param.hw_CAP_ISO) {
+            spk_ext->iso = true;
+        }
         queue_ext.push(make_pair(spk_ext->time, spk_ext));
 
         delete spk_one;
@@ -339,10 +362,13 @@ void core::ext_spike_load(double tend) {
 
 template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk) {
 
+    // Leak is now unabled
     //potential_update_by_leak(tnow - tpre);
 
     if (is_spk) {
+        wta_condition_update(spk_now, tnow);
         potential_update_by_spk(spk_now);
+        
     }
     
     if (is_rng) {
@@ -351,9 +377,8 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
         }
         simtick += param.timestep_rng;
     }
-    
-    new_spk = compare_threshold(tnow);
 
+    new_spk = compare_threshold(tnow);
 }
 
 double core::run() {
@@ -553,19 +578,6 @@ double core::run() {
                 tpre = tnow;
             }
         }
-
-        // [FILE EXPORT] Traveling route check + file export
-        for (int i = 1; i < num_city+1; i++) {
-            for (int j = 1; j < num_city+1; j++) {
-                int idx = (i - 1) * num_city + (j - 1);
-                //mywriteoutfile.write(str.c_str(), potential[side_h][idx]);
-                if (WTA[i][j].route) {
-                    //printf("Step %d : City %d\n", i, j);
-                }
-            }
-            //mywriteoutfile << endl;
-        }
-        
         loop_count++;
     }
     exportFile_potential.close();
