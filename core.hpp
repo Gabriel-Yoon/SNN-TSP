@@ -7,6 +7,9 @@
 #include "spike_control.hpp"
 #include "simulation_parameters.hpp"
 
+struct spike_count {
+	int num_spike;
+};
 
 struct WTA_condition {
 	bool route;
@@ -48,6 +51,7 @@ private:
 	int num_neurons_bias[2];
 	
 	vector<vector<struct WTA_condition>> WTA; // traveling order marking array
+	vector<vector<struct spike_count>> spike_counter; // spike counting array
 
 	double* potential[2];
 	double* threshold[2];
@@ -125,6 +129,7 @@ private:
 
 	// Export method
 	void export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
+	void export_num_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 	void export_potential_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 	void export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 

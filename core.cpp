@@ -94,14 +94,17 @@ void core::initialize()
     */
 
     WTA.resize((int)(num_city + 1));
+    spike_counter.resize((int)(num_city + 1));
     for (int i = 0; i < num_city+1; i++)
     {
         WTA[i].resize((int)(num_city + 1));
+        spike_counter[i].resize((int)(num_city + 1));
     }
     for (int i = 1; i < num_city + 1; i++) {
         for (int j = 1; j < num_city + 1; j++) {
             WTA[i][j].route = false;
             WTA[i][j].iso = false;
+            spike_counter[i][j].num_spike = 0;
         }
     }
     
@@ -172,6 +175,18 @@ void core::export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, doubl
     // [FILE EXPORT] Export spike time and neuron index to csv file
     for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
         exportFile << spk_now.time << "," << it->first << "," << it->second+1 << "\n";
+    }
+}
+
+void core::export_num_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
+
+    // [FILE EXPORT] Export spike time and neuron index to csv file
+    for (int i = 1; i < num_city+1; i++) { // i : neuron_index
+        exportFile << i << ",";
+        for (int j = 1; j < num_city+1; j++) { // j : WTA #
+            exportFile << spike_counter[j][i].num_spike << ",";
+        }
+        exportFile << "\n";
     }
 }
 
@@ -405,6 +420,7 @@ double core::run() {
     ///* [FILE EXPORT] Setting the export file *///
     ofstream exportFile_potential;
     ofstream exportFile_spike;
+    ofstream exportFile_num_spike;
     ofstream exportFile_travel;
 
     string filename;
@@ -478,7 +494,22 @@ double core::run() {
     }
     exportFile_travel << "\n";
 
+    // [FILE EXPORT] NUM SPIKE FILE
+    string filename_num_spike;
+    filename_num_spike.append("NumSpike_");
+    filename_num_spike.append(filename);
+
+    exportFile_num_spike.open(filename_num_spike);
+    exportFile_num_spike << "neuron_index" << ",";
+    for (int i = 1; i < num_city + 1; i++) {
+        exportFile_num_spike << "step_" << i << ",";
+    }
+    exportFile_num_spike << "\n";
+
     ///* [FILE EXPORT] END *///
+
+    // Firing count
+    
 
     // Console progress bar
     double consolepercentage;
@@ -580,8 +611,12 @@ double core::run() {
         }
         loop_count++;
     }
+
+    export_num_spike_info_to_csv(exportFile_num_spike, *spk_now, tend);
+
     exportFile_potential.close();
     exportFile_spike.close();
+    exportFile_num_spike.close();
     exportFile_travel.close();
 
     return tnow;
