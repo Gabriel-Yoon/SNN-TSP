@@ -24,7 +24,7 @@ struct sm_spk {
 	list<pair<int, int>> spk; //pair<side, neuron_index>
 	bool reset;
 	bool st;
-	bool iso;
+	int iso;
 
 	void merge(const sm_spk &m_spk) {
 		for(auto it = m_spk.spk.begin(); it != m_spk.spk.end(); it++) {
@@ -32,7 +32,7 @@ struct sm_spk {
 		}
 	}
 
-	sm_spk():reset(false),st(false),iso(false) {}
+	sm_spk():reset(false),st(false),iso(0) {}
 
 	sm_spk(const sm_spk &orig_spk) {
 		time = orig_spk.time;

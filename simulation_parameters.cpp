@@ -12,8 +12,8 @@ void simulation_parameters::print_parameters(){
 simulation_parameters::simulation_parameters() {
 
     timestep = 1e-6;
-    timestep_rng = 10e-5; // was 10e-6
-    timestep_injection = 20e-5;
+    timestep_rng = 10e-6; // was 10e-6
+    timestep_injection = 20e-6;
 
     // TSP Inhibition Weight Setup
     same_WTA_diff_cities = -0.1;
@@ -22,7 +22,7 @@ simulation_parameters::simulation_parameters() {
 
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
-    refractory_time = 4e-4 - FLOAT_EPSILON_TIME; // was 4e-3
+    refractory_time = 4e-3 - FLOAT_EPSILON_TIME; // was 4e-3
     delay_scanchain = 0.0;
     delay_spikein2out = 100e-9;
     delay_spikeout2wlr = 0.0;

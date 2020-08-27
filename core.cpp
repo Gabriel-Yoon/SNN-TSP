@@ -258,7 +258,7 @@ int core::get_spk(sm_spk** spk_now, int* which_spk) {
     sm_spk* spk_int = queue_spk.top().second;
 
     if (fabs(spk_ext->time - spk_int->time) < FLOAT_EPSILON_TIME) {
-        if ((spk_ext->reset == spk_int->reset) && (spk_ext->st == spk_int->st)) {
+        if ((spk_ext->reset == spk_int->reset) && (spk_ext->st == spk_int->st) && (spk_ext->iso == spk_int->iso)) {
             //cout << "- (get_spk) CASE 2-1 : Handle both spikes" << endl;
             spk_ext->merge(*spk_int);
             *spk_now = spk_ext;
@@ -328,11 +328,11 @@ void core::ext_spike_load(double tend) {
         sm_spk* spk_ref = new sm_spk(*spk_ext);
         spk_ref->time = ref_end_time;
         if (param.hw_CAP_ISO) {
-            spk_ref->iso = true;
+            spk_ref->iso = -1;
         }
         queue_ext.push(make_pair(ref_end_time, spk_ref));
 
-        spk_ext->iso = false;
+        spk_ext->iso = 0;
         // 2. Create last_spk_st update event for ST_PAUSE
         sm_spk* spk_st_update = new sm_spk(*spk_ext);
         spk_st_update->time = spk_one->time;
@@ -350,7 +350,7 @@ void core::ext_spike_load(double tend) {
         // Push spike event to queue
         spk_ext->time = time_fire2 + param.delay_spikeout2wlr + param.wlr_width;
         if (param.hw_CAP_ISO) {
-            spk_ext->iso = true;
+            spk_ext->iso = 1;
         }
         queue_ext.push(make_pair(spk_ext->time, spk_ext));
 
