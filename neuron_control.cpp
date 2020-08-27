@@ -25,7 +25,7 @@ template<int side> void core::potential_update_by_spk_core(sm_spk& spk_now, doub
         if (not_in_ref_st && (!param.hw_ISO_MOD || not_in_ref_in) && not_in_cap_iso) {
 
             if (wsum[idx] * param.pt_alpha != 0) {
-                //printf("Potential of WTA[%d][%d] rose by %lf \n", h_WTA, h_city, wsum[idx] * param.pt_alpha);
+                // printf("Potential of WTA[%d][%d] rose by %lf \n", h_WTA, h_city, wsum[idx] * param.pt_alpha);
             }
             if (potential[side][idx] + wsum[idx] * param.pt_alpha <= 0) {
                 potential[side][idx] = 0;
@@ -60,7 +60,7 @@ void core::potential_update_by_spk(sm_spk& spk_now) {
 
         if (it->first == side_v) { // External spike at city 1 (only)
 
-            spk_side_h = 1;
+            spk_side_v = 1;
 
             //printf("[EXT] Spike is generating at WTA[%d][%d]\n", h_WTA, h_city);
 
@@ -72,11 +72,11 @@ void core::potential_update_by_spk(sm_spk& spk_now) {
         else { // side_h
          // This stands for internal spikes!
 
-            spk_side_h = 1;
+            spk_side_v = 1;
 
             //printf("[INT] Spike is generating at WTA[%d][%d]\n", h_WTA, h_city);
 
-            for (int i = 0; i < num_neurons[side_v]; i++) {
+            for (int i = 0; i < num_neurons[side_h]; i++) {
                 wsum[side_h][i] += (weight_matrix[it->second][i].Gp - weight_matrix[it->second][i].Gm);
             }
 
@@ -152,6 +152,12 @@ void core::wta_condition_update(sm_spk& spk_now, double tnow) {
                 }
                 */
 
+                for (int i = 1; i < num_city + 1; i++) {
+                    if (WTA[h_WTA][i].route == true || WTA[i][h_city].route == true) {
+                        wta_condition_checker = true;
+                    }
+                }
+
                 if (wta_condition_checker == false) {
                     WTA[h_WTA][h_city].route = true;
                     spike_counter[h_WTA][h_city].num_spike++;
@@ -161,7 +167,7 @@ void core::wta_condition_update(sm_spk& spk_now, double tnow) {
                         cap_iso_update();
                     }
                 }
-                else { // WTA already working! no problem just pass by
+                else { // WTA already working! spike won't be functioning. Just pass by
                    //printf("_________WTA error!________Error on WTA[%d][%d]", h_WTA, h_city);
                 }
             }

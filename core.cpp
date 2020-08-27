@@ -399,7 +399,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 0.1;
+    double tend = 1;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;

@@ -12,8 +12,8 @@ void simulation_parameters::print_parameters(){
 simulation_parameters::simulation_parameters() {
 
     timestep = 1e-6;
-    timestep_rng = 10e-6; // was 10e-6
-    timestep_injection = 20e-6;
+    timestep_rng = 10e-5; // was 10e-6
+    timestep_injection = 20e-5;
 
     // TSP Inhibition Weight Setup
     same_WTA_diff_cities = -0.1;
@@ -69,7 +69,7 @@ simulation_parameters::simulation_parameters() {
     hw_RES_EN = true;
     hw_RES_BLK = false;
 
-    random_walk_step = 0.06;
+    random_walk_step = 0.06; // was 0.06
     random_walk_mismatch = 0.0;
 
     string rng_type = "lfsr32";
