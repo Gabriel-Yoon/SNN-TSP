@@ -399,7 +399,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 1;
+    double tend = 100;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -574,9 +574,9 @@ double core::run() {
             else {
                 //cout << "CASE 1-3" << endl;
                 run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
-                export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
-                export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
+                //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
+                //export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
+                //export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
             }
         }
@@ -603,9 +603,9 @@ double core::run() {
             else {
                 //cout << "CASE 3-3" << endl;
                 run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
-                export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
-                export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
+                //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
+                //export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
+                //export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
             }
         }

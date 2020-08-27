@@ -160,7 +160,9 @@ void core::wta_condition_update(sm_spk& spk_now, double tnow) {
 
                 if (wta_condition_checker == false) {
                     WTA[h_WTA][h_city].route = true;
-                    spike_counter[h_WTA][h_city].num_spike++;
+                    if (tnow > 80 && tnow < 90) {
+                        spike_counter[h_WTA][h_city].num_spike++;
+                    }
                     // printf("ON_WTA[%d][%d]", h_WTA, h_city);
                     //previous_spike_within_WTA_index = h_WTA;
                     if (param.hw_CAP_ISO) {
