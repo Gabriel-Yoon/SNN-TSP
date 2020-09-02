@@ -12,7 +12,7 @@ void simulation_parameters::print_parameters(){
 simulation_parameters::simulation_parameters() {
 
     timestep = 1e-6;
-    timestep_rng = 10e-5; // was 10e-6
+    timestep_rng = 10e-4; // was 10e-6
     timestep_injection = 20e-5;
 
     // TSP Inhibition Weight Setup

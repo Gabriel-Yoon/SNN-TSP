@@ -111,7 +111,7 @@ void core::potential_reset(sm_spk& spk_now) {
 
 }
 
-void core::wta_condition_update(sm_spk& spk_now, double tnow) {
+void core::wta_condition_update(sm_spk& spk_now, double tnow, double tend) {
 
     // Q. How to handle overlapped case? There are two obstacles to handle.
     int previous_spike_within_WTA_index = -1;
@@ -160,8 +160,9 @@ void core::wta_condition_update(sm_spk& spk_now, double tnow) {
 
                 if (wta_condition_checker == false) {
                     WTA[h_WTA][h_city].route = true;
-                    if (tnow > 80 && tnow < 90) {
+                    if (tnow > (tend-10) && tnow < tend) {
                         spike_counter[h_WTA][h_city].num_spike++;
+
                     }
                     // printf("ON_WTA[%d][%d]", h_WTA, h_city);
                     //previous_spike_within_WTA_index = h_WTA;
@@ -403,6 +404,9 @@ void core::potential_update_by_random_walk(double tnow) {
     //potential_update_by_random_walk_core<side_v>();
 
     //cout << "- <End> Random Walk\n" << endl;
+}
+void core::random_walk_annealing_schedule(double tnow, double tend) {
+    param.random_walk_step = 0.005+ (param.random_walk_step-0.005) * exp(-tnow / 10);
 }
 
 template<int side> void core::potential_update_by_leak_core(double tdiff) {

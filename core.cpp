@@ -20,6 +20,8 @@ void printProgress(double percentage) {
     fflush(stdout);
 }
 
+
+
 core::core()
 {
     // Number of Neurons
@@ -170,77 +172,6 @@ void core::initialize()
 
 }
 
-void core::export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
-
-    // [FILE EXPORT] Export spike time and neuron index to csv file
-    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
-        exportFile << spk_now.time << "," << it->first << "," << it->second+1 << "\n";
-    }
-}
-
-void core::export_num_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
-
-    // [FILE EXPORT] Export spike time and neuron index to csv file
-    for (int i = 1; i < num_city+1; i++) { // i : neuron_index
-        exportFile << i << ",";
-        for (int j = 1; j < num_city+1; j++) { // j : WTA #
-            exportFile << spike_counter[j][i].num_spike << ",";
-        }
-        exportFile << "\n";
-    }
-}
-
-void core::export_potential_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
-
-    // [FILE EXPORT] Export neuron potentials to csv file
-    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
-        exportFile << spk_now.time << ",";
-        for (int i = 0; i < num_neurons[side_h]; i++) {
-            exportFile << potential[side_h][i] << ",";
-        }
-        exportFile << "\n";
-    }
-}
-
-/*
-void core::export_last_spk_st_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
-for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
-        int h_WTA = it->second / num_city + 1;
-        int h_city = it->second % num_city + 1;
-        exportFile << spk_now.time << ",";
-
-        for (int i = 0; i < num_neurons[side_h]; i++) {
-            exportFile << last_spk_st[side_h][i] << ",";
-        }
-*/
-void core::export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend) {
-
-    bool travel_flag = false;
-
-    // [FILE EXPORT] Export travel sequence to csv file
-    for (auto it = spk_now.spk.begin(); it != spk_now.spk.end(); it++) {
-
-        exportFile << spk_now.time << ",";
-
-        for (int i = 1; i < num_city + 1; i++) {
-            for (int j = 1; j < num_city + 1; j++) {
-                if (WTA[i][j].route==true) {
-                    exportFile << j << ",";
-                    travel_flag = true;
-                }
-            }
-
-            // No city involved in the step 'i', then export 0 as default
-            if (!travel_flag) {
-                exportFile << 0 << ",";
-            }
-
-            travel_flag = false;
-        }
-        exportFile << "\n";
-    }
-}
-
 int core::get_spk(sm_spk** spk_now, int* which_spk) {
     
     //cout << "-<Start> get_spk" << endl;
@@ -375,13 +306,13 @@ void core::ext_spike_load(double tend) {
 
 }
 
-template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk) {
+template<int is_spk, int is_rng> void core::run_loop(double tnow, double tend, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk) {
 
     // Leak is now unabled
     //potential_update_by_leak(tnow - tpre);
 
     if (is_spk) {
-        wta_condition_update(spk_now, tnow);
+        wta_condition_update(spk_now, tnow, tend);
         potential_update_by_spk(spk_now);
         
     }
@@ -389,6 +320,9 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
     if (is_rng) {
         if (param.enable_random_walk) {
             potential_update_by_random_walk(tnow);
+            if (param.enable_simulated_annealing) {
+                random_walk_annealing_schedule(tnow, tend);
+            }
         }
         simtick += param.timestep_rng;
     }
@@ -467,6 +401,7 @@ double core::run() {
     }
     exportFile_potential << "\n";
 
+
     // [FILE EXPORT] Export initial potential
     exportFile_potential << 0 << ",";
     for (int i = 0; i < num_neurons[side_h]; i++) {
@@ -474,13 +409,15 @@ double core::run() {
     }
     exportFile_potential << "\n";
 
+
     // [FILE EXPORT] SPIKE FILE
     string filename_spike;
     filename_spike.append("Spike_");
     filename_spike.append(filename);
 
     exportFile_spike.open(filename_spike);
-    exportFile_spike << "time" << "," << "side"<< "," << "neuron_index" << "\n";
+    exportFile_spike << "time" << "," << "neuron_index" << "\n";
+
 
     // [FILE EXPORT] TRAVEL ROUTE FILE
     string filename_travel;
@@ -494,6 +431,7 @@ double core::run() {
     }
     exportFile_travel << "\n";
 
+
     // [FILE EXPORT] NUM SPIKE FILE
     string filename_num_spike;
     filename_num_spike.append("NumSpike_");
@@ -506,10 +444,9 @@ double core::run() {
     }
     exportFile_num_spike << "\n";
 
-    ///* [FILE EXPORT] END *///
+    //exportFile_wta_spike.open(filename_num_spike);
 
-    // Firing count
-    
+    ///* [FILE EXPORT] END *///
 
     // Console progress bar
     double consolepercentage;
@@ -575,7 +512,9 @@ double core::run() {
                 //cout << "CASE 1-3" << endl;
                 run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                 //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
-                //export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
+                if (spk_now->iso == 1 && tnow > tend - 10 && tnow < tend) {
+                    export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
+                }
                 //export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
             }
@@ -604,7 +543,9 @@ double core::run() {
                 //cout << "CASE 3-3" << endl;
                 run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                 //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
-                //export_spike_info_to_csv(exportFile_spike, *spk_now, tend);
+                if (spk_now->iso == 1 && tnow > tend-10 && tnow < tend) { // Real spike event
+                    export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
+                }
                 //export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
             }

@@ -55,7 +55,7 @@ void core::weight_setup(){
                     weight_matrix[v_idx][h_idx].Gp = param.adj_WTA_same_cities;
                     weight_flag = "/";
             	}else{ // THE MOST IMPORTANT PART OF THE TRAVELING SALESMAN PROBLEM
-                    weight_matrix[v_idx][h_idx].Gp = 0.05 + (1- distance/max_distance)*0.2;
+                    weight_matrix[v_idx][h_idx].Gp = -0.06 + (1- distance/max_distance)*0.2;
                     weight_flag = "*";
             	}
             }

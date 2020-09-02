@@ -112,6 +112,7 @@ private:
 
 	// Potential-update-related methods: implemented in sm_potential.cpp
 	void potential_update_by_random_walk(double tnow);
+	void random_walk_annealing_schedule(double tnow, double tend);
 	template<int side> void potential_update_by_random_walk_core(double tnow);
 
 	void potential_update_by_leak(double tdiff);
@@ -121,15 +122,16 @@ private:
 	template<int side> void potential_update_by_spk_core(sm_spk& spk_now, double *wsum);
 
 	void potential_reset(sm_spk& spk_now);
-	void wta_condition_update(sm_spk& spk_now, double tnow);
+	void wta_condition_update(sm_spk& spk_now, double tnow, double tend);
 	void cap_iso_update();
 	void last_spk_st_update(sm_spk& spk_now);
 
 	int compare_threshold(double tnow);
 
 	// Export method
-	void export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
+	void export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tnow, double tend);
 	void export_num_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
+	void export_wta_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 	void export_potential_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 	void export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 
