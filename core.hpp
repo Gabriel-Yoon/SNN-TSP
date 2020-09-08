@@ -108,7 +108,7 @@ private:
 	int get_spk(sm_spk** spk_now, int* which_spk);
 	void ext_spike_load(double tend);
 
-	template<int is_spk, int is_rng> void run_loop(double tnow, double tpre, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk);
+	template<int is_spk, int is_rng> void run_loop(double tnow, double tpre, double tend, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk);
 
 	// Potential-update-related methods: implemented in sm_potential.cpp
 	void potential_update_by_random_walk(double tnow);

@@ -306,10 +306,10 @@ void core::ext_spike_load(double tend) {
 
 }
 
-template<int is_spk, int is_rng> void core::run_loop(double tnow, double tend, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk) {
+template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, double tend, sm_spk& spk_now, int which_spk, double& simtick, int& new_spk) {
 
-    // Leak is now unabled
-    //potential_update_by_leak(tnow - tpre);
+    // Leak is now unabled -> Leak is now abled (2020.09.06)
+    potential_update_by_leak(tnow - tpre);
 
     if (is_spk) {
         wta_condition_update(spk_now, tnow, tend);
@@ -321,7 +321,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tend, s
         if (param.enable_random_walk) {
             potential_update_by_random_walk(tnow);
             if (param.enable_simulated_annealing) {
-                random_walk_annealing_schedule(tnow, tend);
+                //random_walk_annealing_schedule(tnow, tend);
             }
         }
         simtick += param.timestep_rng;
@@ -333,7 +333,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tend, s
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 100;
+    double tend = 10;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -499,19 +499,19 @@ double core::run() {
             if (spk_now->reset == true) {
                 //cout << "CASE 1-1 ***************************************" << endl;
                 potential_reset(*spk_now); // Reset before or after run_loop()???
-                run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+                run_loop<0, 1>(tnow, tpre, tend, *spk_now, which_spk, simtick, new_spk);
                 tpre = tnow;
             }
             else if (spk_now->st == true) {
                 //cout << "CASE 1-2" << endl;
                 last_spk_st_update(*spk_now);
-                run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+                run_loop<0, 1>(tnow, tpre, tend, *spk_now, which_spk, simtick, new_spk);
                 tpre = tnow;
             }
             else {
                 //cout << "CASE 1-3" << endl;
-                run_loop<1, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
+                run_loop<1, 1>(tnow, tpre, tend, *spk_now, which_spk, simtick, new_spk);
+                export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
                 if (spk_now->iso == 1 && tnow > tend - 10 && tnow < tend) {
                     export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
                 }
@@ -524,7 +524,7 @@ double core::run() {
             tnow = simtick;
             if (tnow > tend) break;
             is_spk = 0;
-            run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
+            run_loop<0, 1>(tnow, tpre, tend, *spk_now, which_spk, simtick, new_spk);
             tpre = tnow;
         }
         else { // if simtick > spk_now.time
@@ -541,8 +541,8 @@ double core::run() {
             }
             else {
                 //cout << "CASE 3-3" << endl;
-                run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
-                //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
+                run_loop<1, 0>(tnow, tpre, tend, *spk_now, which_spk, simtick, new_spk);
+                export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
                 if (spk_now->iso == 1 && tnow > tend-10 && tnow < tend) { // Real spike event
                     export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
                 }
