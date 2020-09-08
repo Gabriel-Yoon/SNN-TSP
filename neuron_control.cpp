@@ -396,6 +396,19 @@ template<int side> void core::potential_update_by_random_walk_core(double tnow) 
 
 }
 
+void core::instantaneous_firing_probability() {
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    default_random_engine generator(seed);
+
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<double> dis(0,1); //uniform distribution btw 0 and 1
+
+    //if (dis(gen));
+
+}
+
 void core::potential_update_by_random_walk(double tnow) {
 
     //cout << "- <Start> Random Walk" << endl;

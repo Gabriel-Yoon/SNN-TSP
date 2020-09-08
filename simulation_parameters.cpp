@@ -12,8 +12,8 @@ void simulation_parameters::print_parameters(){
 simulation_parameters::simulation_parameters() {
 
     timestep = 1e-6;
-    timestep_rng = 10e-4; // was 10e-6
-    timestep_injection = 20e-5;
+    timestep_rng = 10e-6; // was 10e-6
+    timestep_injection = 20e-6;
 
     // TSP Inhibition Weight Setup
     same_WTA_diff_cities = -0.1;
@@ -65,7 +65,7 @@ simulation_parameters::simulation_parameters() {
     enable_simulated_annealing = false;
 
     hw_ISO_MOD = false;
-    hw_CAP_ISO = true;
+    hw_CAP_ISO = false;
     hw_RES_EN = true;
     hw_RES_BLK = false;
 

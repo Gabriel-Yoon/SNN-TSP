@@ -115,6 +115,8 @@ private:
 	void random_walk_annealing_schedule(double tnow, double tend);
 	template<int side> void potential_update_by_random_walk_core(double tnow);
 
+	void instantaneous_firing_probability();
+
 	void potential_update_by_leak(double tdiff);
 	template<int side> void potential_update_by_leak_core(double tdiff);
 
