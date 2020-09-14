@@ -65,7 +65,7 @@ simulation_parameters::simulation_parameters() {
     enable_simulated_annealing = false;
 
     hw_ISO_MOD = false;
-    hw_CAP_ISO = false;
+    hw_CAP_ISO = true;
     hw_RES_EN = true;
     hw_RES_BLK = false;
 
