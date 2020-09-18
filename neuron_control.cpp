@@ -219,7 +219,7 @@ void core::wta_condition_update(sm_spk& spk_now, double tnow, double tend) {
     }
 }
 
-void core::cap_iso_update() {
+void core::cap_iso_update() { // This function works only when (param.hw_CAP_ISO) is true
 
     // Initialization of cap_iso profile
     for (int i = 1; i < num_city + 1; i++) {
@@ -420,7 +420,7 @@ void core::potential_update_by_random_walk(double tnow) {
 }
 
 void core::random_walk_annealing_schedule(double tnow, double tend) {
-    param.random_walk_step = 0.005+ (param.random_walk_step-0.005) * exp(-tnow / 10);
+    param.random_walk_step = 0.005+ (param.random_walk_step-0.005) * exp(-tnow / 2);
 }
 
 template<int side> void core::potential_update_by_leak_core(double tdiff) {

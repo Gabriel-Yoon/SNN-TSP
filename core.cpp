@@ -333,7 +333,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 3;
+    double tend = 300;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -369,19 +369,24 @@ double core::run() {
     filename.append("num_city=");
     filename.append(str1);
     
-    filename.append(" ");
-    filename.append("same_WTA_diff_cities= ");
-    filename.append(str2);
-    
-    filename.append(" ");
-    filename.append("adj_WTA_same_cities= ");
-    filename.append(str3);
-    
-    filename.append(" ");
-    filename.append("non_adj_WTA_same_cities= ");
-    filename.append(str4);
-    
+    if (!param.hw_CAP_ISO) {
+        filename.append(" ");
+        filename.append("same_WTA_diff_cities= ");
+        filename.append(str2);
 
+        filename.append(" ");
+        filename.append("adj_WTA_same_cities= ");
+        filename.append(str3);
+
+        filename.append(" ");
+        filename.append("non_adj_WTA_same_cities= ");
+        filename.append(str4);
+    }
+    else {
+        filename.append(" ");
+        filename.append("CAP_ISO_ON ");
+    }
+    
     filename.append(" ");
     filename.append("tend= ");
     filename.append(str7);
@@ -513,7 +518,7 @@ double core::run() {
                 run_loop<1, 1>(tnow, tpre, tend, *spk_now, which_spk, simtick, new_spk);
                 //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
                 if (spk_now->iso == 1 && tnow > tend - 1 && tnow < tend) { //Deleted && tnow > tend-10 && tnow < tend
-                    //export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
+                    export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
                 }
                 //export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
@@ -543,8 +548,8 @@ double core::run() {
                 //cout << "CASE 3-3" << endl;
                 run_loop<1, 0>(tnow, tpre, tend, *spk_now, which_spk, simtick, new_spk);
                 //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
-                if (spk_now->iso == 1 && tnow > tend - 1 && tnow < tend) { // Real spike event. Deleted && tnow > tend-10 && tnow < tend
-                    //export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
+                if (spk_now->iso == 1 && tnow > tend - 1 && tnow < tend) { // Real spike event. Deleted && tnow > tend-10 && tnow < tend 
+                    export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
                 }
                 //export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;

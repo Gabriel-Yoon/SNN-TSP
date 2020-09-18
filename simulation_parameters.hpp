@@ -73,6 +73,7 @@ struct simulation_parameters {
     bool enable_random_walk;
     bool enable_gpgm;
     bool enable_simulated_annealing;
+    bool enable_firing_probability;
 
     bool hw_ISO_MOD;
     bool hw_CAP_ISO;
