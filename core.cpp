@@ -41,9 +41,22 @@ core::core()
 
 void core::initialize()
 {
-    // int non_adj_WTA_same_cities = 1;
+    
     cout << "[START] CORE_INITIALIZATION" << endl;
     
+    // When you change the TSP cities, you should change int num_city in core.hpp
+
+    // FIVE is a set of 5 cities. The minimal tour has length 19.
+    // Answer : 1 - 3 - 2 - 5 - 4
+    distance_matrix = {
+        {0, 3, 4, 2, 7},
+        {3, 0, 4, 6, 3},
+        {4, 4, 0, 5, 8},
+        {2, 6, 5, 0, 6},
+        {7, 3, 8, 6, 0},
+    };
+
+    /*
     // FRI26 TSP dataset from "https://people.sc.fsu.edu/~jburkardt/datasets/tsp/tsp.html"
     // Answer : 1-25-24-23-26-22-21-17-18-20-19-16-11-12-13-15-14-10-9-8-7-5-6-4-3-2-1
     distance_matrix = {
@@ -74,7 +87,8 @@ void core::initialize()
         {127, 179, 157, 197, 194, 202, 188, 188, 155, 136, 116, 100, 111, 132, 122, 139, 109, 125, 141, 148,  80,  65,  64,  93,   0,  90},
         {181, 197, 161, 190, 182, 190, 160, 148, 128, 121, 103,  99, 107, 130, 130,  95,  51,  51,  81,  79,  37,  27,  58, 107,  90,   0},
     };
-    
+    */
+
     /*
     // TSP dataset from "https://developers.google.com/optimization/routing/tsp#c++"
     distance_matrix = {
@@ -333,7 +347,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 300;
+    double tend = 10;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
