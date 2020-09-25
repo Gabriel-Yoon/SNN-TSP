@@ -21,6 +21,8 @@ struct simulation_parameters {
     double same_WTA_diff_cities;
     double adj_WTA_same_cities;
     double non_adj_WTA_same_cities;
+    double b_value;
+    double gradient;
 
     // Spike modulation
     double wlr_width;

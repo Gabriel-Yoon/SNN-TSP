@@ -19,6 +19,8 @@ simulation_parameters::simulation_parameters() {
     same_WTA_diff_cities = 0;
     adj_WTA_same_cities = 0;
     non_adj_WTA_same_cities = 0;
+    b_value = 0.1;
+    gradient = 0.2;
 
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
@@ -35,7 +37,7 @@ simulation_parameters::simulation_parameters() {
     tset_width = 2e-3;
     treset_width = 2e-3;
 
-    pt_init = 0.0;
+    pt_init = 0.2;
     pt_alpha = 0.1;
     pt_lk_tau = 1e-3;
 
@@ -66,7 +68,7 @@ simulation_parameters::simulation_parameters() {
     enable_firing_probability = false;
 
     hw_ISO_MOD = false;
-    hw_CAP_ISO = false;
+    hw_CAP_ISO = true;
     hw_RES_EN = true;
     hw_RES_BLK = false;
 

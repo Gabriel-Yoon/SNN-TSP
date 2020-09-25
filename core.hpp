@@ -40,7 +40,10 @@ private:
 	vector<vector<double>> distance_matrix;
 
 	// Neurons
-	int num_city = 5;
+	const int num_city = 26; 
+	double answer = 937; // 19 for 5 cities, 937 for 26 cities.
+	double total_distance;
+	double performance;
 
 	int neurons_visible_city;
 	int neurons_visible_bias;
@@ -52,6 +55,7 @@ private:
 	
 	vector<vector<struct WTA_condition>> WTA; // traveling order marking array
 	vector<vector<struct spike_count>> spike_counter; // spike counting array
+	vector<double> last_spike;
 
 	double* potential[2];
 	double* threshold[2];
@@ -136,6 +140,7 @@ private:
 	void export_wta_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 	void export_potential_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
 	void export_travel_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tend);
+	void export_performance_info_to_csv(ofstream& exportFile, double tnow);
 
 	// Weight-update methods
 

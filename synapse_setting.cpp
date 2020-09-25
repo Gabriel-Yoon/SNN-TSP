@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 
 #include "synapse.hpp"
@@ -11,7 +12,8 @@ void core::weight_setup(){
 	
     // Initializing max element as INT_MIN 
     double max_distance = 0;
-
+    ofstream exportFile_weight_setup;
+    exportFile_weight_setup.open("weight_setup.csv");
     // checking each element of matrix 
     // if it is greater than maxElement, 
     // update maxElement
@@ -24,7 +26,7 @@ void core::weight_setup(){
         }
     }
 
-    cout << "[START] WEIGHT_SETUP" << endl;
+    cout << "[START] WEIGHT SETUP" << endl;
 	int v_WTA, v_city, h_WTA, h_city;
 	// i : WTA Network, j : City
     for (int v_idx = 0; v_idx < num_neurons[side_v]; v_idx++){
@@ -55,7 +57,7 @@ void core::weight_setup(){
                     weight_matrix[v_idx][h_idx].Gp = param.adj_WTA_same_cities;
                     weight_flag = "/";
             	}else{ // THE MOST IMPORTANT PART OF THE TRAVELING SALESMAN PROBLEM
-                    weight_matrix[v_idx][h_idx].Gp = -0.02 + (1- distance/max_distance)*0.12;
+                    weight_matrix[v_idx][h_idx].Gp = param.b_value + (1- distance/max_distance)*param.gradient;
                     weight_flag = "*";
             	}
             }
@@ -69,6 +71,9 @@ void core::weight_setup(){
             	}
             }
 
+            if (v_idx == 0 && h_city == 1) {
+                weight_matrix[v_idx][h_idx].Gp = -0.3;
+            }
 
             // Check for weight value if they touch the boundaries
             double weight = weight_matrix[v_idx][h_idx].Gp;
@@ -78,13 +83,15 @@ void core::weight_setup(){
             else if (weight < min_w) {
                 weight = min_w;
             }
-
             //cout << weight_flag;
+            exportFile_weight_setup << weight_matrix[v_idx][h_idx].Gp << ",";
         }
+        exportFile_weight_setup << "\n";
         //printf("\n");
     }
     //printf("\n");
-    cout << "[END] WEIGHT_SETUP" << endl;
+    exportFile_weight_setup.close();
+    cout << "[_END_] WEIGHT SETUP" << endl;
 }
 
 inline void core::weight_set_gp(int v_idx, int h_idx) {

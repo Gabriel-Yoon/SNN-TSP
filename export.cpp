@@ -8,6 +8,64 @@
 
 using namespace std;
 
+void core::export_performance_info_to_csv(ofstream& exportFile, double tnow) {
+
+    total_distance = 0;
+    performance = 0;
+    bool distance_defined = true;
+    int arr[26+1] = {};
+    int multiply_salesman_route = 1;
+    // [FILE EXPORT] Export spike time and neuron index to csv file
+    for (int i = 1; i < num_city + 1; i++) {
+        
+        // Tour check
+        int salesman_route = last_spike[i];
+        if (arr[salesman_route] == 0) {
+            arr[salesman_route] = 1;
+        }
+        else {
+            distance_defined = false;
+        }
+        int a, b;
+        if (i == num_city) {
+            a = num_city;
+            b = 1;
+        }
+        else {
+            a = i + 1;
+            b = i;
+        }
+        if (last_spike[a] != 0 && last_spike[b] != 0) {
+            total_distance += distance_matrix[last_spike[a] - 1][last_spike[b] - 1];
+        }
+        else {
+            distance_defined = false;
+        }
+
+        if (distance_defined == false) {
+            break;
+        }
+
+    }
+
+    for (int i = 1; i < num_city + 1; i++) {
+        multiply_salesman_route = multiply_salesman_route * arr[i];
+    }
+
+    if (distance_defined || multiply_salesman_route == 0) {
+        performance = (answer / total_distance);
+        if (performance > 10) {
+            performance = 0;
+        }
+    }
+    else {
+        performance = 0;
+    }
+    
+    exportFile << tnow << "," << performance << "\n";
+
+}
+
 void core::export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tnow, double tend) {
 
     // [FILE EXPORT] Export spike time and neuron index to csv file

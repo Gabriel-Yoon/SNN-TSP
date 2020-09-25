@@ -42,10 +42,12 @@ core::core()
 void core::initialize()
 {
     
-    cout << "[START] CORE_INITIALIZATION" << endl;
+    cout << "[START] CORE INITIALIZATION" << endl;
     
     // When you change the TSP cities, you should change int num_city in core.hpp
 
+
+    /*
     // FIVE is a set of 5 cities. The minimal tour has length 19.
     // Answer : 1 - 3 - 2 - 5 - 4
     distance_matrix = {
@@ -55,10 +57,10 @@ void core::initialize()
         {2, 6, 5, 0, 6},
         {7, 3, 8, 6, 0},
     };
-
-    /*
+    */
+    
     // FRI26 TSP dataset from "https://people.sc.fsu.edu/~jburkardt/datasets/tsp/tsp.html"
-    // Answer : 1-25-24-23-26-22-21-17-18-20-19-16-11-12-13-15-14-10-9-8-7-5-6-4-3-2-1
+    // Answer : 1-25-24-23-26-22-21-17-18-20-19-16-11-12-13-15-14-10-9-8-7-5-6-4-3-2-1 (937)
     distance_matrix = {
         {0,   83,  93, 129, 133, 139, 151, 169, 135, 114, 110,  98,  99,  95,  81, 152, 159, 181, 172, 185, 147, 157, 185, 220, 127, 181},
         {83,   0,  40,  53,  62,  64,  91, 116,  93,  84,  95,  98,  89,  68,  67, 127, 156, 175, 152, 165, 160, 180, 223, 268, 179, 197},
@@ -87,7 +89,7 @@ void core::initialize()
         {127, 179, 157, 197, 194, 202, 188, 188, 155, 136, 116, 100, 111, 132, 122, 139, 109, 125, 141, 148,  80,  65,  64,  93,   0,  90},
         {181, 197, 161, 190, 182, 190, 160, 148, 128, 121, 103,  99, 107, 130, 130,  95,  51,  51,  81,  79,  37,  27,  58, 107,  90,   0},
     };
-    */
+    
 
     /*
     // TSP dataset from "https://developers.google.com/optimization/routing/tsp#c++"
@@ -111,6 +113,8 @@ void core::initialize()
 
     WTA.resize((int)(num_city + 1));
     spike_counter.resize((int)(num_city + 1));
+    last_spike.resize((int)(num_city + 1));
+
     for (int i = 0; i < num_city+1; i++)
     {
         WTA[i].resize((int)(num_city + 1));
@@ -164,7 +168,7 @@ void core::initialize()
 
     int i, j;
     for(i = 0; i < num_neurons[side_v]; i++) {
-        potential[side_v][i] = 0;
+        potential[side_v][i] = 0.2;
         threshold[side_v][i] = 1;
         last_spk[side_v][i] = -1;
         last_spk_st[side_v][i] = -1;
@@ -172,7 +176,7 @@ void core::initialize()
     }
 
     for(i = 0; i < num_neurons[side_h]; i++) {
-        potential[side_h][i] = 0;
+        potential[side_h][i] = 0.2;
         threshold[side_h][i] = 1;
         last_spk[side_h][i] = -1;
         last_spk_st[side_h][i] = -1;
@@ -182,7 +186,7 @@ void core::initialize()
 
     weight_setup();
 
-    cout << "[END] CORE_INITIALIZATION\n" << endl;
+    cout << "[_END_] CORE INITIALIZATION\n" << endl;
 
 }
 
@@ -256,7 +260,7 @@ int core::get_spk(sm_spk** spk_now, int* which_spk) {
 
 void core::ext_spike_load(double tend) {
 
-    cout << "[START] EXTERNAL SPIKE_LOAD" << endl;
+    cout << "[START] EXTERNAL SPIKE LOAD" << endl;
 
     int neuron = 0; // start city : if city 1 is the start, neuron =0;
     double time;
@@ -316,7 +320,7 @@ void core::ext_spike_load(double tend) {
 
         delete spk_one;
     }
-    cout << "[END] EXTERNAL_SPIKE_LOAD" << endl;
+    cout << "[_END_] EXTERNAL SPIKE LOAD\n" << endl;
 
 }
 
@@ -328,7 +332,6 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
     if (is_spk) {
         wta_condition_update(spk_now, tnow, tend);
         potential_update_by_spk(spk_now);
-        
     }
     
     if (is_rng) {
@@ -347,7 +350,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 10;
+    double tend = 20;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -370,6 +373,7 @@ double core::run() {
     ofstream exportFile_spike;
     ofstream exportFile_num_spike;
     ofstream exportFile_travel;
+    ofstream exportFile_performance;
 
     string filename;
     string str1 = std::to_string(num_city);
@@ -407,7 +411,7 @@ double core::run() {
 
     filename.append(".csv");
 
-
+    /*
     // [FILE EXPORT] POTENTIAL FILE
     string filename_potential; // Make new filemane for potential csv file
     filename_potential.append("Potential_");
@@ -420,7 +424,7 @@ double core::run() {
     }
     exportFile_potential << "\n";
 
-
+    
     // [FILE EXPORT] Export initial potential
     exportFile_potential << 0 << ",";
     for (int i = 0; i < num_neurons[side_h]; i++) {
@@ -436,8 +440,7 @@ double core::run() {
 
     exportFile_spike.open(filename_spike);
     exportFile_spike << "time" << "," << "neuron_index" << "\n";
-
-
+    */
     // [FILE EXPORT] TRAVEL ROUTE FILE
     string filename_travel;
     filename_travel.append("Travel_");
@@ -449,7 +452,7 @@ double core::run() {
         exportFile_travel << "step_" << i << ",";
     }
     exportFile_travel << "\n";
-
+    
 
     // [FILE EXPORT] NUM SPIKE FILE
     string filename_num_spike;
@@ -462,6 +465,14 @@ double core::run() {
         exportFile_num_spike << "step_" << i << ",";
     }
     exportFile_num_spike << "\n";
+
+    // [FILE EXPORT] PERFORMANCE FILE
+    string filename_performance;
+    filename_performance.append("Performance_");
+    filename_performance.append(filename);
+
+    exportFile_performance.open(filename_performance);
+    exportFile_performance << "time" << "," << "performance" << "\n";
 
     //exportFile_wta_spike.open(filename_num_spike);
 
@@ -533,8 +544,9 @@ double core::run() {
                 //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
                 if (spk_now->iso == 1 && tnow > tend - 1 && tnow < tend) { //Deleted && tnow > tend-10 && tnow < tend
                     export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
+                    export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
+                    export_performance_info_to_csv(exportFile_performance, tnow);
                 }
-                //export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
             }
         }
@@ -564,8 +576,9 @@ double core::run() {
                 //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
                 if (spk_now->iso == 1 && tnow > tend - 1 && tnow < tend) { // Real spike event. Deleted && tnow > tend-10 && tnow < tend 
                     export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
+                    export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
+                    export_performance_info_to_csv(exportFile_performance, tnow);
                 }
-                //export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                 tpre = tnow;
             }
         }
@@ -574,10 +587,11 @@ double core::run() {
 
     export_num_spike_info_to_csv(exportFile_num_spike, *spk_now, tend);
 
-    exportFile_potential.close();
-    exportFile_spike.close();
+    //exportFile_potential.close();
+    //exportFile_spike.close();
     exportFile_num_spike.close();
     exportFile_travel.close();
+    exportFile_performance.close();
 
     return tnow;
 
