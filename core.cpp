@@ -432,7 +432,7 @@ double core::run() {
     */
     
     //filename.append(" ");
-    filename.append("tend= ");
+    filename.append("tend=");
     filename.append(str7);
 
     filename.append(".csv");
