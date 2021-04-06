@@ -375,7 +375,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 20;
+    double tend = 100;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -408,10 +408,10 @@ double core::run() {
 
     string str7 = std::to_string(tend);
 
-    filename.append("TSP_ ");
-    filename.append("num_city=");
-    filename.append(str1);
-    
+    //filename.append("TSP_");
+    //filename.append("num_city=");
+    //filename.append(str1);
+    /*
     if (!param.hw_CAP_ISO) {
         filename.append(" ");
         filename.append("same_WTA_diff_cities= ");
@@ -426,11 +426,12 @@ double core::run() {
         filename.append(str4);
     }
     else {
-        filename.append(" ");
-        filename.append("CAP_ISO_ON ");
+        filename.append("_");
+        filename.append("CAP_ISO_ON");
     }
+    */
     
-    filename.append(" ");
+    //filename.append(" ");
     filename.append("tend= ");
     filename.append(str7);
 
