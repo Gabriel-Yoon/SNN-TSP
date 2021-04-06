@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>  
-#include <windows.h> // Sleep 함수
+//#include <windows.h> // Sleep 함수
 
 #include "core.hpp"
 #include "simulation_parameters.hpp"
