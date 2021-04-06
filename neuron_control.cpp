@@ -4,6 +4,7 @@
 #include <math.h>
 #include <random>
 #include <chrono>
+#include <string.h>
 
 #include "spike_control.hpp"
 #include "core.hpp"
