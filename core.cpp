@@ -568,7 +568,7 @@ double core::run() {
                 //cout << "CASE 1-3" << endl;
                 run_loop<1, 1>(tnow, tpre, tend, *spk_now, which_spk, simtick, new_spk);
                 //export_potential_info_to_csv(exportFile_potential, *spk_now, tend);
-                if (spk_now->iso == 1 && tnow > tend - 1 && tnow < tend) { //Deleted && tnow > tend-10 && tnow < tend
+                if (spk_now->iso == 1 && tnow > tend - 5 && tnow < tend) { //Deleted && tnow > tend-10 && tnow < tend
                     export_spike_info_to_csv(exportFile_spike, *spk_now, tnow, tend);
                     export_travel_info_to_csv(exportFile_travel, *spk_now, tend);
                     export_performance_info_to_csv(exportFile_performance, tnow);
