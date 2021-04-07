@@ -19,8 +19,8 @@ simulation_parameters::simulation_parameters() {
     same_WTA_diff_cities = 0;
     adj_WTA_same_cities = 0;
     non_adj_WTA_same_cities = 0;
-    b_value = 0.1;
-    gradient = 0.2;
+    b_value = 0.15;
+    gradient = 0.1;
 
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
@@ -37,7 +37,7 @@ simulation_parameters::simulation_parameters() {
     tset_width = 2e-3;
     treset_width = 2e-3;
 
-    pt_init = 0.5;
+    pt_init = 0.6;
     pt_alpha = 0.1;
     pt_lk_tau = 1e-3;
 
