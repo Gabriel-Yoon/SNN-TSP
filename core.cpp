@@ -379,7 +379,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 100;
+    double tend = 10;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
@@ -438,7 +438,9 @@ double core::run() {
     //filename.append(" ");
     filename.append("tend=");
     filename.append(str7);
-
+    if (param.enable_simulated_annealing) {
+        filename.append("_sa_on");
+    }
     filename.append(".csv");
 
     /*

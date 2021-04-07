@@ -64,7 +64,7 @@ simulation_parameters::simulation_parameters() {
     string stochastic_method = "random_walk";
     enable_random_walk = true;
     enable_gpgm = true;
-    enable_simulated_annealing = false;
+    enable_simulated_annealing = true;
     enable_firing_probability = false;
 
     hw_ISO_MOD = false;
