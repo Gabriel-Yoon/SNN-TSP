@@ -368,7 +368,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
             potential_update_by_random_walk(tnow);
             if (param.enable_simulated_annealing) {
                 random_walk_annealing_schedule(tnow, tend);
-                printf("%f\n", param.random_walk_step);
+                // printf("%f\n", param.random_walk_step);
             }
         }
         simtick += param.timestep_rng;
