@@ -6,6 +6,8 @@
 #include "core.hpp"
 #include "simulation_parameters.hpp"
 
+extern double INIT_PERFORMANCE = 0;
+
 using namespace std;
 
 void core::export_performance_info_to_csv(ofstream& exportFile, double tnow) {
@@ -15,7 +17,7 @@ void core::export_performance_info_to_csv(ofstream& exportFile, double tnow) {
     bool distance_defined = true;
     int arr[26+1] = {};
     int multiply_salesman_route = 1;
-    // [FILE EXPORT] Export spike time and neuron index to csv file
+
     for (int i = 1; i < num_city + 1; i++) {
         
         // Tour check
@@ -26,12 +28,14 @@ void core::export_performance_info_to_csv(ofstream& exportFile, double tnow) {
         else {
             distance_defined = false;
         }
+        
+        // Tour distance calculation
         int a, b;
-        if (i == num_city) {
+        if (i == num_city) { // CASE 1: end city to city 1
             a = num_city;
             b = 1;
         }
-        else {
+        else { // CASE 2: normal case
             a = i + 1;
             b = i;
         }
@@ -52,7 +56,7 @@ void core::export_performance_info_to_csv(ofstream& exportFile, double tnow) {
         multiply_salesman_route = multiply_salesman_route * arr[i];
     }
 
-    if (distance_defined || multiply_salesman_route == 0) {
+    if (distance_defined || (multiply_salesman_route == 0)) {
         performance = (answer / total_distance);
         if (performance > 10) {
             performance = 0;
@@ -61,8 +65,11 @@ void core::export_performance_info_to_csv(ofstream& exportFile, double tnow) {
     else {
         performance = 0;
     }
-    
-    exportFile << tnow << "," << performance << "\n";
+
+    if (INIT_PERFORMANCE != performance) {
+        exportFile << tnow << "," << performance << "\n";
+        INIT_PERFORMANCE = performance;
+    }
 
 }
 
