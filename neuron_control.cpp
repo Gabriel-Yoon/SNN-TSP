@@ -421,7 +421,7 @@ void core::potential_update_by_random_walk(double tnow) {
 }
 
 void core::random_walk_annealing_schedule(double tnow, double tend) {
-    param.random_walk_step = 0.005 + (0.06-0.005) * exp(-tnow / 20);
+    param.random_walk_step = 0.03 + (0.06-0.03) * exp(-tnow / 20);
 }
 
 template<int side> void core::potential_update_by_leak_core(double tdiff) {
