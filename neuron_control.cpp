@@ -335,14 +335,18 @@ int core::compare_threshold(double tnow) {
 
                 if (dis(gen) < 1e-6 / param.refractory_time * exp(potential[side_h][h_idx])) {
                     new_spk_reset->spk.push_back(make_pair(side_h, h_idx));
+                    last_spk_st[side_h][h_idx] = tnow;
                     new_spk->spk.push_back(make_pair(side_h, h_idx));
                 }
 
                 WTA_at_least_one_spike[i] = true;
             }
 
+            /*
             if (!WTA_at_least_one_spike[i]) {
-                // Double check
+                // This is the case when not even a single neuron has fired in WTA[i] even through ideal firing probability test.
+                
+                
                 double potential_max = 0;
                 int potential_max_idx = 0;
                 for (int j = 1; j < num_city + 1; j++) {
@@ -352,10 +356,12 @@ int core::compare_threshold(double tnow) {
                         potential_max_idx = h_idx;
                     }
                 }
+
                 // Spike on max potential neuron
                 new_spk_reset->spk.push_back(make_pair(side_h, potential_max_idx));
                 new_spk->spk.push_back(make_pair(side_h, potential_max_idx));
             }
+            */
         }
 
     }
