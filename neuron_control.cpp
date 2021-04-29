@@ -279,6 +279,9 @@ void core::last_spk_st_update(sm_spk& spk_now) {
 
 int core::compare_threshold(double tnow) {
 
+    // For ideal Firing Probability
+    bool WTA_at_least_one_spike[26] = { false }; // This part should be revised
+
     //cout << "- <Start> Compare Threshold" << endl;
 
     sm_spk* new_spk = new sm_spk;
@@ -309,8 +312,54 @@ int core::compare_threshold(double tnow) {
                 //cout << "ST UPDATE COMPLETE" << endl;
                 new_spk->spk.push_back(make_pair(side_h, h_idx));
             }
+
+            // For ideal Firing Probability
+            if (param.enable_ideal_firing_probability) {
+                WTA_at_least_one_spike[i] = true;
+            }
+
         }
+
+        // Not even a single neuron has fired in WTA[i]
+        if (param.enable_ideal_firing_probability && !WTA_at_least_one_spike[i]) {
+            srand(time(NULL));
+            for (int j = 1; j < num_city + 1; j++) {
+                int h_idx = (i - 1) * num_city + j - 1;
+
+                // Random number generator
+                unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+                default_random_engine generator(seed);
+                random_device rd;
+                mt19937 gen(rd());
+                uniform_real_distribution<double> dis(1e-6 / param.refractory_time * exp(param.pt_init), 6.796e-4);
+
+                if (dis(gen) < 1e-6 / param.refractory_time * exp(potential[side_h][h_idx])) {
+                    new_spk_reset->spk.push_back(make_pair(side_h, h_idx));
+                    new_spk->spk.push_back(make_pair(side_h, h_idx));
+                }
+
+                WTA_at_least_one_spike[i] = true;
+            }
+
+            if (!WTA_at_least_one_spike[i]) {
+                // Double check
+                double potential_max = 0;
+                int potential_max_idx = 0;
+                for (int j = 1; j < num_city + 1; j++) {
+                    int h_idx = (i - 1) * num_city + j - 1;
+                    if (potential_max < potential[side_h][h_idx]) {
+                        potential_max = potential[side_h][h_idx];
+                        potential_max_idx = h_idx;
+                    }
+                }
+                // Spike on max potential neuron
+                new_spk_reset->spk.push_back(make_pair(side_h, potential_max_idx));
+                new_spk->spk.push_back(make_pair(side_h, potential_max_idx));
+            }
+        }
+
     }
+
 
     double time_fire2 = tnow + param.delay_spikein2out;
 

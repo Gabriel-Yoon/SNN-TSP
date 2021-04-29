@@ -66,6 +66,7 @@ simulation_parameters::simulation_parameters() {
     enable_gpgm = true;
     enable_simulated_annealing = true;
     enable_firing_probability = false;
+    enable_ideal_firing_probability = false;
 
     hw_ISO_MOD = false;
     hw_CAP_ISO = true;

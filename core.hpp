@@ -42,7 +42,7 @@ private:
 
 	// Neurons
 	const int num_city = 26; 
-	double answer = 937; // 19 for 5 cities, 937 for 26 cities.
+	const double answer = 937; // 19 for 5 cities, 937 for 26 cities.
 	double total_distance;
 	double performance;
 
