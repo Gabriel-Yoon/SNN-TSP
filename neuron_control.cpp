@@ -324,7 +324,7 @@ int core::compare_threshold(double tnow, int which_spk) {
         // Not even a single neuron has fired in WTA[i]
         if (param.enable_ideal_firing_probability && !WTA_at_least_one_spike[i] && i!=1 && which_spk != spk_type_int) {
             srand(time(NULL));
-            for (int j = 1; j < num_city + 1; j++) {
+            for (int j = 2; j < num_city + 1; j++) { // city 1 is fixed on step 1 so city 1 will not be considered
                 int h_idx = (i - 1) * num_city + j - 1;
 
                 // Random number generator
