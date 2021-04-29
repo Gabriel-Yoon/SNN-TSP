@@ -37,7 +37,7 @@ simulation_parameters::simulation_parameters() {
     tset_width = 2e-3;
     treset_width = 2e-3;
 
-    pt_init = 0.6;
+    pt_init = 0.0;
     pt_alpha = 0.1;
     pt_lk_tau = 1e-3;
 

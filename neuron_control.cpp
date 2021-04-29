@@ -331,9 +331,9 @@ int core::compare_threshold(double tnow) {
                 default_random_engine generator(seed);
                 random_device rd;
                 mt19937 gen(rd());
-                uniform_real_distribution<double> dis(1e-6 / param.refractory_time * exp(param.pt_init), 6.796e-4);
+                uniform_real_distribution<double> dis(param.timestep / param.refractory_time * exp(param.pt_init), 6.796e-4);
 
-                if (dis(gen) < 1e-6 / param.refractory_time * exp(potential[side_h][h_idx])) {
+                if (dis(gen) < param.timestep / param.refractory_time * exp(potential[side_h][h_idx])) {
                     new_spk_reset->spk.push_back(make_pair(side_h, h_idx));
                     last_spk_st[side_h][h_idx] = tnow;
                     new_spk->spk.push_back(make_pair(side_h, h_idx));
