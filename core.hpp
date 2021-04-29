@@ -57,6 +57,7 @@ private:
 	vector<vector<struct WTA_condition>> WTA; // traveling order marking array
 	vector<vector<struct spike_count>> spike_counter; // spike counting array
 	vector<double> last_spike;
+	vector<bool> WTA_at_least_one_spike; // instantaneous firing probability checking array
 
 	double* potential[2];
 	double* threshold[2];
@@ -133,7 +134,7 @@ private:
 	void cap_iso_update();
 	void last_spk_st_update(sm_spk& spk_now);
 
-	int compare_threshold(double tnow);
+	int compare_threshold(double tnow, int which_spk);
 
 	// Export method
 	void export_spike_info_to_csv(ofstream& exportFile, sm_spk& spk_now, double tnow, double tend);

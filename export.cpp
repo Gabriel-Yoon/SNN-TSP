@@ -58,7 +58,7 @@ void core::export_performance_info_to_csv(ofstream& exportFile, double tnow) {
 
     if (distance_defined || (multiply_salesman_route == 0)) {
         performance = (answer / total_distance);
-        if (performance > 10) {
+        if (performance > 1) {
             performance = 0;
         }
     }

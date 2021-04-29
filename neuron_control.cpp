@@ -277,10 +277,7 @@ void core::last_spk_st_update(sm_spk& spk_now) {
     }
 }
 
-int core::compare_threshold(double tnow) {
-
-    // For ideal Firing Probability
-    bool WTA_at_least_one_spike[26] = { false }; // This part should be revised
+int core::compare_threshold(double tnow, int which_spk) {
 
     //cout << "- <Start> Compare Threshold" << endl;
 
@@ -290,6 +287,10 @@ int core::compare_threshold(double tnow) {
     double time_in_ref = tnow - param.refractory_time;
 
     for (int i = 1; i < num_city + 1; i++) {
+        
+        // Initialize
+        WTA_at_least_one_spike[i] = { false };
+
         for (int j = 1; j < num_city + 1; j++) {
 
             int h_idx = (i - 1) * num_city + j - 1;
@@ -321,7 +322,7 @@ int core::compare_threshold(double tnow) {
         }
 
         // Not even a single neuron has fired in WTA[i]
-        if (param.enable_ideal_firing_probability && !WTA_at_least_one_spike[i] && i!=1) {
+        if (param.enable_ideal_firing_probability && !WTA_at_least_one_spike[i] && i!=1 && which_spk != spk_type_int) {
             srand(time(NULL));
             for (int j = 1; j < num_city + 1; j++) {
                 int h_idx = (i - 1) * num_city + j - 1;

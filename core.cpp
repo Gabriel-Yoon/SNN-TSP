@@ -141,6 +141,7 @@ void core::initialize()
     */
 
     WTA.resize((int)(num_city + 1));
+    WTA_at_least_one_spike.resize((int)(num_city + 1));
     spike_counter.resize((int)(num_city + 1));
     last_spike.resize((int)(num_city + 1));
 
@@ -150,6 +151,7 @@ void core::initialize()
         spike_counter[i].resize((int)(num_city + 1));
     }
     for (int i = 1; i < num_city + 1; i++) {
+        WTA_at_least_one_spike[i] = { false };
         for (int j = 1; j < num_city + 1; j++) {
             WTA[i][j].route = false;
             WTA[i][j].iso = false;
@@ -374,13 +376,13 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
         simtick += param.timestep_rng;
     }
 
-    new_spk = compare_threshold(tnow);
+    new_spk = compare_threshold(tnow, which_spk);
 }
 
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 1.2;
+    double tend = 0.2;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;
