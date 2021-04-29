@@ -321,7 +321,7 @@ int core::compare_threshold(double tnow) {
         }
 
         // Not even a single neuron has fired in WTA[i]
-        if (param.enable_ideal_firing_probability && !WTA_at_least_one_spike[i]) {
+        if (param.enable_ideal_firing_probability && !WTA_at_least_one_spike[i] && i!=1) {
             srand(time(NULL));
             for (int j = 1; j < num_city + 1; j++) {
                 int h_idx = (i - 1) * num_city + j - 1;
@@ -453,15 +453,6 @@ template<int side> void core::potential_update_by_random_walk_core(double tnow) 
 }
 
 void core::instantaneous_firing_probability() {
-
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    default_random_engine generator(seed);
-
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<double> dis(0,1); //uniform distribution btw 0 and 1
-
-    //if (dis(gen));
 
 }
 
