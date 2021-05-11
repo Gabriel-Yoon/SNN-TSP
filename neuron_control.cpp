@@ -343,10 +343,9 @@ int core::compare_threshold(double tnow, int which_spk) {
                 WTA_at_least_one_spike[i] = true;
             }
 
-            /*
+            // Below is for the case when not even a single neuron has fired in WTA[i] even through ideal firing probability test.
+            
             if (!WTA_at_least_one_spike[i]) {
-                // This is the case when not even a single neuron has fired in WTA[i] even through ideal firing probability test.
-                
                 
                 double potential_max = 0;
                 int potential_max_idx = 0;
@@ -362,7 +361,8 @@ int core::compare_threshold(double tnow, int which_spk) {
                 new_spk_reset->spk.push_back(make_pair(side_h, potential_max_idx));
                 new_spk->spk.push_back(make_pair(side_h, potential_max_idx));
             }
-            */
+            
+            // Above is for the case when not even a single neuron has fired in WTA[i] even through ideal firing probability test.
         }
 
     }
