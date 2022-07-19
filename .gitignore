@@ -1,7 +1,14 @@
 *.opendb
 *.ipch
 *.csv
+*.sln
+*.vcproj
+*.filters
+*.user
 
+.vs/
+.vscode/
 v16/
 ipch/
-
+Debug/
+x64/
