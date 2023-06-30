@@ -1,8 +1,0 @@
-﻿  neuron_control.cpp
-C:\Users\Gabriel\source\repos\SNN-TSP\neuron_control.cpp(269,19): warning C4244: '초기화 중': '_Rep'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-          with
-          [
-              _Rep=std::chrono::system_clock::rep
-          ]
-C:\Users\Gabriel\source\repos\SNN-TSP\neuron_control.cpp(319): message : 컴파일되는 함수 템플릿 인스턴스화 'void core::potential_update_by_random_walk_core<side_h>(double)'에 대한 참조를 확인하세요.
-  Laptop.vcxproj -> C:\Users\Gabriel\source\repos\SNN-TSP\Debug\Laptop.exe
