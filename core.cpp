@@ -1,30 +1,13 @@
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
-#include <stdlib.h>  
-//#include <windows.h> // Sleep ÇÔ¼ö
+#include <stdlib.h>
+#include <math.h>  
+//#include <windows.h> // Sleep ï¿½Ô¼ï¿½
 
 #include "core.hpp"
 #include "simulation_parameters.hpp"
-
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 100
-extern int INIT_VAL = 0;
-
-using namespace std;
-
-void printProgress(double percentage) {
-    int val = (int)(percentage * 100);
-    if (val != INIT_VAL) {
-        INIT_VAL++;
-        int lpad = (int)(percentage * PBWIDTH);
-        int rpad = PBWIDTH - lpad;
-        printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-        fflush(stdout);
-    }
-}
-
-
+#include "utils.hpp"
 
 core::core()
 {
@@ -382,7 +365,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
 double core::run() {
 
     /* ------------------------------------------Simulation settings------------------------------------------ */
-    double tend = 3.1;
+    double tend = 1;
     double tnow = 0.0;
     double tpre = 0.0;
     double simtick = param.timestep_rng;

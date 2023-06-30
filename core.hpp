@@ -7,7 +7,6 @@
 #include "spike_control.hpp"
 #include "simulation_parameters.hpp"
 
-
 struct spike_count {
 	int num_spike;
 };
