@@ -10,7 +10,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-//#include <windows.h> // Sleep ÇÔ¼ö
+//#include <windows.h> // Sleep ï¿½Ô¼ï¿½
 
 #include "core.hpp"
 

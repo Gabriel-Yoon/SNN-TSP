@@ -15,13 +15,6 @@ simulation_parameters::simulation_parameters() {
     timestep_rng = 10e-6; // was 10e-6
     timestep_injection = 30e-6;
 
-    // TSP Inhibition Weight Setup
-    same_WTA_diff_cities = 0;
-    adj_WTA_same_cities = 0;
-    non_adj_WTA_same_cities = 0;
-    b_value = 0.15;
-    gradient = 0.1;
-
     wlr_width = 40e-9;
     stdp_window = 2e-3 - FLOAT_EPSILON_TIME;
     refractory_time = 4e-3 - FLOAT_EPSILON_TIME; // was 4e-3
@@ -65,6 +58,7 @@ simulation_parameters::simulation_parameters() {
     enable_random_walk = true;
     enable_gpgm = true;
     enable_simulated_annealing = false;
+    bool enable_learning = false;
     enable_firing_probability = false;
     enable_ideal_firing_probability = true;
 

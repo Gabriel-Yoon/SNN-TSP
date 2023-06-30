@@ -17,13 +17,6 @@ struct simulation_parameters {
     double timestep_rng;
     double timestep_injection;
 
-    // TSP Inhibition Weight Setup
-    double same_WTA_diff_cities;
-    double adj_WTA_same_cities;
-    double non_adj_WTA_same_cities;
-    double b_value;
-    double gradient;
-
     // Spike modulation
     double wlr_width;
     double stdp_window;
@@ -75,6 +68,7 @@ struct simulation_parameters {
     bool enable_random_walk;
     bool enable_gpgm;
     bool enable_simulated_annealing;
+    bool enable_learning;
     bool enable_firing_probability;
     bool enable_ideal_firing_probability;
 
@@ -100,12 +94,5 @@ enum : int {
     rng_lfsr8,
     rng_mt
 };
-
-enum : int {
-	side_v,
-	side_h
-};
-
-extern char side_chr[2];
 
 #endif

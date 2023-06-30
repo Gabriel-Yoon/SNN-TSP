@@ -1,18 +1,40 @@
-cmake_minimum_required(VERSION 3.0.0)
-set (CMAKE_CXX_STANDARD 11)
-project(SNN-TSP VERSION 0.1.0)
+cmake_minimum_required(VERSION 3.16)
 
-find_package(Boost)
+set (CMAKE_CXX_STANDARD 14)
 
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-endif()
+#find_package(Boost)
 
-include(CTest)
-enable_testing()
+#if(Boost_FOUND)
+#    include_directories(${Boost_INCLUDE_DIRS})
+#endif()
 
-add_executable(tspsim tester.cpp core.cpp export.cpp neuron_control.cpp simulation_parameters.cpp spike_control.cpp synapse_setting.cpp)
+#include(CTest)
+#enable_testing()
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+include(FetchContent)
+FetchContent_Declare(json
+        GIT_REPOSITORY https://github.com/nlohmann/json
+        GIT_TAG v3.10.5
+        GIT_PROGRESS TRUE
+        GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(json)
+
+target_link_libraries(${PROJECT_NAME}
+    nlohmann_json::nlohmann_json)
+
+FetchContent_Declare(NumCpp
+        GIT_REPOSITORY https://github.com/dpilger26/NumCpp
+        GIT_TAG Version_2.11.0)
+FetchContent_MakeAvailable(NumCpp)
+
+target_link_libraries(${PROJECT_NAME}
+    NumCpp::NumCpp
+)
+
+get_filename_component(ProjectId ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+string(REPLACE " " "_" ProjectId ${ProjectId})
+project(${ProjectId})
+
+file(GLOB SOURCES  *.cpp)
+
+add_executable(${PROJECT_NAME} ${SOURCES} )
