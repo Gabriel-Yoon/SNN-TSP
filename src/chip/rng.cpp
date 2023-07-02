@@ -9,7 +9,7 @@ rng::rng(const char* param_file) : params(param_file) {
 
 		if (params.random_walk_step_up == params.random_walk_step_down) {
 			if (params.random_walk_step_up != params.random_walk_step || params.random_walk_step_down != params.random_walk_step) {
-				std::clog << "Please check the parameter: (random_walk_step_up, random_walk_step_down) and random_walk_step. Exit." << std::endl;
+				//std::clog << "Please check the parameter: (random_walk_step_up, random_walk_step_down) and random_walk_step. Exit." << std::endl;
 				assert(false);
 			}
 		}
@@ -36,7 +36,7 @@ rng::rng(const char* param_file) : params(param_file) {
 			rng_exponential = new py::rng_exponential(8, params.neuron_delay_exp_mean);
 		}
 	}
-
+	/*
 	if (params.is_synaptic_delay) {
 		if (params.delay_method == "gauss") {
 			synaptic_delay_candidate.reserve(params.num_of_delay_candidate);
@@ -50,9 +50,11 @@ rng::rng(const char* param_file) : params(param_file) {
 			synaptic_delay_candidate.push_back(synaptic_delay_value);
 		}
 	}
+	*/
 
 	if (params.enable_sns) {
 		rng_noise_normal = new py::rng_normal(10, 1.0, params.synapse_noise_sigma);
 	}
 
 }
+//**************************************************************************************************************//

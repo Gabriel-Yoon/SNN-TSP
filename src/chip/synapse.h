@@ -17,6 +17,10 @@ class synapse {
     friend class core;
     friend class spk;
     /*---------------------fields-----------------*/
+    public: double Gp;
+    public: double Gm;
+    /*---------------------method-----------------*/
+    private: std::pair<uint32_t, uint32_t> position;
 
 public:
     synapse(uint32_t row, uint32_t col) {
@@ -24,14 +28,7 @@ public:
         // col : neuron num of hidden layer
         position = std::make_pair(row, col);
         // synapse value
-        gp = 0;
-        gm = 0;
+        Gp = 0;
+        Gm = 0;
     }
-
-private:
-    std::pair<uint32_t, uint32_t> position;
-
-public:
-    double gp;
-    double gm;
 };

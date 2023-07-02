@@ -4,12 +4,11 @@
 #include <string>
 #include <vector>
 
-/* Simulation parameter definitions */ 
-
 #define FLOAT_EPSILON_TIME 1e-10
 
 using namespace std;
-
+//**************************************************************************************************************//
+// Simulation parameter definitions
 struct param {
 
 	double timestep;						// Timescale for external spikes
@@ -134,5 +133,5 @@ enum : int {
     rng_lfsr8,
     rng_mt
 };
-
+//**************************************************************************************************************//
 #endif

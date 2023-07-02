@@ -11,7 +11,6 @@
 #include "neuron.h"
 
 //**************************************************************************************************************//
-
 class lif_neuron : public neuron
 {
     private: param params;
@@ -22,7 +21,7 @@ class lif_neuron : public neuron
     public: lif_neuron(const char* param_file);                 // LIF neuron Class constructor.
     public: ~lif_neuron();                                      // LIF neuron Class destructor.
     public: double& leakyTau();                                 // Gets the leaky tau
-    public: void update_memV_by_leak(double tpre, double tnow); // Update membrane potential by leak
+    public: void memV_Leak(double tpre, double tnow); // Update membrane potential by leak
 };
-#endif
 //**************************************************************************************************************//
+#endif

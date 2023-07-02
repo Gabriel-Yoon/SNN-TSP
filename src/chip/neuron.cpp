@@ -7,6 +7,8 @@ neuron::neuron(const char* param_file) : params(param_file), rng(param_file) {
     _memV = params.pt_init;              // membrane potential
     _Vth = params.pt_threshold;               // threshold voltage
     _lastSpkTime = 0.0;       // latest spike time history
+	_lastSpkTimeIN_PAUSE = 0.0;// latest spike time history
+	_lastSpkTimeST_PAUSE = 0.0;// latest spike time history
     _refractoryPeriod = params.refractory_time;  // refractory period
 }
 neuron::~neuron() {
@@ -37,7 +39,7 @@ void neuron::updateLastSpkTime(double _newLastSpkTime) {
     this->_lastSpkTime = _newLastSpkTime;
 }
 //----------------------------------------------------
-void neuron::update_memV_by_random_walk() {
+void neuron::memV_RandomWalk() {
 	//bool r = py::random::uniform_binary();
 	bool _randomWalkFlag = this->rng.rng_randomwalk->get_val();
 	bool _isStepUpDownSame = (params.random_walk_step_up == params.random_walk_step_down);
@@ -56,11 +58,15 @@ void neuron::update_memV_by_random_walk() {
 	if (!_isStepUpDownSame) {
 		_randomWalkStep = (_randomWalkFlag) ? params.random_walk_step_up : params.random_walk_step_down;
 	}
-	neuron::set_memV(this->_memV + _randomWalkMul * _randomWalkStep);
+	this->set_memV(this->_memV + _randomWalkMul * _randomWalkStep);
 }
 //----------------------------------------------------
-void neuron::update_memV_by_white_noise() {
+void neuron::memV_WhiteNoise() {
     double noise = this->rng.rng_white_noise->get_val();
-    neuron::set_memV(this->_memV + noise);
+    this->set_memV(this->_memV + noise);
+}
+//----------------------------------------------------
+void neuron::memV_Reset() {
+	this->set_memV(params.pt_init);
 }
 //----------------------------------------------------

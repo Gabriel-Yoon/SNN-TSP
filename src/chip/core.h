@@ -1,3 +1,5 @@
+#ifndef _CORE_H_
+#define _CORE_H_
 
 #define _HAS_ITERATOR_DEBUGGING 0
 #define _SECURE_SCL 0
@@ -23,6 +25,7 @@
 #include "np.h"
 #include "py.h"
 
+#include "spk.h"
 #include "neuron.h"
 #include "synapse.h"
 #include "param.h"
@@ -33,46 +36,46 @@ struct real_data {
 	double standard_g;
 };
 
-struct spk_cmp {
-	bool operator()(std::pair<double, spk> a, std::pair<double, spk> b) {
-		if (a.first == b.first) return a.second.position.size() < b.second.position.size();
-		return a.first > b.first;
-	}
-};
-
 //**************************************************************************************************************//
 class core
 {
 	private: param params;
 	std::ofstream os;
 	/*---------------------fields-----------------*/
-	private: int _visibleNumNeurons;
-	private: int _hiddenNumNeurons;
+	private: int num_neurons[2];
+	private: std::vector<struct real_data> g_potentiation;
+	private: std::vector<struct real_data> g_depression;
+	private: std::vector<double> g_differ;
+	private: std::vector<std::vector<synapse>> synapses;
+	private: std::vector<std::vector<neuron>> layers;
 
-	std::vector<struct real_data> g_potentiation;
-	std::vector<struct real_data> g_depression;
-	std::vector<double> g_differ;
-	std::vector<std::vector<synapse>> synapses;
-	std::vector<std::vector<neuron>> layers;
+	priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
+                                    spk_cmp> queue_ext;
+    priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
+                                    spk_cmp> queue_spk;
+    priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
+                                    spk_cmp> queue_wup_ext;
+    priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
+                                    spk_cmp> queue_wup_spk;
 
-	int Gp_set = 0;
-	int Gp_reset = 0;
-	int Gm_set = 0;
-	int Gm_reset = 0;
+	private: std::string export_ptn_file[2];
+	/*---------------------methods----------------*/
+	// core constructor
+	public: core(const char* param_file);
+	public: double run();
+	public: void print_params();
+	public: void initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, char* fwij_gm);
 
-public:
-	core(const char* param_file);
-	double run(int epoch);
-	void print_params();
-	void initialize(char* fwij_gp, char* fwij_gm, char* data_pot, char* data_dep);
+    private: template<int is_spk, int is_rng>
+    void run_loop(double tnow, double tpre, spk &spk_now, int which_spk, double &simtick, int &new_spk);	
 
-private:
-	template <typename T> void gen_spike(const std::string type, const std::vector<int>& N_set, const std::string location, const std::vector<T>& data, const double end_point,
-		const double start_point, std::priority_queue<spk, std::vector<spk>, decltype(spk_comparator)>& spk_queue, std::priority_queue<spk, std::vector<spk>, decltype(spk_comparator)>& spk_wup_queue);
+	private: void weight_load(int cell_type, std::string fweight);
+	private: void weight_save(int cell_type, std::string filename);
+	private: void ext_spike_load(double tend);
 
-	void emplace_spike(const std::string type, const int v_or_h, const int num, double t_now, const bool is_neuron_delay,
-		const bool is_synaptic_delay, std::priority_queue<spk, std::vector<spk>, decltype(spk_comparator)>& spk_queue_pri, bool is_fire);
+	int compare_threshold(double tnow);
+	private: int get_spk(spk **spk_now, int *which_spk);
+    private: void ext_spike_load(char *fext, char *ftime);
+};
 
-	void weight_load(int cell_type, std::string fweight);
-	void weight_save(int cell_type, std::string filename);
-
+#endif
