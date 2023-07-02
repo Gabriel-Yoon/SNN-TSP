@@ -12,7 +12,8 @@
 
 //#include <windows.h> // Sleep �Լ�
 
-#include "core.hpp"
+#include "core.h"
+#include "../utils/utils.h"
 
 using namespace std;
 
@@ -30,36 +31,30 @@ struct cmp {
 int main(int argc, char *argv[]) {
     clock_t start, end;
     double result;
-
     start = clock();
-    
     system("color 0A");
+
+
     core mycore;
+    mycore.print_params();
     mycore.initialize();
+    mycore.run();
     
-    
-    double a = mycore.run();
+    std::cout << std::setprecision(4);
+    std::cout << "simulation done" << std::endl;
 
-    /*
-    // TSP Inhibition Weight Setup
-    double same_WTA_diff_cities = -0.1;
-    double adj_WTA_same_cities = -0.1;
-    double non_adj_WTA_same_cities = -0.1;
-
-    mycore.weight_setup(same_WTA_diff_cities, adj_WTA_same_cities, non_adj_WTA_same_cities);
-    */
-
+    // Time print 1
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);
     cout << "User time " << usage.ru_utime.tv_sec + usage.ru_utime.tv_usec * 10e-7 << "sec" << endl;
     cout << "System time" << usage.ru_stime.tv_sec + usage.ru_utime.tv_usec * 10e-7 << "sec" << endl;
     cout << "maxurss " << usage.ru_maxrss / 1024 << " MB" << endl;
 
-    // Time print
+    // Time print 2
     end = clock();
     result = (double)(end - start);
     cout << "result : " << ((result) / CLOCKS_PER_SEC) << " seconds" << endl;
     printf("%f", result / CLOCKS_PER_SEC);
 
-
+    return 0;
 }

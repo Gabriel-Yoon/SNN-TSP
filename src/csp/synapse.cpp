@@ -3,9 +3,9 @@
 #include <string>
 #include <math.h>
 
-#include "synapse.hpp"
-#include "core.hpp"
-#include "simulation_parameters.hpp"
+#include "synapse.h"
+#include "core.h"
+#include "param.h"
 
 using namespace std;
 

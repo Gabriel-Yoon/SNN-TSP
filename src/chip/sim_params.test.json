@@ -1,0 +1,103 @@
+{
+  "timestep": 1e-6,
+  "timestep_rng": 10e-6,
+
+  "steps_transition": 10000,
+  "steps_data": 40000,
+  "steps_model": 40000,
+
+  "num_of_label": 10,
+
+  "wlr_width": 80e-9,
+  "refractory_time": 4e-3,
+
+  "delay_spikein2out": 100e-9,
+  "delay_spikeout2wlr": 0.0,
+  "delay_spikeout2wlr_data_v": 0.0,
+  "delay_spikeout2wlr_data_h": 0.0,
+  "delay_spikeout2wlr_model_v": 0.0,
+  "delay_spikeout2wlr_model_h": 0.0,
+
+  "delay_spikeout2wup": 0.0,
+  "delay_spikeout2wup_data": 6e-3,
+  "delay_spikeout2wup_model": 2e-3,
+  "delay_spikeout2td3": 4e-3,
+
+  "tset_width": 4e-3,
+  "treset_width": 4e-3,
+
+  "pt_init": 0.0,
+  "pt_alpha": 0.1,
+
+  "pt_lk_tau": 1e-3,
+  "pt_threshold": 1.0,
+
+  "wt_delta_g_set": 0.01,
+  "wt_delta_g_reset": -0.01,
+
+  "max_weight": 10.0,
+  "min_weight": 0.0,
+
+  "random_walk_step": 0.06,
+  "random_walk_step_up": 0.06,
+  "random_walk_step_down": 0.06,
+
+  "sigmoid_mid": 0.5,
+  "sigmoid_temp": 4,
+
+  "neurons_visible_data": 784,
+  "neurons_visible_label": 40,
+  "neurons_visible_bias": 8,
+  "neurons_hidden_data": 824,
+  "neurons_hidden_bias": 8,
+
+  "wij_init_mu": 5.0,
+  "wij_init_sigma": 1.06,
+  "wij_init_seed": 2,
+
+  "num_of_image_learning": 100,
+  "num_of_image_inference": 100,
+  "enable_learning": true,
+  "enable_gpgm": true,
+
+  "enable_random_walk": true,
+  "enable_white_noise": false,
+  "enable_sigmoid": false,
+
+  "enable_ps2": false,
+  "ps2_probability": 0.5,
+
+  "enable_s2m": false,
+  "s2m_probability": 0.5,
+
+  "enable_sns": false,
+  "synapse_noise_sigma": 0.05,
+
+  "is_real_data": false,
+  "conductance_level": 128,
+
+  "is_synaptic_delay": false,
+  "synaptic_delay_mu": 5e-4,
+  "synaptic_delay_sigma": 0.00016,
+  "is_neuron_delay": false,
+  "delay_method": "gauss",
+  "neuron_delay_mu": 0.5e-3,
+  "neuron_delay_sigma": 0.00016,
+  "neuron_delay_exp_mean": 1.5e-3,
+
+  "inference_by_label": false,
+  "blocked_area": 0.5,
+
+  "learn_method": "gpgm",
+  "stdp_window_bipolar": 2e-3,
+
+  "epoch_from": 1,
+  "epoch_to": 10,
+
+  "mnist_binary_threshold": 0.5,
+  "spike_rate": 200.0,
+  "bias_rate_factor": 0.354,
+  "bias_rate_factor_v": 0.354,
+  "bias_rate_factor_h": 0.354,
+  "multiprocessing_step": 2
+}

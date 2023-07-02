@@ -1,5 +1,4 @@
 ﻿{
-  // 이 파일에 대한 자세한 내용은 https://go.microsoft.com//fwlink//?linkid=834763 을 참조하세요.
   "configurations": [
     {
       "name": "x64-Debug",
@@ -10,7 +9,9 @@
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
-      "ctestCommandArgs": ""
+      "ctestCommandArgs": "",
+      "cmakeExecutable": "C:/Program Files/CMake/bin/cmake.exe",
+      "variables": []
     }
   ]
 }

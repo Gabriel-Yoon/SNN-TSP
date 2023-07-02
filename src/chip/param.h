@@ -1,16 +1,20 @@
-
 #ifndef _PARAM_H_
 #define _PARAM_H_
 
 #include <string>
 #include <vector>
 
+/* Simulation parameter definitions */ 
+
 #define FLOAT_EPSILON_TIME 1e-10
 
+using namespace std;
+
 struct param {
+
 	double timestep;						// Timescale for external spikes
 	double timestep_rng;					// Timescale for random walk event
-
+	
 	int steps_transition;					// Num of time steps for transition between 2 phases
 	int steps_data;							// Num of time steps for data phase per 1 pattern
 	int steps_model;						// Num of time steps for model phase per 1 pattern
@@ -23,9 +27,9 @@ struct param {
 	double delay_spikein2out;				// Spike in to out delay (bipolar & Gp/Gm)
 	double delay_spikeout2wlr;				// Spike out to wlr delay (bipolar)
 
-		
+
 	double delay_spikeout2wlr_data_v;		// Spike out to wlr delay in data phase (Gp/Gm)
-	double delay_spikeout2wlr_data_h;		
+	double delay_spikeout2wlr_data_h;
 	double delay_spikeout2wlr_model_v;		// Spike out to wlr delay in model phase (Gp/Gm)
 	double delay_spikeout2wlr_model_h;
 
@@ -108,7 +112,27 @@ struct param {
 	double bias_rate_factor_v;
 	double bias_rate_factor_h;
 
-	param(const char* param_file);
+    bool hw_ISO_MOD;
+    bool hw_CAP_ISO;
+    bool hw_RES_EN;
+    bool hw_RES_BLK;
+
+    param(const char* param_file);
+    void print_parameters();
+
 };
 
-#endif /* _PARAM_H_ */
+enum : int {
+    spk_type_both,
+    spk_type_ext,
+    spk_type_int,
+};
+
+enum : int {
+    rng_lfsr32,
+    rng_lfsr16,
+    rng_lfsr8,
+    rng_mt
+};
+
+#endif

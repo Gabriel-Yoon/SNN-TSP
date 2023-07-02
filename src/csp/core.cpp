@@ -5,15 +5,12 @@
 #include <math.h>  
 //#include <windows.h> // Sleep �Լ�
 
-#include "core.hpp"
-#include "simulation_parameters.hpp"
-#include "synapse.hpp"
-#include "utils.hpp"
-#include "tsp.hpp"
+#include "core.h"
+#include "../tsp/tsp.hpp"
 
 sm_spk* spk_null;
 
-core::core()
+core::core(const char* param_file) : param(param_file)
 {
 
 }
@@ -82,6 +79,38 @@ void core::initialize()
 
     cout << "[_END_] CORE INITIALIZATION\n" << endl;
 
+}
+
+void core::print_params() {
+    std::cout << "Simulation parameter list" << std::endl;
+    std::cout << "--------------------------neuron-------------------------- " << std::endl;
+    std::cout << "neurons_v_data: " << params.neurons_visible_data << std::endl;
+    std::cout << "neurons_v_label: " << params.neurons_visible_label << std::endl;
+    std::cout << "neurons_h_data: " << params.neurons_hidden_data << std::endl;
+    std::cout << "neurons_v_bias: " << params.neurons_visible_bias << std::endl;
+    std::cout << "neurons_h_bias: " << params.neurons_hidden_bias << std::endl;
+    std::cout << "--------------------------time-------------------------- " << std::endl;
+    std::cout << "timestep :" << params.timestep << std::endl;
+    std::cout << "timestep_rng :" << params.timestep_rng << std::endl;
+    std::cout << "refractory time: " << params.refractory_time << std::endl;
+    std::cout << "steps_transition: " << params.steps_transition << std::endl;
+    std::cout << "steps_data: " << params.steps_data << std::endl;
+    std::cout << "steps_model: " << params.steps_model << std::endl;
+    std::cout << "----------------------pulse delay----------------------- " << std::endl;
+    std::cout << "delay_spikein2out: " << params.delay_spikein2out << std::endl;
+    std::cout << "wlr_width: " << params.wlr_width << std::endl;
+    std::cout << "delay_spikeout2wup: " << params.delay_spikeout2wup << std::endl;
+    std::cout << "delay_spikeout2wup_data: " << params.delay_spikeout2wup_data << std::endl;
+    std::cout << "delay_spikeout2wup_model: " << params.delay_spikeout2wup_model << std::endl;
+    std::cout << "delay_spikeout2td3: " << params.delay_spikeout2td3 << std::endl;
+    std::cout << "tset_width: " << params.tset_width << std::endl;
+    std::cout << "treset_width: " << params.treset_width << std::endl;
+    std::cout << "--------------------------other------------------------- " << std::endl;
+    std::cout << "data, label spike_rate :" << params.spike_rate << std::endl;
+    std::cout << "bias_rate_factor :" << params.bias_rate_factor << std::endl;
+    std::cout << "bias spike :" << params.spike_rate * params.bias_rate_factor << std::endl;
+    std::cout << "wt_delta_g_set :" << std::fixed << params.wt_delta_g_set << std::endl;
+    std::cout << "wt_delta_g_reset :" << std::fixed << params.wt_delta_g_reset << std::endl;
 }
 
 int core::get_spk(sm_spk** spk_now, int* which_spk) {
@@ -223,7 +252,7 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, d
         simtick += param.timestep_rng;
     }
 
-    new_spk = compare_threshold(tnow, which_spk);
+    new_spk = compare_threshold(tnow);
 }
 
 double core::run() {
@@ -243,19 +272,13 @@ double core::run() {
 
     ext_spike_load(tend); //get queue_ext ready
     get_spk(&spk_now, &which_spk);
-    
-    //exportFile << spk_now->time << "," << spk_now->spk.begin()->first << "," << spk_now->spk.end()->second << "\n";
-    // export_to_csv(exportFile, *spk_now, tend);
-    
-    // Console progress bar
-    double consolepercentage;
 
     // ------------------------------------------------------------------------------------LOOP------------------------------------------------------------------------------------ START //
 
     while (tnow<=tend) {
 
-        consolepercentage = tnow / tend;
-        printProgress(consolepercentage);
+        // Console progress bar
+        utils::printProgress(tnow, tend);
 
         //cout << "------------------------------------------LOOP------------------------------------------" << endl;
         //cout << "tnow : " << tnow << endl;

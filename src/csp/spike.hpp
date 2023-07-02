@@ -1,5 +1,5 @@
-#ifndef SPIKE_CONTROL
-#define SPIKE_CONTROL
+#ifndef _SPIKE_H_
+#define _SPIKE_H_
 
 #include <vector>
 #include <string>

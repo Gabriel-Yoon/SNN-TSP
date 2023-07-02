@@ -1,19 +1,21 @@
-#ifndef CORE
-#define CORE
+#ifndef _CORE_H_
+#define _CORE_H_
 
 #include <vector>
 #include <string>
 
-#include "spike.hpp"
-#include "simulation_parameters.hpp"
-#include "sm_rng.hpp"
+#include "spike.h"
+#include "synapse.h"
+#include "param.h"
+#include "../utils/np.h"
+#include "../utils/py.h"
 
-struct sm_pcmcell {
+struct nvmcell {
 	double Gp; // bipolar only use Gp
 	double Gm;
 };
 
-struct sm_pcmcell_step {
+struct nvmcell_step {
 	int Gp;
 	int Gm;
 };
@@ -33,12 +35,8 @@ class core {
 
 private:
 
-	// DANGER: friend not allowed!
-	// Exclusive to TSP
-	friend class tsp;
-
 	// Simulation Parameters
-	simulation_parameters param;
+	param params;
 
 	// spk container
 	priority_queue<pair<double, sm_spk*>, vector<pair<double, sm_spk*>>, spk_cmp> queue_ext;
@@ -51,12 +49,12 @@ private:
 	int num_neurons_bias[2];
 
 	// synapse
-	vector<vector<struct sm_pcmcell>> weight_matrix;
-	vector<vector<struct sm_pcmcell>> weight_matrix_ideal;
-	vector<vector<struct sm_pcmcell>> max_weight;
-	vector<vector<struct sm_pcmcell>> min_weight;
-	vector<vector<struct sm_pcmcell>> wt_delta_g_set;	// bipolar use this for both set and reset 
-	vector<vector<struct sm_pcmcell>> wt_delta_g_reset; // bipolar use this for both set and reset 
+	vector<vector<struct nvmcell>> weight_matrix;
+	vector<vector<struct nvmcell>> weight_matrix_ideal;
+	vector<vector<struct nvmcell>> max_weight;
+	vector<vector<struct nvmcell>> min_weight;
+	vector<vector<struct nvmcell>> wt_delta_g_set;	// bipolar use this for both set and reset 
+	vector<vector<struct nvmcell>> wt_delta_g_reset; // bipolar use this for both set and reset 
 
 	double* potential[2];
 	double* threshold[2];
@@ -65,19 +63,27 @@ private:
 	double* last_spk_in[2]; // Used for IN_PAUSE in neuron
 	double* wsum[2];
 
-	// Random Walk
-	sm_rng_1bit *rng_rwalk;
-	sm_rng_1bit *rng_ps2;
-	sm_rng_ureal01 rng_vth;
-	sm_rng_normal *rng_wt_set; // master & circuit
-	sm_rng_normal *rngwt_reset; // circuit
-	sm_rng_ureal01 *rng_wt_reset_rate; // circuit
+	// rng
+	py::rng_binomial* rng_randomwalk;						// 0 or 1
+	py::rng_normal* rng_white_noise;
+	py::rng_binomial* rng_s2m;								// 0 or 1
+	py::rng_binomial* rng_ps2;								// 0 or 1
+	py::rng_randrange* rng_randrange;						// similar to python's randrange
+	py::rng_ureal* rng_ureal;								// 0 ~ 1
+	py::rng_normal* rng_weight_normal;						// normal distribution (weight)
+	py::rng_normal* rng_neuron_delay_normal;				// normal distribution (neuron_delay)
+	py::rng_normal* rng_synaptic_delay_normal;				// normal distribution (synaptic_delay)
+	std::vector<double> synaptic_delay_candidate;
+	py::rng_randrange* rng_synaptic_delay;
+	py::rng_normal* rng_noise_normal;						// normal distribution (noise)
+	py::rng_exponential* rng_exponential;					// exponential distribution
+	py::rng_binomial* rng_sigmoid;
 
 	// Functions
 public:
-
-	core();
+	core(const char* param_file);
 	void initialize();
+	void print_params();
 	double run();
 
 private:
@@ -101,16 +107,14 @@ private:
 	template<int side> void potential_update_by_spk_core(sm_spk& spk_now, double *wsum);
 
 	void potential_reset(sm_spk& spk_now);
-	void wta_condition_update(sm_spk& spk_now, double tnow, double tend);
-	void cap_iso_update();
 	void last_spk_st_update(sm_spk& spk_now);
 
-	int compare_threshold(double tnow, int which_spk);
+	int compare_threshold(double tnow);
 
 	// Weight-update methods
 
 	//template<bool same_WTA, bool same_city> void weight_setup_loop(int num_city);
-	void weight_setup();
+
 	inline void weight_set_gp(int v_idx, int h_idx);
 
 
