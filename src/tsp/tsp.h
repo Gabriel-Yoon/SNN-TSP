@@ -34,8 +34,8 @@ namespace csp
 
 		friend class core;
 		// Neurons
-		private: int num_neurons[2];
-		private: int num_neurons_bias[2];
+		public: int num_neurons[2];
+		public: int num_neurons_bias[2];
 
 		/*---------------------fields-----------------*/
 		private: int _numCity;

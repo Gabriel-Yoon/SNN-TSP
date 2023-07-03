@@ -11,47 +11,53 @@ enum {
 };
 
 spk *spk_null;
-
+// std::cout << "" << std::endl;
 core::core(const char* param_file) : params(param_file)
 {
     char* tsp_param_file_path = "C:/Users/Gabriel/dev/SNN-TSP/src/tsp/tsp_data.json";
     _tsp = new csp::tsp(tsp_param_file_path);
     // NEED MODIFICATION for num_neurons
     // link num_neurons with TSP num_city
-	num_neurons[side_v] = 100;
+	num_neurons[side_v] = _tsp->num_neurons[side_v];
+    num_neurons[side_h] = _tsp->num_neurons[side_h];
     std::cout << num_neurons[side_v] << std::endl;
-    num_neurons[side_h] = 100;
     std::cout << num_neurons[side_h] << std::endl;
+
     std::string cpu_str = "core0.";
     export_ptn_file[0] = cpu_str + "export_ptn_file_v"+ "ptn_v.dat";
     export_ptn_file[1] = cpu_str + "export_ptn_file_h"+ "ptn_h.dat";
+    std::cout << "core constructor complete" << std::endl;
 }
 
 void core::initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, char* fwij_gm){
-
+    std::cout << "core initialize ---------" << std::endl;
     synapses.resize(num_neurons[side_v]);
-    layers.resize(num_neurons[side_v]);
     for(int i = 0; i < num_neurons[side_v]; i++) {
         synapses[i].resize(num_neurons[side_h]);
-        layers.resize(num_neurons[side_h]);
     }
-        int i, j;
-        for(i = 0; i < num_neurons[side_v]; i++) {
+
+    layers.resize(2);
+    layers[side_v].resize(num_neurons[side_v]);
+    layers[side_h].resize(num_neurons[side_h]);
+
+    int i, j;
+    for(i = 0; i < num_neurons[side_v]; i++) {
             auto* Neuron = layers[side_v][i];
             Neuron->_memV = 0.0;
             Neuron->_Vth = 1;
             Neuron->_lastSpkTime = -1;
             Neuron->_lastSpkTimeIN_PAUSE = -1;
             Neuron->_lastSpkTimeST_PAUSE = -1;
-        }
-        for(i = 0; i < num_neurons[side_h]; i++) {
+    }
+    for(i = 0; i < num_neurons[side_h]; i++) {
             auto* Neuron = layers[side_h][i];
             Neuron->_memV = 0.0;
             Neuron->_Vth = 1;
             Neuron->_lastSpkTime = -1;
             Neuron->_lastSpkTimeIN_PAUSE = -1;
             Neuron->_lastSpkTimeST_PAUSE = -1;
-        }
+    }
+        std::cout << "core initialize : synapses/layers complete" << std::endl;
         /*
         // NEED MODIFICATION
         // Load python generated external spikes
@@ -87,6 +93,7 @@ void core::initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, 
                 }
             }
         }
+        std::cout << "core initialize : synapses check complete" << std::endl;
 
         spk_null = new spk;
         spk_null->_spkTime = INFINITY;
