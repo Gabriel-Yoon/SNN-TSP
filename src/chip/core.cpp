@@ -306,9 +306,6 @@ void core::ext_spike_load(double tend) {
 
         // Push spike event to queue
         spk_ext->_spkTime = time_fire2 + params.delay_spikeout2wlr + params.wlr_width;
-        if (params.hw_CAP_ISO) {
-            spk_ext->_iso = 1;
-        }
         queue_ext.push(make_pair(spk_ext->_spkTime, spk_ext));
 
         delete spk_one;
