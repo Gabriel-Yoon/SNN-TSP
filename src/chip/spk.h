@@ -5,11 +5,6 @@
 #include <list>
 #include <vector>
 
-enum : int {
-    side_v,
-	side_h
-};
-
 struct spk_one {
 	double time;
 	int side;
@@ -29,7 +24,7 @@ class spk
     public: double _spkTime;
     public: int _coreNum;
     // Be aware that list occur errors so I changed it to vector
-    public: std::vector<pair<int, int>> _spk; // pair<side, neuron_index>.
+    std::list<std::pair<int, int>> _spk; // pair<side, neuron_index>.
     public: bool _reset;
 	public: bool _st;
 	public: int _iso;
@@ -41,7 +36,7 @@ class spk
 		_spkTime = orig_spk._spkTime;
 		for(auto it = orig_spk._spk.begin(); it != orig_spk._spk.end(); it++) {
 			if(find(_spk.begin(), _spk.end(), *it) == _spk.end()) {
-				_spk.push_back(make_pair(it->first, it->second));
+				_spk.push_back(std::make_pair(it->first, it->second));
 			}
 		}
 		_reset = orig_spk._reset;
@@ -75,7 +70,7 @@ class spk
 
 // comparator
 struct spk_cmp {
-    bool operator()(pair<double, spk*> a, pair<double, spk*> b) { // <time, spk>
+    bool operator()(std::pair<double, spk*> a, std::pair<double, spk*> b) { // <time, spk>
         if(a.first == b.first) return (*a.second)._spk.size() < (*b.second)._spk.size();
         return a.first > b.first;
     }

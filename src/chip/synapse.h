@@ -1,9 +1,12 @@
+#ifndef _SYNAPSE_H_
+#define _SYNAPSE_H_
+
 #include <vector>
 #include <string>
 #include <cstdint>
 #include <utility>
 
-enum side {
+enum : int {
     side_v,
     side_h
 };
@@ -20,15 +23,8 @@ class synapse {
     public: double Gp;
     public: double Gm;
     /*---------------------method-----------------*/
-    private: std::pair<uint32_t, uint32_t> position;
+    public: synapse() : Gp(0), Gm(0) {}
 
-public:
-    synapse(uint32_t row, uint32_t col) {
-        // row : neuron num of visible layer
-        // col : neuron num of hidden layer
-        position = std::make_pair(row, col);
-        // synapse value
-        Gp = 0;
-        Gm = 0;
-    }
+
 };
+#endif

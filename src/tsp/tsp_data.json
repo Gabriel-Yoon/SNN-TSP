@@ -1,0 +1,12 @@
+{
+  "mode": "lateral_BM",
+
+  "num_city": 5,
+  "solution_distance": 19,
+
+  "sameWTADiffCities": 0,
+  "adjWTASameCities": 0,
+  "nonAdjWTASameCities": 0,
+  "b": 0.1,
+  "grad": 0.1
+}

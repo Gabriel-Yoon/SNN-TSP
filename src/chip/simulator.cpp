@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>  
 #include <time.h>
-#include <sys/time.h>
-#include <sys/resource.h>
+//#include <sys/time.h>
+//#include <sys/resource.h>
 
 //#include <windows.h> // Sleep �Լ�
 
@@ -33,16 +33,17 @@ int main(int argc, char *argv[]) {
     double result;
     start = clock();
     system("color 0A");
-
-
-    core mycore;
-    mycore.print_params();
-    mycore.initialize();
+    
+    char* chip_param_file_path = "C:/Users/Gabriel/dev/SNN-TSP/src/chip/sim_params.test.json";
+    
+    core mycore(chip_param_file_path);
+    //mycore.print_params();
+    mycore.initialize(NULL, NULL, NULL, NULL, NULL);
     mycore.run();
     
     std::cout << std::setprecision(4);
     std::cout << "simulation done" << std::endl;
-
+    /*
     // Time print 1
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);
@@ -55,6 +56,6 @@ int main(int argc, char *argv[]) {
     result = (double)(end - start);
     cout << "result : " << ((result) / CLOCKS_PER_SEC) << " seconds" << endl;
     printf("%f", result / CLOCKS_PER_SEC);
-
+    */
     return 0;
 }
