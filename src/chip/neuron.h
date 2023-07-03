@@ -25,9 +25,9 @@ class neuron
     public: double _Vreset;             // reset voltage
     public: double _refractoryPeriod;   // refractory period
     public: double _lastSpkTime;        // latest spike time history
-    public: double* _lastSpkTimeIN_PAUSE;// latest spike time history
-    public: double* _lastSpkTimeST_PAUSE;// latest spike time history
-    private: rng* _rng;
+    public: double _lastSpkTimeIN_PAUSE;// latest spike time history
+    public: double _lastSpkTimeST_PAUSE;// latest spike time history
+    public: rng* _rng;
     /*---------------------methods----------------*/    
     /// LIF neuron Class constructor.
     public: neuron();
@@ -41,12 +41,13 @@ class neuron
     
     public: void set_memV(double _newV);                    // Sets the membrane potential to new value
     public: void updateLastSpkTime(double _newLastSpkTime); // Sets the last spike time to latest spike time
+
     public: void memV_WhiteNoise();              // Update membrane potential by white noise
     public: void memV_Reset();                   // Reset memV
 };
 
 // Constructors
-inline neuron::neuron() : _memV(0.0),_Vth(1.0),_Vreset(0.0),_lastSpkTime(0),_lastSpkTimeIN_PAUSE(0),_lastSpkTimeST_PAUSE(0),_refractoryPeriod(4e-3)
+inline neuron::neuron() : _memV(0.0),_Vth(1.0),_Vreset(0.0),_lastSpkTime(0),_lastSpkTimeIN_PAUSE(0),_lastSpkTimeST_PAUSE(0),_refractoryPeriod(4e-3),_rng(nullptr)
 {}
 //----------------------------------------------------
 // Destructor

@@ -3,11 +3,11 @@
 //**************************************************************************************************************//
 
 //----------------------------------------------------
-lif_neuron::lif_neuron(const char* param_file) : neuron(param_file), params(param_file) {
-    _leakyTau = params.pt_lk_tau;
+lif_neuron::lif_neuron(param& _params){
+    _leakyTau = _params.pt_lk_tau;
 }
 lif_neuron::lif_neuron() {
-
+	_leakyTau = 1e-3;
 }
 lif_neuron::~lif_neuron() {
 
@@ -19,13 +19,13 @@ double& lif_neuron::leakyTau() { // getter function
 //----------------------------------------------------
 void lif_neuron::memV_Leak(double tpre, double tnow) {
     double exp_val = std::exp(-(tnow - tpre) / this->_leakyTau);
-    neuron::set_memV(memV() * exp_val);
+	this->_memV = this->_memV * exp_val;
 }
 //----------------------------------------------------
 void lif_neuron::memV_RandomWalk() {
 	
 	//bool r = py::random::uniform_binary();
-	bool _randomWalkFlag = this->rng.rng_randomwalk->get_val();
+	bool _randomWalkFlag = _rng->rng_randomwalk->get_val();
 	bool _isStepUpDownSame = (params.random_walk_step_up == params.random_walk_step_down);
 	/*
 				  flag		
@@ -42,6 +42,6 @@ void lif_neuron::memV_RandomWalk() {
 	if (!_isStepUpDownSame) {
 		_randomWalkStep = (_randomWalkFlag) ? params.random_walk_step_up : params.random_walk_step_down;
 	}
-	this->set_memV(this->_memV + _randomWalkMul * _randomWalkStep);
+	this->_memV = this->_memV + _randomWalkMul * _randomWalkStep;
 }
 //**************************************************************************************************************//

@@ -287,9 +287,6 @@ void core::ext_spike_load(double tend) {
         double ref_end_time = spk_one->time + params.refractory_time + FLOAT_EPSILON_TIME;
         spk* spk_ref = new spk(*spk_ext);
         spk_ref->_spkTime = ref_end_time;
-        if (params.hw_CAP_ISO) {
-            spk_ref->_iso = -1;
-        }
         queue_ext.push(make_pair(ref_end_time, spk_ref));
 
         spk_ext->_iso = 0;

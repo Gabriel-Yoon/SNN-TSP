@@ -99,5 +99,9 @@
   "bias_rate_factor": 0.354,
   "bias_rate_factor_v": 0.354,
   "bias_rate_factor_h": 0.354,
-  "multiprocessing_step": 2
+  "multiprocessing_step": 2,
+
+  "hw_ISO_MOD": true,
+  "hw_RES_EN": true,
+  "hw_RES_BLK": true
 }

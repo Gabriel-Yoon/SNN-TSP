@@ -129,4 +129,8 @@ param::param(const char* param_file) {
 	bias_rate_factor = _SNNChipParam["bias_rate_factor"];
 	bias_rate_factor_v = _SNNChipParam["bias_rate_factor_v"];
 	bias_rate_factor_h = _SNNChipParam["bias_rate_factor_h"];
+
+	hw_ISO_MOD = _SNNChipParam["hw_ISO_MOD"];
+	hw_RES_EN = _SNNChipParam["hw_RES_EN"];
+	hw_RES_BLK = _SNNChipParam["hw_RES_BLK"];
 }  

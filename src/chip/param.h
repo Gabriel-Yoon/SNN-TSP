@@ -112,7 +112,6 @@ struct param {
 	double bias_rate_factor_h;
 
     bool hw_ISO_MOD;
-    bool hw_CAP_ISO;
     bool hw_RES_EN;
     bool hw_RES_BLK;
 
