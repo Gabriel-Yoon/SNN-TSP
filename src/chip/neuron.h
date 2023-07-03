@@ -31,8 +31,9 @@ class neuron
     /*---------------------methods----------------*/    
     /// LIF neuron Class constructor.
     public: neuron();
-    public: neuron(param &_param);           // Manually set parameters from params
+    public: neuron(param &_params);           // Manually set parameters from params
     public: ~neuron();
+    public: void ManualSet(param& _params);
 
     public: double& memV();                                 // Gets the membrane potential
     public: double& Vth();                                  // Gets the threshold voltage
@@ -47,7 +48,7 @@ class neuron
 };
 
 // Constructors
-inline neuron::neuron() : _memV(0.0),_Vth(1.0),_Vreset(0.0),_lastSpkTime(0),_lastSpkTimeIN_PAUSE(0),_lastSpkTimeST_PAUSE(0),_refractoryPeriod(4e-3),_rng(nullptr)
+inline neuron::neuron() : _memV(0.0),_Vth(1.0),_Vreset(0.0),_lastSpkTime(-1),_lastSpkTimeIN_PAUSE(-1),_lastSpkTimeST_PAUSE(-1),_refractoryPeriod(4e-3),_rng(nullptr)
 {}
 //----------------------------------------------------
 // Destructor

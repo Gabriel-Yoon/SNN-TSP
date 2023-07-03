@@ -22,6 +22,7 @@ class lif_neuron : public neuron
     public: lif_neuron();
     public: lif_neuron(param& _params);                         // LIF neuron Class constructor.
     public: ~lif_neuron();                                      // LIF neuron Class destructor.
+    public: void ManualSet(param& _params);
     public: double& leakyTau();                                 // (outdated)Gets the leaky tau
     public: void memV_Leak(double tpre, double tnow); // Update membrane potential by leak
     public: void memV_RandomWalk();              // Update membrane potential by random walk

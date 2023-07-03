@@ -44,21 +44,11 @@ void core::initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, 
     std::cout << "neurons initialize side_v ---------" << std::endl;
     int i, j;
     for(i = 0; i < num_neurons[side_v]; i++) {
-            //auto Neuron = layers[side_v][i];
-            layers[side_v][i]._memV = 0.0;
-            layers[side_v][i]._Vth = 1;
-            layers[side_v][i]._lastSpkTime = -1;
-            layers[side_v][i]._lastSpkTimeIN_PAUSE = -1;
-            layers[side_v][i]._lastSpkTimeST_PAUSE = -1;
+            layers[side_v][i].ManualSet(params);
     }
     std::cout << "neurons initialize side_h ---------" << std::endl;
     for(i = 0; i < num_neurons[side_h]; i++) {
-            auto Neuron = layers[side_h][i];
-            Neuron._memV = 0.0;
-            Neuron._Vth = 1;
-            Neuron._lastSpkTime = -1;
-            Neuron._lastSpkTimeIN_PAUSE = -1;
-            Neuron._lastSpkTimeST_PAUSE = -1;
+            layers[side_h][i].ManualSet(params);
     }
         std::cout << "core initialize : synapses/layers complete" << std::endl;
         /*
