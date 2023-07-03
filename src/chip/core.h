@@ -51,8 +51,8 @@ class core
 	private: std::vector<struct real_data> g_potentiation;
 	private: std::vector<struct real_data> g_depression;
 	private: std::vector<double> g_differ;
-	private: std::vector<std::vector<synapse*>> synapses;
-	private: std::vector<std::vector<lif_neuron*>> layers;
+	private: std::vector<std::vector<synapse>> synapses;
+	private: std::vector<std::vector<lif_neuron>> layers;
 
 	priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
                                     spk_cmp> queue_ext;

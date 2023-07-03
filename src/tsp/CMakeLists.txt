@@ -1,5 +1,8 @@
 message("src/tsp/CMakeList.txt")
 
+# specify the C++ standard
+set (CMAKE_CXX_STANDARD 17)
+
 # Get json library
 include(FetchContent)
 FetchContent_Declare(json

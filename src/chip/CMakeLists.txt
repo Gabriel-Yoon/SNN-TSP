@@ -1,5 +1,8 @@
 message("src/chip/CMakeList.txt")
 
+# specify the C++ standard
+set (CMAKE_CXX_STANDARD 14)
+
 # Get json library
 include(FetchContent)
 FetchContent_Declare(json

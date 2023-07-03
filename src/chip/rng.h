@@ -8,7 +8,6 @@
 //**************************************************************************************************************/
 class rng
 {
-	private: param params;
 	friend class core;
 	friend class neuron;
 	friend class synapse;
@@ -22,14 +21,14 @@ class rng
 	public: py::rng_normal* rng_weight_normal;						// normal distribution (weight)
 	public: py::rng_normal* rng_neuron_delay_normal;				// normal distribution (neuron_delay)
 	public: py::rng_normal* rng_synaptic_delay_normal;				// normal distribution (synaptic_delay)
-	public: std::vector<double> synaptic_delay_candidate;
+	// public: std::vector<double> synaptic_delay_candidate;
 	public: py::rng_randrange* rng_synaptic_delay;
 	public: py::rng_normal* rng_noise_normal;						// normal distribution (noise)
 	public: py::rng_exponential* rng_exponential;					// exponential distribution
 	// py::rng_binomial* rng_sigmoid;
 	/*---------------------methods----------------*/
 	/// LIF neuron Class constructor.
-	public: rng(const char* param_file);
+	public: rng(param& _params);
 };
 //**************************************************************************************************************//
 #endif

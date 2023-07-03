@@ -38,7 +38,7 @@ namespace csp
 		public: int num_neurons_bias[2];
 
 		/*---------------------fields-----------------*/
-		private: int _numCity;
+		public: int _numCity;
 		private: double _solutionDistance; // 19 for 5 cities, 937 for 26 cities.
 		private: std::string _solveMode;
 		private: map<double, double> _performance; // (time, performance) format. totalDistance saved in this map

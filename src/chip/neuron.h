@@ -11,6 +11,7 @@
 #include "rng.h"
 
 // Forward declarations.
+class rng;
 
 //**************************************************************************************************************//
 class neuron
@@ -18,22 +19,21 @@ class neuron
     friend class core;
     friend class synapse;
 
-    private: param params;
-    private: rng rng;
     /*---------------------fields-----------------*/
     public: double _memV;               // membrane potential
     public: double _Vth;                // threshold voltage
-    public: double _lastSpkTime;        // latest spike time history
-    public: double _lastSpkTimeIN_PAUSE;// latest spike time history
-    public: double _lastSpkTimeST_PAUSE;// latest spike time history
+    public: double _Vreset;             // reset voltage
     public: double _refractoryPeriod;   // refractory period
+    public: double _lastSpkTime;        // latest spike time history
+    public: double* _lastSpkTimeIN_PAUSE;// latest spike time history
+    public: double* _lastSpkTimeST_PAUSE;// latest spike time history
+    private: rng* _rng;
     /*---------------------methods----------------*/    
     /// LIF neuron Class constructor.
     public: neuron();
-    public: neuron(const char* param_file);
-    /// LIF neuron Class destructor.
+    public: neuron(param &_param);           // Manually set parameters from params
     public: ~neuron();
-    
+
     public: double& memV();                                 // Gets the membrane potential
     public: double& Vth();                                  // Gets the threshold voltage
     public: double& lastSpkTime();                          // Gets the latest spike time history
@@ -41,9 +41,18 @@ class neuron
     
     public: void set_memV(double _newV);                    // Sets the membrane potential to new value
     public: void updateLastSpkTime(double _newLastSpkTime); // Sets the last spike time to latest spike time
-    public: void memV_RandomWalk();              // Update membrane potential by random walk
     public: void memV_WhiteNoise();              // Update membrane potential by white noise
     public: void memV_Reset();                   // Reset memV
 };
+
+// Constructors
+inline neuron::neuron() : _memV(0.0),_Vth(1.0),_Vreset(0.0),_lastSpkTime(0),_lastSpkTimeIN_PAUSE(0),_lastSpkTimeST_PAUSE(0),_refractoryPeriod(4e-3)
+{}
+//----------------------------------------------------
+// Destructor
+inline neuron::~neuron(){
+	if(_rng != nullptr)
+		::free(_rng);
+}
 //**************************************************************************************************************//
 #endif /* _NEURON_H_ */

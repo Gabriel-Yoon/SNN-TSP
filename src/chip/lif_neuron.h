@@ -13,15 +13,16 @@
 //**************************************************************************************************************//
 class lif_neuron : public neuron
 {
-    private: param params;
 	/*---------------------fields-----------------*/
-	private: double _leakyTau;          // leaky tau value for LIF neuron
-
+	public: double _leakyTau;          // leaky tau value for LIF neuron
+    public: double _randomWalkStep;
 	/*---------------------methods----------------*/
-    public: lif_neuron(const char* param_file);                 // LIF neuron Class constructor.
+    public: lif_neuron();
+    public: lif_neuron(param& _params);                         // LIF neuron Class constructor.
     public: ~lif_neuron();                                      // LIF neuron Class destructor.
-    public: double& leakyTau();                                 // Gets the leaky tau
+    public: double& leakyTau();                                 // (outdated)Gets the leaky tau
     public: void memV_Leak(double tpre, double tnow); // Update membrane potential by leak
+    public: void memV_RandomWalk();              // Update membrane potential by random walk
 };
 //**************************************************************************************************************//
 #endif

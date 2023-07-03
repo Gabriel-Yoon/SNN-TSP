@@ -29,12 +29,14 @@ struct cmp {
 };
 
 int main(int argc, char *argv[]) {
+    /*
     clock_t start, end;
     double result;
     start = clock();
     system("color 0A");
-    
-    char* chip_param_file_path = "C:/Users/Gabriel/dev/SNN-TSP/src/chip/sim_params.test.json";
+    */
+
+    char* chip_param_file_path = "/Users/gabriel/Development/SNN-TSP/src/chip/sim_params.test.json";
     
     core mycore(chip_param_file_path);
     //mycore.print_params();
