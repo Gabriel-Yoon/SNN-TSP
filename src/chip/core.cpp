@@ -11,46 +11,38 @@ enum {
 };
 
 spk *spk_null;
-// std::cout << "" << std::endl;
+
 core::core(const char* param_file) : params(param_file)
 {
     char* tsp_param_file_path = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json";
     _tsp = new csp::tsp(tsp_param_file_path);
-    // NEED MODIFICATION for num_neurons
-    // link num_neurons with TSP num_city
+
 	num_neurons[side_v] = _tsp->num_neurons[side_v];
     num_neurons[side_h] = _tsp->num_neurons[side_h];
-    std::cout << num_neurons[side_v] << std::endl;
-    std::cout << num_neurons[side_h] << std::endl;
 
     std::string cpu_str = "core0.";
     export_ptn_file[0] = cpu_str + "export_ptn_file_v"+ "ptn_v.dat";
     export_ptn_file[1] = cpu_str + "export_ptn_file_h"+ "ptn_h.dat";
-    std::cout << "core constructor complete" << std::endl;
+
 }
 
 void core::initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, char* fwij_gm){
-    std::cout << "core initialize ---------" << std::endl;
-    std::cout << "synapse initialize ---------" << std::endl;
+
     synapses.resize(num_neurons[side_v]);
     for(int i = 0; i < num_neurons[side_v]; i++) {
         synapses[i].resize(num_neurons[side_h]);
     }
-    std::cout << "neuron layers initialize ---------" << std::endl;
+
     layers.resize(2);
     layers[side_v].resize(num_neurons[side_v]);
     layers[side_h].resize(num_neurons[side_h]);
-    std::cout << "neurons initialize side_v ---------" << std::endl;
-    std::cout << "neurons initialize side_v ---------" << std::endl;
     int i, j;
     for(i = 0; i < num_neurons[side_v]; i++) {
             layers[side_v][i].ManualSet(params);
     }
-    std::cout << "neurons initialize side_h ---------" << std::endl;
     for(i = 0; i < num_neurons[side_h]; i++) {
             layers[side_h][i].ManualSet(params);
     }
-        std::cout << "core initialize : synapses/layers complete" << std::endl;
         /*
         // NEED MODIFICATION
         // Load python generated external spikes
@@ -86,7 +78,6 @@ void core::initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, 
                 }
             }
         }
-        std::cout << "core initialize : synapses check complete" << std::endl;
 
         spk_null = new spk;
         spk_null->_spkTime = INFINITY;
@@ -103,8 +94,8 @@ void core::print_params() {
 	std::cout << "neurons_v_bias	: " << params.neurons_visible_bias << std::endl;
 	std::cout << "neurons_h_bias	: " << params.neurons_hidden_bias << std::endl;
 	std::cout << "--------------------------time-------------------------- " << std::endl;
-	std::cout << "timestep 			:" << params.timestep << std::endl;
-	std::cout << "timestep_rng 		:" << params.timestep_rng << std::endl;
+	std::cout << "timestep 			: " << params.timestep << std::endl;
+	std::cout << "timestep_rng 		: " << params.timestep_rng << std::endl;
 	std::cout << "refractory time	: " << params.refractory_time << std::endl;
 	std::cout << "steps_transition	: " << params.steps_transition << std::endl;
 	std::cout << "steps_data		: " << params.steps_data << std::endl;
@@ -247,7 +238,7 @@ void core::weight_save(int cell_type, std::string filename) {
 void core::ext_spike_load(double tend) {
 
     cout << "[START] EXTERNAL SPIKE LOAD" << endl;
-    double timestep_injection = 10e-5;
+    double timestep_injection = 10e-7;
     int neuron = 0; // start city : if city 1 is the start, neuron =0;
     double time;
     double injection_step = tend / timestep_injection;
@@ -432,6 +423,7 @@ int core::compare_threshold(double tnow) {
     double time_fire2 = tnow + params.delay_spikein2out;
 
     // RESET EVENT
+    // tnow + params.delay_spikein2out(100e-9) = tnow + 100e-9
     int spike_flag = 0;
     if(new_spk_reset->_spk.size() != 0) {
         new_spk_reset->_spkTime = time_fire2;
@@ -442,12 +434,29 @@ int core::compare_threshold(double tnow) {
         delete new_spk_reset;
     }
 
+    // RESET EVENT
+    // = tnow + 100e-9
+    // tnow + params.delay_spikein2out(100e-9) 
+
+    // SPIKE EVENT
+    // = tnow + 180e-9
+    // = tnow + params.delay_spikein2out(100e-9) + params.delay_spikeout2wlr(0) + params.wlr_width(80e-9)
+
+    // DUMMY EVENT to kick compare_threshold at the end of refractory time
+    // = tnow + 4e-3 + 1e-10
+    // tnow + params.refractory_time(4e-3) + FLOAT_EPSILON_TIME 
+
+
+    
+
     if(new_spk->_spk.size() != 0) {
         // SPIKE EVENT
+        // tnow + params.delay_spikein2out(100e-9) + params.delay_spikeout2wlr(0) + params.wlr_width(80e-9) = tnow + 180e-9
         new_spk->_spkTime = time_fire2 + params.delay_spikeout2wlr + params.wlr_width;
         queue_spk.push(make_pair(new_spk->_spkTime, new_spk));
         spike_flag = 1;
         // DUMMY EVENT to kick compare_threshold at the end of refractory time
+        // tnow + params.refractory_time(4e-3) + FLOAT_EPSILON_TIME = tnow + 4e-3 + 1e-10
         spk *spk_ref = new spk;
         spk_ref->_spkTime = tnow + params.refractory_time + FLOAT_EPSILON_TIME;
         queue_spk.push(make_pair(spk_ref->_spkTime, spk_ref));
@@ -570,11 +579,12 @@ double core::run() {
 
     cout << setprecision(9);
 
-    while(1) {
-
+#define DEBUG_LOOP
 #ifdef DEBUG_LOOP
                 cout << "------LOOP------" << endl;
 #endif
+
+    while(1) {
                 // get spike event
                 if(is_spk) {
                     if(which_spk == spk_type_ext) {
@@ -590,7 +600,7 @@ double core::run() {
                         queue_spk.pop();
                     }
                 }
-
+                
                 if(new_spk || is_spk) {
                     new_spk = 0;
                     is_spk = 0;
@@ -598,7 +608,9 @@ double core::run() {
                 }
 
 #ifdef DEBUG_LOOP
-                cout << "simtick " << simtick << " spk time " << spk_now->time << endl;
+                cout << "tnow : " << tnow << " | " << "simtick : " << simtick <<" | "<<
+                "spk time : " << spk_now->_spkTime << " | "<<"neuron : " << spk_now->_spk.begin()->second << "|" <<
+                "which spk: " << which_spk << endl;
 #endif
                 if(fabs(simtick - spk_now->_spkTime) < FLOAT_EPSILON_TIME) { // simtick == spk_now.time
                     tnow = simtick;

@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
     core mycore(chip_param_file_path);
     //mycore.print_params();
     mycore.initialize(NULL, NULL, NULL, NULL, NULL);
+    mycore.print_params();
     mycore.run();
     
     std::cout << std::setprecision(4);
