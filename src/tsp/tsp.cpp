@@ -1,4 +1,4 @@
-
+#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -33,6 +33,11 @@ namespace csp {
         SetNumNeurons();
         SetWeightMatrix();
         
+        const char* filename = "";
+        std::string filename_str;
+        filename_str += param_file;
+        filename_str += "_weight";
+        exportWeightToFile(filename_str);
     }
 
     // Set number of neurons in v,h layer
@@ -264,6 +269,23 @@ namespace csp {
         return 0;
     }
     */
+
+    void tsp::exportWeightToFile(std::string& filename){
+        auto result = nlohmann::json{
+        {"weight", json::array()},
+        };
+
+        for (auto i = 0; i < num_neurons[side_v]; i++) {
+            auto& outer = result["weight"];
+            for (auto j = 0; j < num_neurons[side_h]; j++) {
+                // You'll need to convert whatever Items is into a JSON type first
+                outer[i].push_back(weight_matrix[i][j].Gp);
+            }
+        }
+
+        std::ofstream out(filename + ".json");
+        out << result;
+    }
 
     /*
     void tsp::wta_initialize(double* potential[], double init_val) {
