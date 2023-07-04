@@ -33,7 +33,7 @@ namespace utils {
         }
     }
 
-    void saveSynapseGpGmToFile(std::string& filename, std::vector<std::vector<synapse>> _synapses){
+    void saveSynapseGpGm(std::string& filename, std::vector<std::vector<synapse>> _synapses){
         auto result = nlohmann::json{
         {"weight_gp", json::array()},
         {"weight_gm", json::array()},
@@ -53,7 +53,7 @@ namespace utils {
         out << result;
     }
 
-    void saveNeuronMemVToFile(std::string& filename, std::vector<std::vector<neuron>> _layers, double _time){
+    void saveNeuronMemV(std::string& filename, std::vector<std::vector<neuron>> _layers, double _time){
         auto result = nlohmann::json{
         {"membrane potential", json::array()}
         };
@@ -70,6 +70,47 @@ namespace utils {
         out << result;
     }
     
+    void callSynapseGpGm(std::string& filename, std::vector<std::vector<synapse>> _synapses){
+
+        std::ifstream ifs(filename);
+        json _synapseSavedFile = json::parse(ifs);
+
+        uint64_t id = 10;
+
+        // check the size of the _synapse and weight_gp
+        bool _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gp"].size()) 
+                        && (_synapses[0].size() == _synapseSavedFile["weight_gp"][0].size()));
+        
+        if (!_synapseSavedFile["weight_gp"].empty() && _isSizeSame) {
+            for (int i = 0; i < _synapses.size(); i++){
+                for (int j = 0; j < _synapses[0].size(); j++){
+                    _synapses[i][j].Gp = _synapseSavedFile["weight_gp"][i][j];
+                }
+            }
+        }
+
+        if (_synapseSavedFile["weight_gm"].empty()) {
+            for (int i = 0; i < _synapses.size(); i++){
+                for (int j = 0; j < _synapses[0].size(); j++){
+                    _synapses[i][j].Gm = 0;
+                }
+            }
+        } else {
+            _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gm"].size()) 
+                        && (_synapses[0].size() == _synapseSavedFile["weight_gm"][0].size()));
+            if(_isSizeSame){
+                for (int i = 0; i < _synapses.size(); i++){
+                    for (int j = 0; j < _synapses[0].size(); j++){
+                        _synapses[i][j].Gp = _synapseSavedFile["weight_gp"][i][j];
+                    }
+                }
+            }
+            
+        }
+
+   }
+    
+
     // IN PROGRESS
     /*
     void saveSpikeTimeToFile(std::string& filename, spk* spike){

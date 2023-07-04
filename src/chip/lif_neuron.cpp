@@ -21,7 +21,6 @@ void lif_neuron::ManualSet(param& _params) {
 	_randomWalkStepDown = _params.random_walk_step_down;
 }
 //----------------------------------------------------
-
 double& lif_neuron::leakyTau() { // getter function
     return this->_leakyTau;
 }
