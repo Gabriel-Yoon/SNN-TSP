@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <map>
 
+#include "../utils/utils.h"
 #include "../utils/np.h"
 #include "../chip/synapse.h"
 

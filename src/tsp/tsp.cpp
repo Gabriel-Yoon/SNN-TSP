@@ -272,14 +272,17 @@ namespace csp {
 
     void tsp::exportWeightToFile(std::string& filename){
         auto result = nlohmann::json{
-        {"weight", json::array()},
+        {"weight_gp", json::array()},
+        {"weight_gm", json::array()},
         };
 
         for (auto i = 0; i < num_neurons[side_v]; i++) {
-            auto& outer = result["weight"];
+            auto& _Gp = result["weight_gp"];
+            auto& _Gm = result["weight_gm"];
             for (auto j = 0; j < num_neurons[side_h]; j++) {
                 // You'll need to convert whatever Items is into a JSON type first
-                outer[i].push_back(weight_matrix[i][j].Gp);
+                _Gp[i].push_back(weight_matrix[i][j].Gp);
+                _Gm[i].push_back(weight_matrix[i][j].Gm);
             }
         }
 
