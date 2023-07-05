@@ -26,7 +26,8 @@ FetchContent_Declare(json
 FetchContent_MakeAvailable(json)
 
 # The compiled library code is here
-add_subdirectory(tsp)
+add_subdirectory(utils)
 
 # The executable code is here
+add_subdirectory(tsp)
 add_subdirectory(chip)
