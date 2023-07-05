@@ -24,7 +24,7 @@
 #include "../utils/np.h"
 #include "../utils/py.h"
 
-#include "spk.h"
+#include "spike.h"
 #include "lif_neuron.h"
 #include "neuron.h"
 #include "synapse.h"
@@ -55,13 +55,13 @@ class core
 	private: std::vector<std::vector<synapse>> synapses;
 	private: std::vector<std::vector<lif_neuron>> layers;
 
-	priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
+	priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, 
                                     spk_cmp> queue_ext;
-    priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
+    priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, 
                                     spk_cmp> queue_spk;
-    priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
+    priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, 
                                     spk_cmp> queue_wup_ext;
-    priority_queue<pair<double, spk*>, vector<pair<double, spk*>>, 
+    priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, 
                                     spk_cmp> queue_wup_spk;
 
 	private: std::string export_ptn_file[2];
@@ -75,17 +75,17 @@ class core
 	public: void initialize();
 
     private: template<int is_spk, int is_rng>
-    void run_loop(double tnow, double tpre, spk &spk_now, int which_spk, double &simtick, int &new_spk);	
+    void run_loop(double tnow, double tpre, spike &spk_now, int which_spk, double &simtick, int &new_spk);	
 
-	private: void potential_update_by_spk(spk& spk_now);
-	private: template<int side> void potential_update_by_spk_core(spk& spk_now, double* wsum);
+	private: void potential_update_by_spk(spike& spk_now);
+	private: template<int side> void potential_update_by_spk_core(spike& spk_now, double* wsum);
 			
 	private: void weight_load(int cell_type, std::string fweight);
 	private: void weight_save(int cell_type, std::string filename);
 	private: void ext_spike_load(double tend);
 
 	int compare_threshold(double tnow);
-	private: int get_spk(spk **spk_now, int *which_spk);
+	private: int get_spk(spike **spk_now, int *which_spk);
 
 };
 

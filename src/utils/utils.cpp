@@ -8,7 +8,7 @@
 #include "../chip/neuron.h"
 #include "../chip/synapse.h"
 #include "../chip/core.h"
-#include "../chip/spk.h"
+#include "../chip/spike.h"
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 100

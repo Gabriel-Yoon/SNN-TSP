@@ -15,7 +15,7 @@ struct spk_one {
 	}
 };
 
-class spk
+class spike
 {
     friend class neuron;
     friend class synapse;
@@ -23,7 +23,6 @@ class spk
     /*---------------------fields-----------------*/
     public: double _spkTime;
     public: int _coreNum;
-    // Be aware that list occur errors so I changed it to vector
     std::list<std::pair<int, int>> _spk; // pair<side, neuron_index>.
     // ADD ARRIVAL position
     public: bool _reset;
@@ -31,9 +30,9 @@ class spk
 	public: int _iso;
     /*---------------------methods----------------*/
     // spk Class constructor.
-    public: spk() : _spkTime(0),_spk(),_reset(false),_st(false),_iso(0){}
+    public: spike() : _spkTime(0),_spk(),_reset(false),_st(false),_iso(0){}
     // function from previous code
-	public: spk(const spk &orig_spk) {
+	public: spike(const spike &orig_spk) {
 		_spkTime = orig_spk._spkTime;
 		for(auto it = orig_spk._spk.begin(); it != orig_spk._spk.end(); it++) {
 			if(find(_spk.begin(), _spk.end(), *it) == _spk.end()) {
@@ -45,33 +44,33 @@ class spk
 		_iso = orig_spk._iso;
 	}
     // function from previous code -> plz change this to operator
-    void merge(const spk &m_spk) {
+    void merge(const spike &m_spk) {
 		for(auto it = m_spk._spk.begin(); it != m_spk._spk.end(); it++) {
 			_spk.push_back(*it);
 		}
 	}
     // assignment operator
-    public: spk& operator = (const spk&);
+    public: spike& operator = (const spike&);
     // relational operators
-    public: bool operator () (const spk&) const;
-    public: bool operator == (const spk&) const;
-    public: bool operator != (const spk&) const;
-    public: bool operator <  (const spk&) const;
-    public: bool operator <= (const spk&) const;
-    public: bool operator >  (const spk&) const;
-    public: bool operator >= (const spk&) const;
+    public: bool operator () (const spike&) const;
+    public: bool operator == (const spike&) const;
+    public: bool operator != (const spike&) const;
+    public: bool operator <  (const spike&) const;
+    public: bool operator <= (const spike&) const;
+    public: bool operator >  (const spike&) const;
+    public: bool operator >= (const spike&) const;
     // arithmetic operators
-    public: spk& operator += (const spk&);
-    public: spk& operator -= (const spk&);
-    public: friend const spk operator + (const spk&, const spk&);
-    public: friend const spk operator - (const spk&, const spk&);
+    public: spike& operator += (const spike&);
+    public: spike& operator -= (const spike&);
+    public: friend const spike operator + (const spike&, const spike&);
+    public: friend const spike operator - (const spike&, const spike&);
 
 };
 //----------------------------------------------------
 
 // comparator
 struct spk_cmp {
-    bool operator()(std::pair<double, spk*> a, std::pair<double, spk*> b) {
+    bool operator()(std::pair<double, spike*> a, std::pair<double, spike*> b) {
         if(a.first == b.first) return a.second->_spk.size() < b.second->_spk.size();
         return a.first > b.first;
     }
@@ -79,7 +78,7 @@ struct spk_cmp {
 
 // assignment operator
 
-inline spk& spk::operator = (const spk& t)
+inline spike& spike::operator = (const spike& t)
 {
     _spkTime = t._spkTime;
     _coreNum = t._coreNum;
@@ -92,62 +91,62 @@ inline spk& spk::operator = (const spk& t)
 
 // relational operators
 
-inline bool spk::operator () (const spk& t) const
+inline bool spike::operator () (const spike& t) const
 {
 	return (_spkTime == t._spkTime);
 }
 
-inline bool spk::operator == (const spk& t) const
+inline bool spike::operator == (const spike& t) const
 {
 	return (_spkTime == t._spkTime);
 }
 
-inline bool spk::operator != (const spk& t) const
+inline bool spike::operator != (const spike& t) const
 {
 	return (_spkTime != t._spkTime);
 }
 
-inline bool spk::operator < (const spk& t) const
+inline bool spike::operator < (const spike& t) const
 {
 	return (_spkTime < t._spkTime);
 }
 
-inline bool spk::operator <= (const spk& t) const
+inline bool spike::operator <= (const spike& t) const
 {
 	return (_spkTime <= t._spkTime);
 }
 
-inline bool spk::operator > (const spk& t) const
+inline bool spike::operator > (const spike& t) const
 {
 	return (_spkTime > t._spkTime);
 }
 
-inline bool spk::operator >= (const spk& t) const
+inline bool spike::operator >= (const spike& t) const
 {
 	return (_spkTime >= t._spkTime);
 }
 
 // arithmetic operators
 
-inline spk& spk::operator += (const spk& t)
+inline spike& spike::operator += (const spike& t)
 {
     // Need Modification
 	return *this;
 }
 
-inline spk& spk::operator -= (const spk& t)
+inline spike& spike::operator -= (const spike& t)
 {
 // Need Modification
     return *this;
 }
 
 
-inline const spk operator + (const spk& t1, const spk& t2)
+inline const spike operator + (const spike& t1, const spike& t2)
 {// Need Modification
 	//return t1 += t2;
 }
 
-inline const spk operator -(const spk& t1, const spk& t2)
+inline const spike operator -(const spike& t1, const spike& t2)
 {// Need Modification
 	//return t1 -= t2;
 }

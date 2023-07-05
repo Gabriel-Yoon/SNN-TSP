@@ -9,7 +9,7 @@ enum {
     wij_gm
 };
 
-spk *spk_null;
+spike *spk_null;
 
 core::core(const char* param_file) : params(param_file)
 {
@@ -77,7 +77,7 @@ void core::initialize(){
         wsum[side_v] = new double[num_neurons[side_v]];
         wsum[side_h] = new double[num_neurons[side_h]];
 
-        spk_null = new spk;
+        spk_null = new spike;
         spk_null->_spkTime = INFINITY;
         // utils::callNeuronNumbers();
         utils::callSynapseGpGm("/Users/gabriel/Development/SNN-TSP/src/build/weight.json", synapses);
@@ -194,27 +194,27 @@ void core::ext_spike_load(double tend) {
         queue_ext_pri.pop();
 
         // Formulate Spike Template
-        spk* spk_ext = new spk;
+        spike* spk_ext = new spike;
         spk_ext->_spk.push_back(make_pair(spk_one->side, spk_one->neuron));
 
         double time_fire2 = spk_one->time + params.delay_spikein2out;
 
         // 1. Dummy event to kick compare_threshold at the end of refractory time
         double ref_end_time = spk_one->time + params.refractory_time + FLOAT_EPSILON_TIME;
-        spk* spk_ref = new spk(*spk_ext);
+        spike* spk_ref = new spike(*spk_ext);
         spk_ref->_spkTime = ref_end_time;
         queue_ext.push(make_pair(ref_end_time, spk_ref));
 
         spk_ext->_iso = 0;
         // 2. Create last_spk_st update event for ST_PAUSE
-        spk* spk_st_update = new spk(*spk_ext);
+        spike* spk_st_update = new spike(*spk_ext);
         spk_st_update->_spkTime = spk_one->time;
         spk_st_update->_st = true;
         queue_ext.push(make_pair(spk_st_update->_spkTime, spk_st_update));
 
         // 3. Create reset event
         if (params.hw_RES_EN) {
-            spk* spk_ext_reset = new spk(*spk_ext);
+            spike* spk_ext_reset = new spike(*spk_ext);
             spk_ext_reset->_spkTime = time_fire2;
             spk_ext_reset->_reset = true;
             queue_ext.push(make_pair(time_fire2, spk_ext_reset));
@@ -230,7 +230,7 @@ void core::ext_spike_load(double tend) {
 
 }
 
-int core::get_spk(spk **spk_now, int *which_spk) {
+int core::get_spk(spike **spk_now, int *which_spk) {
     int num_spk_ext = queue_ext.size();
     int num_spk_int = queue_spk.size();
 
@@ -248,8 +248,8 @@ int core::get_spk(spk **spk_now, int *which_spk) {
         return 0;
     }
 
-    spk *spk_ext = queue_ext.top().second;
-    spk *spk_int = queue_spk.top().second;
+    spike *spk_ext = queue_ext.top().second;
+    spike *spk_int = queue_spk.top().second;
     if(fabs(spk_ext->_spkTime - spk_int->_spkTime) < FLOAT_EPSILON_TIME) {
         if((spk_ext->_reset == spk_int->_reset) && (spk_ext->_st == spk_int->_st)) {
             spk_ext->merge(*spk_int);
@@ -271,8 +271,8 @@ int core::get_spk(spk **spk_now, int *which_spk) {
 }
 
 int core::compare_threshold(double tnow) {
-    spk *new_spk = new spk;
-    spk *new_spk_reset = new spk;
+    spike *new_spk = new spike;
+    spike *new_spk_reset = new spike;
     double time_in_ref = tnow - params.refractory_time;
 
     for(int h_idx = 0; h_idx < num_neurons[side_h]; h_idx++) { // exclude bias neuron
@@ -392,7 +392,7 @@ int core::compare_threshold(double tnow) {
         spike_flag = 1;
         // DUMMY EVENT to kick compare_threshold at the end of refractory time
         // tnow + params.refractory_time(4e-3) + FLOAT_EPSILON_TIME = tnow + 4e-3 + 1e-10
-        spk *spk_ref = new spk;
+        spike *spk_ref = new spike;
         spk_ref->_spkTime = tnow + params.refractory_time + FLOAT_EPSILON_TIME;
         queue_spk.push(make_pair(spk_ref->_spkTime, spk_ref));
 
@@ -443,7 +443,7 @@ int core::compare_threshold(double tnow) {
     return spike_flag;
 };
 
-template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, spk &spk_now, int which_spk, double &simtick, int &new_spk) {
+template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, spike &spk_now, int which_spk, double &simtick, int &new_spk) {
     /*EVENT_TIME_DUMP(tnow);
     if(is_spk) {
         if(params.enable_learning)
@@ -495,7 +495,7 @@ double core::run() {
     double tpre = 0.0;
     double simtick = params.timestep_rng;
 
-    spk *spk_now;
+    spike *spk_now;
     int which_spk = 0;
     int is_spk = 0;
     int new_spk = 0;

@@ -8,7 +8,7 @@
 
 #include "core.h"
 
-template<int side> void core::potential_update_by_spk_core(spk& spk_now, double* wsum) {
+template<int side> void core::potential_update_by_spk_core(spike& spk_now, double* wsum) {
     double last_spk_refractory = spk_now._spkTime - params.refractory_time;
     if (last_spk_refractory < 0.0) last_spk_refractory = 0.0;
 
@@ -42,7 +42,7 @@ template<int side> void core::potential_update_by_spk_core(spk& spk_now, double*
     }
 }
 
-void core::potential_update_by_spk(spk& spk_now) {
+void core::potential_update_by_spk(spike& spk_now) {
 
     //cout << "- <Start> Potential Update by Spike" << endl;
 

@@ -10,7 +10,7 @@
 #include "py.h"
 #include "../chip/neuron.h"
 #include "../chip/synapse.h"
-#include "../chip/spk.h"
+#include "../chip/spike.h"
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 100
