@@ -28,9 +28,11 @@ namespace utils {
     void printProgress(double start, double end);
 
     void callSynapseGpGm(const char* filepath, std::vector<std::vector<synapse>> _synapses);
-
+    // void callNeuronNumbers(std::string& filepath, core* _core);
+    
     void saveSynapseGpGm(std::string& filename, std::vector<std::vector<synapse>> _synapses);
     void saveNeuronMemV(std::string& filename, std::vector<std::vector<neuron>> _layers, double _time);
+    
     // void saveSpikeTimeToFile(std::string& filename, spk* spike);
 
 

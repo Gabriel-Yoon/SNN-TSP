@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     system("color 0A");
     */
 
-    std::string chip_param_file_path = "/Users/gabriel/Development/SNN-TSP/src/chip/sim_params.test.json";
+    char* chip_param_file_path = "/Users/gabriel/Development/SNN-TSP/src/chip/sim_params.test.json";
     
     core mycore(chip_param_file_path);
     //mycore.print_params();

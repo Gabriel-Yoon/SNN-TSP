@@ -3,7 +3,6 @@
 //#include <unistd.h>
 
 #include "core.h"
-#include "spk.h"
 
 enum {
     wij_gp,
@@ -12,13 +11,12 @@ enum {
 
 spk *spk_null;
 
-core::core(std::string& param_file) : params(param_file)
+core::core(const char* param_file) : params(param_file)
 {
-    // std::string& tsp_param_file_path = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json";
-    // _tsp = new csp::tsp(tsp_param_file_path);
+    _numCity = 5;
 
-	num_neurons[side_v] = _tsp->num_neurons[side_v];
-    num_neurons[side_h] = _tsp->num_neurons[side_h];
+	num_neurons[side_v] = _numCity* _numCity;
+    num_neurons[side_h] = _numCity* _numCity;
 
     std::string cpu_str = "core0.";
     export_ptn_file[0] = cpu_str + "export_ptn_file_v"+ "ptn_v.dat";
@@ -76,10 +74,15 @@ void core::initialize(){
             }
         }
 
+        wsum[side_v] = new double[num_neurons[side_v]];
+        wsum[side_h] = new double[num_neurons[side_h]];
+
         spk_null = new spk;
         spk_null->_spkTime = INFINITY;
-
-        utils::callSynapseGpGm("/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json_weight.json", synapses);
+        // utils::callNeuronNumbers();
+        utils::callSynapseGpGm("/Users/gabriel/Development/SNN-TSP/src/build/weight.json", synapses);
+        std::string save_file_name = "core_synapse_weight";
+        utils::saveSynapseGpGm(save_file_name, synapses);
 }
 
 void core::print_params() {
@@ -170,7 +173,7 @@ void core::print_params() {
 void core::ext_spike_load(double tend) {
 
     cout << "[START] EXTERNAL SPIKE LOAD" << endl;
-    double timestep_injection = 10e-7;
+    double timestep_injection = 10e-6;
     int neuron = 0; // start city : if city 1 is the start, neuron =0;
     double time;
     double injection_step = tend / timestep_injection;
@@ -532,7 +535,6 @@ double core::run() {
                         queue_spk.pop();
                     }
                 }
-                
                 if(new_spk || is_spk) {
                     new_spk = 0;
                     is_spk = 0;
@@ -571,7 +573,7 @@ double core::run() {
                     is_spk = 0;
                     run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                     tpre = tnow;
-                } else { // if simtick > spk_now.time
+                } else { // if simtick > spk_now.time 
                     tnow = spk_now->_spkTime;
                     if(tnow > tend) break;
                     is_spk = 1;
@@ -588,7 +590,7 @@ double core::run() {
                         tpre = tnow;
                     }
                 }
-
+                
                 loop_count++;
     }
     /*
