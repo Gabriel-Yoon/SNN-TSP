@@ -12,10 +12,10 @@ enum {
 
 spk *spk_null;
 
-core::core(const char* param_file) : params(param_file)
+core::core(std::string& param_file) : params(param_file)
 {
-    char* tsp_param_file_path = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json";
-    _tsp = new csp::tsp(tsp_param_file_path);
+    // std::string& tsp_param_file_path = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json";
+    // _tsp = new csp::tsp(tsp_param_file_path);
 
 	num_neurons[side_v] = _tsp->num_neurons[side_v];
     num_neurons[side_h] = _tsp->num_neurons[side_h];
@@ -26,7 +26,7 @@ core::core(const char* param_file) : params(param_file)
 
 }
 
-void core::initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, char* fwij_gm){
+void core::initialize(){
 
     synapses.resize(num_neurons[side_v]);
     for(int i = 0; i < num_neurons[side_v]; i++) {
@@ -55,32 +55,31 @@ void core::initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, 
         */
         // NEED MODIFICATION
         // Load synapse Gp, Gm Weights first!!
-        synapse Synapse;
+
         for(i = 0; i < num_neurons[side_v]; i++) {
             for(j = 0; j < num_neurons[side_h]; j++) {
-                
-                Synapse = synapses[i][j];
-                if(Synapse.Gp > params.max_weight) {
-                    Synapse.Gp = params.max_weight;
-                } else if(Synapse.Gp < params.min_weight) {
-                    Synapse.Gp = params.min_weight;
+                if(synapses[i][j].Gp > params.max_weight) {
+                    synapses[i][j].Gp = params.max_weight;
+                } else if(synapses[i][j].Gp < params.min_weight) {
+                    synapses[i][j].Gp = params.min_weight;
                 }
             }
         }
 
         for(i = 0; i < num_neurons[side_v]; i++) {
             for(j = 0; j < num_neurons[side_h]; j++) {
-                Synapse = synapses[i][j];
-                if(Synapse.Gm > params.max_weight) {
-                    Synapse.Gm = params.max_weight;
-                } else if(Synapse.Gm < params.min_weight) {
-                    Synapse.Gm = params.min_weight;
+                if(synapses[i][j].Gm > params.max_weight) {
+                    synapses[i][j].Gm = params.max_weight;
+                } else if(synapses[i][j].Gm < params.min_weight) {
+                    synapses[i][j].Gm = params.min_weight;
                 }
             }
         }
 
         spk_null = new spk;
         spk_null->_spkTime = INFINITY;
+
+        utils::callSynapseGpGm("/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json_weight.json", synapses);
 }
 
 void core::print_params() {
@@ -166,73 +165,6 @@ void core::print_params() {
 		}
 	}
 	*/
-}
-
-void core::weight_load(int cell_type, std::string fweight) {
-	std::ifstream is;
-	is.open(fweight, std::ios::binary);
-	if (is.fail()) {
-		std::cout << "Error opening file " << fweight << ". Exit." << std::endl;
-		exit(1);
-	}
-
-	//Check file size
-	is.seekg(0, std::ios::end);
-	auto eofpos = is.tellg();
-	is.clear();
-
-	is.seekg(0, std::ios::beg);
-	auto begpos = is.tellg();
-	long int fsize = eofpos - begpos;
-	long int dsize_wt = sizeof(double) * num_neurons[side_v] * num_neurons[side_h];
-	if ((fsize != dsize_wt)) {
-		std::clog << "Unexpected file size " << fsize << ". Exit." << std::endl;
-		exit(1);
-	}
-
-	double weight = 0.0;
-
-	for (int i = 0; i < num_neurons[side_v]; i++) {
-		for (int j = 0; j < num_neurons[side_h]; j++) {
-			is.read((char*)&weight, sizeof(double));
-			if (cell_type == wij_gp) {
-				if (weight > params.max_weight) {
-					weight = params.max_weight;
-				}
-				else if (weight < params.min_weight) {
-					weight = params.min_weight;
-				}
-				synapses[i][j].Gp = weight;
-			}
-			else {
-				if (weight > params.max_weight) {
-					weight = params.max_weight;
-				}
-				else if (weight < params.min_weight) {
-					weight = params.min_weight;
-				}
-				synapses[i][j].Gm = weight;
-			}
-		}
-	}
-	is.close();
-}
-
-void core::weight_save(int cell_type, std::string filename) {
-	std::ofstream os;
-	os.open(filename, std::ios::binary);
-
-	for (int i = 0; i < num_neurons[side_v]; i++) {
-		for (int j = 0; j < num_neurons[side_h]; j++) {
-			if (cell_type == wij_gp) {
-				os.write((char*)&(synapses[i][j].Gp), sizeof(double));
-			}
-			else {
-				os.write((char*)&(synapses[i][j].Gm), sizeof(double));
-			}
-		}
-	}
-	os.close();
 }
 
 void core::ext_spike_load(double tend) {
