@@ -21,8 +21,8 @@
 #include <iostream>
 #include <cstdio>
 
-#include "np.h"
-#include "py.h"
+#include "../utils/np.h"
+#include "../utils/py.h"
 
 #include "spk.h"
 #include "lif_neuron.h"
@@ -40,13 +40,14 @@ struct real_data {
 //**************************************************************************************************************//
 
 // Forward declarations
+class tsp;
 
 class core
 {
 	private: param params;
-	private: csp::tsp* _tsp;
 	std::ofstream os;
 	/*---------------------fields-----------------*/
+	public: int _numCity;
 	private: int num_neurons[2];
 	private: std::vector<struct real_data> g_potentiation;
 	private: std::vector<struct real_data> g_depression;
@@ -68,7 +69,7 @@ class core
 	double* wsum[2];
 	/*---------------------methods----------------*/
 	// core constructor
-	public: core(std::string& param_file);
+	public: core(const char* param_file);
 	public: double run();
 	public: void print_params();
 	public: void initialize();
