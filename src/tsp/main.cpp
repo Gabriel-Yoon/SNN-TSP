@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
     CurrentPath /= "./tsp_data.json";
     // const char* _TSPDataJsonFilePath = CurrentPath.string().c_str();
     //std::cout << _TSPDataJsonFilePath << std::endl;
-    std::string _TSPDataJsonFilePath = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json";
+    const char* _TSPDataJsonFilePath = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json";
     std::cout << _TSPDataJsonFilePath << std::endl;
 
     // For personal Windows computer, the absolute path for the tsp_data.json is below

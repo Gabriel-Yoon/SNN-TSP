@@ -55,14 +55,14 @@ namespace csp
 
 		/*---------------------methods----------------*/
 		// csp_tsp Class constructor.
-		public: tsp(std::string& param_file);
+		public: tsp(const char* param_file);
 
 		protected: inline void SetNumNeurons();
 		protected: inline void SetWeightMatrix();
 		protected: inline void SetWeightMatrixLateralBM();
 		// protected: inline void SetWeightMatrixBilateralBM();
 
-		public: void exportWeightToFile(std::string& filename);
+		public: void exportWeightToFile(std::string filename);
 	
 		// GET
 		// public: void GetNumNeurons();

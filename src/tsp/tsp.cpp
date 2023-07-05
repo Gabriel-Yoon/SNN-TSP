@@ -11,14 +11,13 @@ using json = nlohmann::json;
 extern double INIT_PERFORMANCE = 0;
 namespace csp {
 
-    tsp::tsp(std::string& param_file){
+    tsp::tsp(const char* param_file){
         // param_file == "tsp_data_26.json"
         std::ifstream f(param_file);
         json _TSPparam = json::parse(f);
         std::cout << "TSP PARSING --------" << std::endl;
         _numCity = _TSPparam["num_city"];
         std::cout << _numCity << std::endl;
-        
         _solutionDistance = _TSPparam["solution_distance"]; // 19 for 5 cities, 937 for 26 cities.
         _solveMode = _TSPparam["mode"];
         
@@ -34,7 +33,7 @@ namespace csp {
         SetNumNeurons();
         SetWeightMatrix();
         
-        std::string _weightFilename = param_file + ".weight.json";
+        std::string _weightFilename = "weight";
         exportWeightToFile(_weightFilename);
     }
 
@@ -268,7 +267,7 @@ namespace csp {
     }
     */
 
-    void tsp::exportWeightToFile(std::string& filename){
+    void tsp::exportWeightToFile(std::string filename){
         auto result = nlohmann::json{
         {"weight_gp", json::array()},
         {"weight_gm", json::array()},
@@ -283,8 +282,8 @@ namespace csp {
                 _Gm[i].push_back(weight_matrix[i][j].Gm);
             }
         }
-
-        std::ofstream out(filename + ".json");
+        std::string _outputfilename = filename + ".json";
+        std::ofstream out(_outputfilename);
         out << result;
     }
 
