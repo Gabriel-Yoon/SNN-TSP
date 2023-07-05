@@ -13,8 +13,8 @@ template<int side> void core::potential_update_by_spk_core(spk& spk_now, double*
     if (last_spk_refractory < 0.0) last_spk_refractory = 0.0;
 
     for (int idx = 0; idx < num_neurons[side]; idx++) {
-        int h_WTA = idx / _tsp->_numCity + 1;
-        int h_city = idx % _tsp->_numCity + 1;
+        int h_WTA = idx / _numCity + 1;
+        int h_city = idx % _numCity + 1;
 
         //bool not_in_ref_st = layers[side][idx]->_lastSpkTimeST_PAUSE < last_spk_refractory;
         //bool not_in_ref_in = layers[side][idx]->_lastSpkTimeIN_PAUSE < last_spk_refractory;
@@ -56,8 +56,8 @@ void core::potential_update_by_spk(spk& spk_now) {
     // Caution : do not use continue option! This it stands for each spike infos.
     for (auto it = spk_now._spk.begin(); it != spk_now._spk.end(); it++) {
 
-        int h_WTA = it->second / _tsp->_numCity + 1;
-        int h_city = it->second % _tsp->_numCity + 1;
+        int h_WTA = it->second / _numCity + 1;
+        int h_city = it->second % _numCity + 1;
 
         if (it->first == side_v) { // External spike at city 1 (only)
 
