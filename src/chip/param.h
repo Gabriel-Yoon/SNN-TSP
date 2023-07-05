@@ -115,7 +115,7 @@ struct param {
     bool hw_RES_EN;
     bool hw_RES_BLK;
 
-    param(const char* param_file);
+    param(std::string& param_file);
     void print_parameters();
 
 };

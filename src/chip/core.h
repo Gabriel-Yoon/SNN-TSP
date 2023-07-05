@@ -68,10 +68,10 @@ class core
 	double* wsum[2];
 	/*---------------------methods----------------*/
 	// core constructor
-	public: core(const char* param_file);
+	public: core(std::string& param_file);
 	public: double run();
 	public: void print_params();
-	public: void initialize(char* fextspk, char* fexttime, char* fwij, char* fwij_gp, char* fwij_gm);
+	public: void initialize();
 
     private: template<int is_spk, int is_rng>
     void run_loop(double tnow, double tpre, spk &spk_now, int which_spk, double &simtick, int &new_spk);	

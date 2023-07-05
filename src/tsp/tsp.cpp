@@ -10,7 +10,8 @@ using json = nlohmann::json;
 
 extern double INIT_PERFORMANCE = 0;
 namespace csp {
-    tsp::tsp(const char* param_file){
+
+    tsp::tsp(std::string& param_file){
         // param_file == "tsp_data_26.json"
         std::ifstream f(param_file);
         json _TSPparam = json::parse(f);
@@ -33,11 +34,8 @@ namespace csp {
         SetNumNeurons();
         SetWeightMatrix();
         
-        const char* filename = "";
-        std::string filename_str;
-        filename_str += param_file;
-        filename_str += "_weight";
-        exportWeightToFile(filename_str);
+        std::string _weightFilename = param_file + ".weight.json";
+        exportWeightToFile(_weightFilename);
     }
 
     // Set number of neurons in v,h layer

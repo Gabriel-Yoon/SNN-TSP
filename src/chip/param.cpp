@@ -12,7 +12,7 @@ void param::print_parameters(){
     cout << this->pt_alpha << endl;
 }
 
-param::param(const char* param_file) {
+param::param(std::string& param_file) {
 
     // param_file == "params.json"
     std::ifstream f(param_file);
