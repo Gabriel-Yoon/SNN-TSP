@@ -76,8 +76,8 @@ namespace utils {
         bool _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gp"].size()) 
                         && (_synapses[0].size() == _synapseSavedFile["weight_gp"][0].size()));
         
-        if (_synapseSavedFile.empty()){
-            std::cout << "No Synapse file found" << std::endl;
+        if (_synapseSavedFile.empty() || !_isSizeSame){
+            std::cout << "Synapse file error" << std::endl;
         }
 
         if (!_synapseSavedFile["weight_gp"].empty() && _isSizeSame) {
@@ -97,10 +97,13 @@ namespace utils {
         } else {
             _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gm"].size()) 
                         && (_synapses[0].size() == _synapseSavedFile["weight_gm"][0].size()));
-            if(_isSizeSame){
+            if (!_isSizeSame){
+                std::cout << "Synapse file error" << std::endl;
+            }
+            else {
                 for (int i = 0; i < _synapses.size(); i++){
                     for (int j = 0; j < _synapses[0].size(); j++){
-                        _synapses[i][j].Gp = _synapseSavedFile["weight_gp"][i][j];
+                        _synapses[i][j].Gm = _synapseSavedFile["weight_gm"][i][j];
                     }
                 }
             }
