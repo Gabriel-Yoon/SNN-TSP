@@ -7,6 +7,7 @@
 #include "py.h"
 #include "../chip/neuron.h"
 #include "../chip/synapse.h"
+#include "../chip/core.h"
 #include "../chip/spk.h"
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
@@ -75,6 +76,10 @@ namespace utils {
         bool _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gp"].size()) 
                         && (_synapses[0].size() == _synapseSavedFile["weight_gp"][0].size()));
         
+        if (_synapseSavedFile.empty()){
+            std::cout << "No Synapse file found" << std::endl;
+        }
+
         if (!_synapseSavedFile["weight_gp"].empty() && _isSizeSame) {
             for (int i = 0; i < _synapses.size(); i++){
                 for (int j = 0; j < _synapses[0].size(); j++){
@@ -104,9 +109,17 @@ namespace utils {
 
    }
     
-
     // IN PROGRESS
     /*
+
+    void callNeuronNumbers(std::string& filepath, core* _core){
+
+        std::ifstream ifs(filepath);
+        json _neuronNumSavedFile = json::parse(ifs);
+
+        // IN PROGRESSß
+    }
+
     void saveSpikeTimeToFile(std::string& filename, spk* spike){
         auto result = nlohmann::json{
         {"membrane ", json::array()}
