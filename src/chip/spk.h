@@ -25,6 +25,7 @@ class spk
     public: int _coreNum;
     // Be aware that list occur errors so I changed it to vector
     std::list<std::pair<int, int>> _spk; // pair<side, neuron_index>.
+    // ADD ARRIVAL position
     public: bool _reset;
 	public: bool _st;
 	public: int _iso;
@@ -70,8 +71,8 @@ class spk
 
 // comparator
 struct spk_cmp {
-    bool operator()(std::pair<double, spk*> a, std::pair<double, spk*> b) { // <time, spk>
-        if(a.first == b.first) return (*a.second)._spk.size() < (*b.second)._spk.size();
+    bool operator()(std::pair<double, spk*> a, std::pair<double, spk*> b) {
+        if(a.first == b.first) return a.second->_spk.size() < b.second->_spk.size();
         return a.first > b.first;
     }
 };
@@ -87,6 +88,7 @@ inline spk& spk::operator = (const spk& t)
 	_st = t._st;
 	_iso = t._iso;
 }
+
 
 // relational operators
 
