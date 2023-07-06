@@ -1,5 +1,5 @@
-#ifndef _SPK_H_
-#define _SPK_H_
+#ifndef _SPIKE_H_
+#define _SPIKE_H_
 
 #include <utility>
 #include <list>
@@ -28,6 +28,7 @@ class spike
     public: bool _reset;
 	public: bool _st;
 	public: int _iso;
+
     /*---------------------methods----------------*/
     // spk Class constructor.
     public: spike() : _spkTime(0),_spk(),_reset(false),_st(false),_iso(0){}
