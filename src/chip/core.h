@@ -42,6 +42,8 @@ struct real_data {
 // Forward declarations
 class tsp;
 
+
+
 class core
 {
 	private: param params;
@@ -49,24 +51,32 @@ class core
 	/*---------------------fields-----------------*/
 	public: int _numCity;
 	private: int num_neurons[2];
-	private: std::vector<struct real_data> g_potentiation;
-	private: std::vector<struct real_data> g_depression;
-	private: std::vector<double> g_differ;
-	private: std::vector<std::vector<synapse>> synapses;
-	private: std::vector<std::vector<lif_neuron>> layers;
-
-	priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, 
-                                    spk_cmp> queue_ext;
-    priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, 
-                                    spk_cmp> queue_spk;
-    priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, 
-                                    spk_cmp> queue_wup_ext;
-    priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, 
-                                    spk_cmp> queue_wup_spk;
+	private: SynapseArray _synapses;
+	private: LIFNeuronLayer _layers;
+	private: SpikeQueue queue_ext;
+    private: SpikeQueue queue_spk;
+    private: SpikeQueue queue_wup_ext;
+    private: SpikeQueue queue_wup_spk;
 
 	private: std::string export_ptn_file[2];
 
-	double* wsum[2];
+	private: double* wsum[2];
+
+/*
+	bool export_spk_en;
+    bool export_ptn_en;
+    int export_spk_param[3];
+    char export_ptn_param[8];
+    std::vector<short> export_ptn_neurons_V;
+    std::vector<short> export_ptn_neurons_h;
+    std::string export_spk_file[8];
+    std::string export_ptn_file[2];
+    ofstream *ofs_spk_int;
+    ofstream *ofs_spk_ext;
+    std::string *export_file;
+    ofstream *ofs_ptn_v;
+    ofstream *ofs_ptn_h;
+	*/
 	/*---------------------methods----------------*/
 	// core constructor
 	public: core(const char* param_file);
