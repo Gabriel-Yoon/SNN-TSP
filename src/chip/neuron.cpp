@@ -9,6 +9,7 @@ neuron::neuron(param &_params){
 	_Vreset = _params.pt_init;              	    // reset potential
     _Vth = _params.pt_threshold;               	    // threshold voltage
     _refractoryPeriod = _params.refractory_time;    // refractory period
+    _active = true;                                    // ON
 
     _lastSpkTime = -1;        // latest spike time history
     _lastSpkTimeIN_PAUSE = -1;// latest spike time history
@@ -23,6 +24,13 @@ void neuron::ManualSet(param& _params) {
     _refractoryPeriod = _params.refractory_time;    // refractory period
 }
 //----------------------------------------------------
+void neuron::turnON(){
+    this->_active = true;
+}
+//----------------------------------------------------
+void neuron::turnOFF(){
+    this->_active = false;
+}
 double& neuron::memV() { // getter function -> no need its public now!
     return this->_memV;
 }

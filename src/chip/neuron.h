@@ -12,7 +12,7 @@
 
 // Forward declarations.
 class rng;
-
+typedef std::vector<std::vector<neuron>> NeuronLayer;
 //**************************************************************************************************************//
 class neuron
 { // storing neuron potential. Be aware that there is no position variable
@@ -24,6 +24,8 @@ class neuron
     public: double _Vth;                // threshold voltage
     public: double _Vreset;             // reset voltage
     public: double _refractoryPeriod;   // refractory period
+    public: bool _active;               // true = ON, false = OFF
+
     public: double _lastSpkTime;        // latest spike time history
     public: double _lastSpkTimeIN_PAUSE;// latest spike time history
     public: double _lastSpkTimeST_PAUSE;// latest spike time history
@@ -34,6 +36,9 @@ class neuron
     public: neuron(param &_params);           // Manually set parameters from params
     public: ~neuron();
     public: void ManualSet(param& _params);
+
+    public: void turnON();
+    public: void turnOFF();
 
     public: double& memV();                                 // Gets the membrane potential
     public: double& Vth();                                  // Gets the threshold voltage
@@ -48,7 +53,8 @@ class neuron
 };
 
 // Constructors
-inline neuron::neuron() : _memV(0.0),_Vth(1.0),_Vreset(0.0),_lastSpkTime(-1),_lastSpkTimeIN_PAUSE(-1),_lastSpkTimeST_PAUSE(-1),_refractoryPeriod(4e-3),_rng(nullptr)
+inline neuron::neuron() : _memV(0.0),_Vth(1.0),_Vreset(0.0), _refractoryPeriod(4e-3),_active(true),
+                        _lastSpkTime(-1),_lastSpkTimeIN_PAUSE(-1),_lastSpkTimeST_PAUSE(-1), _rng(nullptr)
 {}
 //----------------------------------------------------
 // Destructor
