@@ -4,7 +4,9 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
+#include "np.h"
 #include "py.h"
+#include "utils.h"
 #include "../chip/neuron.h"
 #include "../chip/synapse.h"
 #include "../chip/core.h"
@@ -30,7 +32,7 @@ namespace utils {
         fflush(stdout);
     }
 
-    void saveSynapseGpGm(std::string& filename, std::vector<std::vector<synapse>> _synapses){
+    void saveSynapseGpGm(std::string& filename, SynapseArray _synapses){
         auto result = nlohmann::json{
         {"weight_gp", json::array()},
         {"weight_gm", json::array()},
@@ -50,7 +52,7 @@ namespace utils {
         out << result;
     }
 
-    void saveNeuronMemV(std::string& filename, std::vector<std::vector<neuron>> _layers, double _time){
+    void saveNeuronMemV(std::string& filename, NeuronLayer _layers, double _time){
         auto result = nlohmann::json{
         {"membrane potential", json::array()}
         };
@@ -66,8 +68,8 @@ namespace utils {
         std::ofstream out(filename + ".json");
         out << result;
     }
-    
-    void callSynapseGpGm(const char* filepath, std::vector<std::vector<synapse>> _synapses){
+ 
+    void callSynapseGpGm(const char* filepath, SynapseArray _synapses){
 
         std::ifstream ifs(filepath);
         json _synapseSavedFile = json::parse(ifs);
