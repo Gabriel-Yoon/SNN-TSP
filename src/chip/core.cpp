@@ -26,20 +26,20 @@ core::core(const char* param_file) : params(param_file)
 
 void core::initialize(){
 
-    synapses.resize(num_neurons[side_v]);
+    _synapses.resize(num_neurons[side_v]);
     for(int i = 0; i < num_neurons[side_v]; i++) {
-        synapses[i].resize(num_neurons[side_h]);
+        _synapses[i].resize(num_neurons[side_h]);
     }
 
-    layers.resize(2);
-    layers[side_v].resize(num_neurons[side_v]);
-    layers[side_h].resize(num_neurons[side_h]);
+    _layers.resize(2);
+    _layers[side_v].resize(num_neurons[side_v]);
+    _layers[side_h].resize(num_neurons[side_h]);
     int i, j;
     for(i = 0; i < num_neurons[side_v]; i++) {
-            layers[side_v][i].ManualSet(params);
+            _layers[side_v][i].ManualSet(params);
     }
     for(i = 0; i < num_neurons[side_h]; i++) {
-            layers[side_h][i].ManualSet(params);
+            _layers[side_h][i].ManualSet(params);
     }
         /*
         // NEED MODIFICATION
@@ -56,20 +56,20 @@ void core::initialize(){
 
         for(i = 0; i < num_neurons[side_v]; i++) {
             for(j = 0; j < num_neurons[side_h]; j++) {
-                if(synapses[i][j].Gp > params.max_weight) {
-                    synapses[i][j].Gp = params.max_weight;
-                } else if(synapses[i][j].Gp < params.min_weight) {
-                    synapses[i][j].Gp = params.min_weight;
+                if(_synapses[i][j].Gp > params.max_weight) {
+                    _synapses[i][j].Gp = params.max_weight;
+                } else if(_synapses[i][j].Gp < params.min_weight) {
+                    _synapses[i][j].Gp = params.min_weight;
                 }
             }
         }
 
         for(i = 0; i < num_neurons[side_v]; i++) {
             for(j = 0; j < num_neurons[side_h]; j++) {
-                if(synapses[i][j].Gm > params.max_weight) {
-                    synapses[i][j].Gm = params.max_weight;
-                } else if(synapses[i][j].Gm < params.min_weight) {
-                    synapses[i][j].Gm = params.min_weight;
+                if(_synapses[i][j].Gm > params.max_weight) {
+                    _synapses[i][j].Gm = params.max_weight;
+                } else if(_synapses[i][j].Gm < params.min_weight) {
+                    _synapses[i][j].Gm = params.min_weight;
                 }
             }
         }
@@ -80,9 +80,9 @@ void core::initialize(){
         spk_null = new spike;
         spk_null->_spkTime = INFINITY;
         // utils::callNeuronNumbers();
-        utils::callSynapseGpGm("/Users/gabriel/Development/SNN-TSP/src/build/weight.json", synapses);
+        utils::callSynapseGpGm("/Users/gabriel/Development/SNN-TSP/src/build/weight.json", _synapses);
         std::string save_file_name = "core_synapse_weight";
-        utils::saveSynapseGpGm(save_file_name, synapses);
+        utils::saveSynapseGpGm(save_file_name, _synapses);
 }
 
 void core::print_params() {
@@ -277,7 +277,7 @@ int core::compare_threshold(double tnow) {
 
     for(int h_idx = 0; h_idx < num_neurons[side_h]; h_idx++) { // exclude bias neuron
         // if(params.enable_ps2 && rng_ps2->get_val()) continue;
-        auto Neuron = layers[side_h][h_idx];
+        auto Neuron = _layers[side_h][h_idx];
         bool compared = Neuron._memV > Neuron._Vth;
         bool not_in_ref = Neuron._lastSpkTime < time_in_ref;
 
@@ -310,7 +310,7 @@ int core::compare_threshold(double tnow) {
 
     for(int v_idx = 0; v_idx < num_neurons[side_v]; v_idx++) {
         //if(param.enable_ps2 && rng_ps2->get_val()) continue;
-        auto Neuron = layers[side_v][v_idx];
+        auto Neuron = _layers[side_v][v_idx];
         bool compared = Neuron._memV > Neuron._Vth;
         bool not_in_ref = Neuron._lastSpkTime < time_in_ref;
         /*
@@ -553,13 +553,13 @@ double core::run() {
                     if(spk_now->_reset == true) {
                         // potential_reset(*spk_now); // Reset before or after run_loop()???
                         for(auto it = spk_now->_spk.begin(); it != spk_now->_spk.end(); it++) {
-                            layers[it->first][it->second].memV_Reset();
+                            _layers[it->first][it->second].memV_Reset();
 		                }
                         run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                         tpre = tnow;
                     } else if(spk_now->_st == true) {
                         for(auto it = spk_now->_spk.begin(); it != spk_now->_spk.end(); it++) {
-                            layers[it->first][it->second].updateLastSpkTime(spk_now->_spkTime);
+                            _layers[it->first][it->second].updateLastSpkTime(spk_now->_spkTime);
 		                }
                         run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                         tpre = tnow;
@@ -579,11 +579,11 @@ double core::run() {
                     is_spk = 1;
                     if(spk_now->_reset == true) {
                         for(auto it = spk_now->_spk.begin(); it != spk_now->_spk.end(); it++) {
-                            layers[it->first][it->second].memV_Reset();
+                            _layers[it->first][it->second].memV_Reset();
 		                }
                     } else if(spk_now->_st == true) {
                         for(auto it = spk_now->_spk.begin(); it != spk_now->_spk.end(); it++) {
-                            layers[it->first][it->second].updateLastSpkTime(spk_now->_spkTime);
+                            _layers[it->first][it->second].updateLastSpkTime(spk_now->_spkTime);
 		                }
                     } else {
                         run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);

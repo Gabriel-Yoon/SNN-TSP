@@ -20,11 +20,11 @@ template<int side> void core::potential_update_by_spk_core(spike& spk_now, doubl
         //bool not_in_ref_in = layers[side][idx]->_lastSpkTimeIN_PAUSE < last_spk_refractory;
         //bool not_in_cap_iso = !WTA[h_WTA][h_city].iso;
         // removed && not_in_cap_iso from the if below
-        if (layers[side][idx]._memV + wsum[idx] * params.pt_alpha <= 0) {
-            layers[side][idx]._memV = 0;
+        if (_layers[side][idx]._memV + wsum[idx] * params.pt_alpha <= 0) {
+            _layers[side][idx]._memV = 0;
         }
         else {
-            layers[side][idx]._memV += wsum[idx] * params.pt_alpha;
+            _layers[side][idx]._memV += wsum[idx] * params.pt_alpha;
         }
         /*
         if (not_in_ref_st && (!param.hw_ISO_MOD || not_in_ref_in) ) {
@@ -66,7 +66,7 @@ void core::potential_update_by_spk(spike& spk_now) {
             //printf("[EXT] Spike is generating at WTA[%d][%d]\n", h_WTA, h_city);
 
             for (int i = 0; i < num_neurons[side_h]; i++) {
-                wsum[side_h][i] += (synapses[it->second][i].Gp - synapses[it->second][i].Gm);
+                wsum[side_h][i] += (_synapses[it->second][i].Gp - _synapses[it->second][i].Gm);
             }
 
         }
@@ -79,7 +79,7 @@ void core::potential_update_by_spk(spike& spk_now) {
             //printf("[INT] Spike is generating at WTA[%d][%d]\n", h_WTA, h_city);
 
             for (int i = 0; i < num_neurons[side_h]; i++) {
-                wsum[side_h][i] += (synapses[it->second][i].Gp - synapses[it->second][i].Gm);
+                wsum[side_h][i] += (_synapses[it->second][i].Gp - _synapses[it->second][i].Gm);
             }
 
         }
