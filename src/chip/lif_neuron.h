@@ -1,4 +1,3 @@
-
 #ifndef _LIF_NEURON_H_
 #define _LIF_NEURON_H_
 
@@ -6,7 +5,7 @@
 #include <cstdint>
 #include <utility>
 
-#include "../utils/py.h"
+#include "rng.h"
 #include "param.h"
 #include "neuron.h"
 

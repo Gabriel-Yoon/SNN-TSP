@@ -32,7 +32,7 @@ namespace utils {
         fflush(stdout);
     }
 
-    void saveSynapseGpGm(std::string& filename, SynapseArray _synapses){
+    void saveSynapseArrayGpGm(std::string& filename, SynapseArray _synapses){
         auto result = nlohmann::json{
         {"weight_gp", json::array()},
         {"weight_gm", json::array()},
@@ -52,7 +52,7 @@ namespace utils {
         out << result;
     }
 
-    void saveNeuronMemV(std::string& filename, NeuronLayer _layers, double _time){
+    void saveNeuronLayerMemV(std::string& filename, NeuronLayer _layers, double _time){
         auto result = nlohmann::json{
         {"membrane potential", json::array()}
         };
@@ -69,7 +69,7 @@ namespace utils {
         out << result;
     }
  
-    void callSynapseGpGm(const char* filepath, SynapseArray _synapses){
+    void callSynapseArrayGpGm(const char* filepath, SynapseArray _synapses){
 
         std::ifstream ifs(filepath);
         json _synapseSavedFile = json::parse(ifs);

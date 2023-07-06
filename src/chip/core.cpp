@@ -80,9 +80,9 @@ void core::initialize(){
         spk_null = new spike;
         spk_null->_spkTime = INFINITY;
         // utils::callNeuronNumbers();
-        utils::callSynapseGpGm("/Users/gabriel/Development/SNN-TSP/src/build/weight.json", _synapses);
+        utils::callSynapseArrayGpGm("/Users/gabriel/Development/SNN-TSP/src/build/weight.json", _synapses);
         std::string save_file_name = "core_synapse_weight";
-        utils::saveSynapseGpGm(save_file_name, _synapses);
+        utils::saveSynapseArrayGpGm(save_file_name, _synapses);
 }
 
 void core::print_params() {
