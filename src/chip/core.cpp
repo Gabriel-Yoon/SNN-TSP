@@ -31,16 +31,12 @@ void core::initialize(){
         _synapses[i].resize(num_neurons[side_h]);
     }
 
-    _layers.resize(2);
-    _layers[side_v].resize(num_neurons[side_v]);
-    _layers[side_h].resize(num_neurons[side_h]);
-    int i, j;
-    for(i = 0; i < num_neurons[side_v]; i++) {
-            _layers[side_v][i].ManualSet(params);
-    }
-    for(i = 0; i < num_neurons[side_h]; i++) {
-            _layers[side_h][i].ManualSet(params);
-    }
+
+    visible_layer._neurons.resize(num_neurons[side_v]);
+    visible_layer.ManualSet(params);
+    hidden_layer._neurons.resize(num_neurons[side_h]);
+    hidden_layer.ManualSet(params);
+
         /*
         // NEED MODIFICATION
         // Load python generated external spikes
@@ -54,8 +50,8 @@ void core::initialize(){
         // NEED MODIFICATION
         // Load synapse Gp, Gm Weights first!!
 
-        for(i = 0; i < num_neurons[side_v]; i++) {
-            for(j = 0; j < num_neurons[side_h]; j++) {
+        for(int i = 0; i < num_neurons[side_v]; i++) {
+            for(int j = 0; j < num_neurons[side_h]; j++) {
                 if(_synapses[i][j].Gp > params.max_weight) {
                     _synapses[i][j].Gp = params.max_weight;
                 } else if(_synapses[i][j].Gp < params.min_weight) {
@@ -64,8 +60,8 @@ void core::initialize(){
             }
         }
 
-        for(i = 0; i < num_neurons[side_v]; i++) {
-            for(j = 0; j < num_neurons[side_h]; j++) {
+        for(int i = 0; i < num_neurons[side_v]; i++) {
+            for(int j = 0; j < num_neurons[side_h]; j++) {
                 if(_synapses[i][j].Gm > params.max_weight) {
                     _synapses[i][j].Gm = params.max_weight;
                 } else if(_synapses[i][j].Gm < params.min_weight) {
@@ -84,6 +80,33 @@ void core::initialize(){
         std::string save_file_name = "core_synapse_weight";
         utils::saveSynapseArrayGpGm(save_file_name, _synapses);
 }
+
+/*
+void core::initialize_export() {
+
+    ofs_spk_int = new ofstream[4];
+    ofs_spk_ext = new ofstream[4];
+    export_file = new string[4];
+    if(export_spk_en) {
+        ofs_spk_int[0].open(export_spk_file[0].c_str(), ios::binary); //int v x
+        ofs_spk_int[1].open(export_spk_file[1].c_str(), ios::binary); //int v y
+        ofs_spk_int[2].open(export_spk_file[2].c_str(), ios::binary); //int h x
+        ofs_spk_int[3].open(export_spk_file[3].c_str(), ios::binary); //int h y
+        ofs_spk_ext[0].open(export_spk_file[0].c_str(), ios::binary); //ext v x
+        ofs_spk_ext[1].open(export_spk_file[1].c_str(), ios::binary); //ext v y
+        ofs_spk_ext[2].open(export_spk_file[2].c_str(), ios::binary); //ext h x
+        ofs_spk_ext[3].open(export_spk_file[3].c_str(), ios::binary); //ext h y
+    }
+
+    ofs_ptn_v = new ofstream;
+    ofs_ptn_h = new ofstream;
+    if(export_ptn_en){
+        ofs_ptn_v->open(export_ptn_file[0].c_str(), ios::binary);
+        ofs_ptn_h->open(export_ptn_file[1].c_str(), ios::binary);
+    }
+
+}
+*/
 
 void core::print_params() {
 	// Should add neuron info, synapse info, etc.
@@ -277,7 +300,7 @@ int core::compare_threshold(double tnow) {
 
     for(int h_idx = 0; h_idx < num_neurons[side_h]; h_idx++) { // exclude bias neuron
         // if(params.enable_ps2 && rng_ps2->get_val()) continue;
-        auto Neuron = _layers[side_h][h_idx];
+        auto Neuron = hidden_layer._neurons[h_idx];
         bool compared = Neuron._memV > Neuron._Vth;
         bool not_in_ref = Neuron._lastSpkTime < time_in_ref;
 
@@ -310,7 +333,7 @@ int core::compare_threshold(double tnow) {
 
     for(int v_idx = 0; v_idx < num_neurons[side_v]; v_idx++) {
         //if(param.enable_ps2 && rng_ps2->get_val()) continue;
-        auto Neuron = _layers[side_v][v_idx];
+        auto Neuron = visible_layer._neurons[v_idx];
         bool compared = Neuron._memV > Neuron._Vth;
         bool not_in_ref = Neuron._lastSpkTime < time_in_ref;
         /*
@@ -444,21 +467,20 @@ int core::compare_threshold(double tnow) {
 };
 
 template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, spike &spk_now, int which_spk, double &simtick, int &new_spk) {
-    /*EVENT_TIME_DUMP(tnow);
+    /*
+    // EVENT_TIME_DUMP(tnow);
     if(is_spk) {
-        if(params.enable_learning)
+        if(param.enable_learning)
             weight_update(tnow);
     }
-    */
-
-    //potential_update_by_leak(tnow-tpre);
-    //export_ptn(tnow);
+    
+    potential_update_by_leak(tnow-tpre);
+    export_ptn(tnow);
 
     if(is_spk) {
-        potential_update_by_spk(spk_now);
-        /*
+        potential_update_by_spk(spk_now, which_spk);
         export_ptn(tnow);
-        spk *spk_export;
+        sm_spk *spk_export;
         if(which_spk == spk_type_ext) {
             spk_export = queue_ext.top().second;
             export_spk(*spk_export, spk_type_ext);
@@ -471,20 +493,18 @@ template<int is_spk, int is_rng> void core::run_loop(double tnow, double tpre, s
             spk_export = queue_spk.top().second;
             export_spk(*spk_export, spk_type_int);
         }
-        */
     }
 
     if(is_rng) {
-        if(params.enable_random_walk) {
-            //potential_update_by_random_walk();
-            //export_ptn(tnow);
-        } /*else if(params.enable_stochastic_vth) {
-            //threshold_update_stochastic();
+        if(param.enable_random_walk) {
+            potential_update_by_random_walk();
+            export_ptn(tnow);
+        } else if(param.enable_stochastic_vth) {
+            threshold_update_stochastic();
         }
-        */
-        simtick += params.timestep_rng;
+        simtick += param.timestep_rng;
     }
-
+    */
     new_spk = compare_threshold(tnow);
 }
 
@@ -553,13 +573,21 @@ double core::run() {
                     if(spk_now->_reset == true) {
                         // potential_reset(*spk_now); // Reset before or after run_loop()???
                         for(auto it = spk_now->_spk.begin(); it != spk_now->_spk.end(); it++) {
-                            _layers[it->first][it->second].memV_Reset();
+                            if(it->first == side_v){
+                                visible_layer._neurons[it->second].memV_Reset();
+                            } else {
+                                hidden_layer._neurons[it->second].memV_Reset();
+                            }
 		                }
                         run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                         tpre = tnow;
                     } else if(spk_now->_st == true) {
                         for(auto it = spk_now->_spk.begin(); it != spk_now->_spk.end(); it++) {
-                            _layers[it->first][it->second].updateLastSpkTime(spk_now->_spkTime);
+                            if(it->first == side_v){
+                                visible_layer._neurons[it->second].updateLastSpkTime(spk_now->_spkTime);
+                            } else {
+                                hidden_layer._neurons[it->second].updateLastSpkTime(spk_now->_spkTime);
+                            }
 		                }
                         run_loop<0, 1>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
                         tpre = tnow;
@@ -579,11 +607,19 @@ double core::run() {
                     is_spk = 1;
                     if(spk_now->_reset == true) {
                         for(auto it = spk_now->_spk.begin(); it != spk_now->_spk.end(); it++) {
-                            _layers[it->first][it->second].memV_Reset();
+                            if(it->first == side_v){
+                                visible_layer._neurons[it->second].updateLastSpkTime(spk_now->_spkTime);
+                            } else {
+                                hidden_layer._neurons[it->second].updateLastSpkTime(spk_now->_spkTime);
+                            }
 		                }
                     } else if(spk_now->_st == true) {
                         for(auto it = spk_now->_spk.begin(); it != spk_now->_spk.end(); it++) {
-                            _layers[it->first][it->second].updateLastSpkTime(spk_now->_spkTime);
+                            if(it->first == side_v){
+                                visible_layer._neurons[it->second].updateLastSpkTime(spk_now->_spkTime);
+                            } else {
+                                hidden_layer._neurons[it->second].updateLastSpkTime(spk_now->_spkTime);
+                            }
 		                }
                     } else {
                         run_loop<1, 0>(tnow, tpre, *spk_now, which_spk, simtick, new_spk);
