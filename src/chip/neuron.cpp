@@ -80,6 +80,10 @@ void neuron::set_memV(double _newV) { // set neuron potential to new memV
     this->_memV = _newV;
 }
 //----------------------------------------------------
+void neuron::add_memV(double _updateV) { // set neuron potential to new memV
+    this->_memV = this->_memV + _updateV;
+}
+//----------------------------------------------------
 void neuron::updateLastSpkTime(double _newLastSpkTime) {
     this->_lastSpkTime = _newLastSpkTime;
 }

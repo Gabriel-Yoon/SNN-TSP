@@ -35,22 +35,9 @@ class neuron;
 class lif_neuron;
 class synapse;
 
-typedef priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, spk_cmp> SpikeQueue;
-typedef std::vector<std::vector<synapse>> SynapseArray;
-typedef std::vector<std::vector<neuron>> NeuronLayer;
-typedef std::vector<std::vector<lif_neuron>> LIFNeuronLayer;
-
 namespace utils {
 
     void printProgress(double start, double end);
-
-    void callSynapseArrayGpGm(const char* filepath, SynapseArray _synapses);
-    // void callNeuronNumbers(std::string& filepath, core* _core);
-    
-    void saveSynapseArrayGpGm(std::string& filename, SynapseArray _synapses);
-    void saveNeuronLayerMemV(std::string& filename, NeuronLayer _layers, double _time);
-    void writeNeuronLayerMemV(std::string& filename, NeuronLayer _layers, double _time);
-    void saveSpikeQueueSpikeInfo(std::string& filename, SpikeQueue _spikeQueue);
     
     // void saveSpikeTimeToFile(std::string& filename, spk* spike);
 

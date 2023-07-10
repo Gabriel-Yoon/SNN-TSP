@@ -50,6 +50,7 @@ class neuron
     public: double& refractoryPeriod();                     // Gets the refractory period
     
     public: void set_memV(double _newV);                    // Sets the membrane potential to new value
+    public: void add_memV(double _updateV);
     public: void updateLastSpkTime(double _newLastSpkTime); // Sets the last spike time to latest spike time
 
     public: void memV_WhiteNoise();              // Update membrane potential by white noise

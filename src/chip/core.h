@@ -22,21 +22,18 @@
 #include <cstdio>
 
 #include "../utils/np.h"
+#include "../utils/fs.h"
 #include "../utils/py.h"
 
+#include "rng.h"
 #include "spike.h"
 #include "neuron.h"
 #include "lif_neuron.h"
 #include "neuron_layer.h"
 #include "synapse.h"
+#include "synapse_array.h"
 #include "param.h"
 #include "../tsp/tsp.h"
-
-
-struct real_data {
-	double delta_g;
-	double standard_g;
-};
 
 //**************************************************************************************************************//
 
@@ -49,37 +46,30 @@ class core
 	private: param params;
 	std::ofstream os;
 	/*---------------------fields-----------------*/
+	typedef std::priority_queue<std::pair<double, spike*>, std::vector<std::pair<double, spike*>>, spk_cmp> SpikeMagazine;
+	typedef std::priority_queue<std::pair<double, random_walk*>, std::vector<std::pair<double, random_walk*>>, random_walk_cmp> RandomWalkSchedule;
+	typedef neuron_layer<lif_neuron> LIFNeuronLayer;
+	typedef synapse_array<synapse> PCMSynapseArray;
+
+
 	public: int _numCity;
 	private: int num_neurons[2];
 
-	typedef priority_queue<pair<double, spike*>, vector<pair<double, spike*>>, spk_cmp> SpikeQueue;
-	
-	typedef std::vector<std::pair<double, spike::spikePosition*>> ResetEventQueue; // change this to queue!
-	typedef std::vector<std::pair<double, double>> RandomWalkQueue; // change this to queue!
-	typedef std::vector<std::vector<synapse>> SynapseArray;
-	typedef neuron_layer<neuron> NeuronLayer;
-	typedef neuron_layer<lif_neuron> LIFNeuronLayer;
+	private: LIFNeuronLayer visibleLayer;
+	private: LIFNeuronLayer hiddenLayer;
+	private: PCMSynapseArray synapseArray;
 
-	private: SynapseArray _synapses;
-	private: LIFNeuronLayer visible_layer;
-	private: LIFNeuronLayer hidden_layer;
-	private: std::vector<LIFNeuronLayer> _layers;
+	private: SpikeMagazine visibleMagazine;
+	private: SpikeMagazine hiddenMagazine;
+	private: SpikeMagazine ShellCatcher; // this is for recording the spike history
 
+	private: RandomWalkSchedule visibleRandomWalkSchedule;
+	private: RandomWalkSchedule hiddenRandomWalkSchedule;
 
-
-
-	private: SpikeQueue _Magazine;
-	private: SpikeQueue _intMagazine;
-	private: SpikeQueue _extMagazine;
-
-	private: SpikeQueue _intVShellCatcher;
-	private: SpikeQueue _intHShellCatcher;
-	private: SpikeQueue _eShellCatcher;
-
-	private: SpikeQueue queue_ext;
-    private: SpikeQueue queue_spk;
-    private: SpikeQueue queue_wup_ext;
-    private: SpikeQueue queue_wup_spk;
+	private: SpikeMagazine queue_ext;
+    private: SpikeMagazine queue_spk;
+    private: SpikeMagazine queue_wup_ext;
+    private: SpikeMagazine queue_wup_spk;
 
 	private: std::string export_ptn_file[2];
 
@@ -108,14 +98,22 @@ class core
 	public: void initialize();
 	public: void initialize_export();
 
-    private: template<int is_spk, int is_rng>
-    void run_loop(double tnow, double tpre, spike &spk_now, int which_spk, double &simtick, int &new_spk);	
+	private: std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> load_mnist_28(std::string dataset, np::array_1d<int> digits);
+	private: void generateMagazine(double tend);
+	private: void loadMagazine(const char* mag_file);			// load spikes into _visibleMagazine
+	private: void setRandomWalkSchedule(double tend, int side, RandomWalkSchedule RandomWalkSchedule);	// set random walk schedule. use annealing schedule here
 
-	private: void potential_update_by_spk(spike& spk_now);
-	private: template<int side> void potential_update_by_spk_core(spike& spk_now, double* wsum);
-	
-	private: void weight_load(int cell_type, std::string fweight);
-	private: void weight_save(int cell_type, std::string filename);
+	private: int assignTask(spike **run_spike, double tpre, double tnow, int magazine_side);	// reload spike from either the visible or hidden magazine
+	private: void shootSpike(spike& run_spike, int& phase); // shoot at other side magazine, create reset, st, dummy event at self magazine
+	private: void reloadSpike(double tnow); // compare
+	public: void run_simulation();
+
+	// Potential Update
+	private: void potentialUpdate(spike& run_spike);
+
+	// Learning Method
+	private: void STDP();
+
 	private: void ext_spike_load(double tend);
 
 	int compare_threshold(double tnow);

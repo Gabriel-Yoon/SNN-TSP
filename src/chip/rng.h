@@ -5,6 +5,23 @@
 #include "../utils/py.h"
 #include "param.h"
 
+struct random_walk{
+    double _time;
+    typedef std::pair<int, double> randomwalkPosition;
+	randomwalkPosition _randomWalk; // pair<side, step_size>.
+
+	bool operator < (const random_walk& r) const{
+		return _time < r._time;
+	}
+};
+
+struct random_walk_cmp {
+    bool operator()(std::pair<double, random_walk*> a, std::pair<double, random_walk*> b) {
+        if(a.first == b.first) return a.second->_randomWalk.first < b.second->_randomWalk.first;
+        return a.first > b.first;
+    }
+};
+
 //**************************************************************************************************************/
 class rng
 {

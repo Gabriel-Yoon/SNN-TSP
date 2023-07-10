@@ -32,26 +32,7 @@ namespace utils {
         fflush(stdout);
     }
 
-    void saveSynapseArrayGpGm(std::string& filename, SynapseArray _synapses){
-        auto result = nlohmann::json{
-        {"weight_gp", json::array()},
-        {"weight_gm", json::array()},
-        };
-
-        for (auto i = 0; i < _synapses[0].size(); i++) {
-            auto& _Gp = result["weight_gp"];
-            auto& _Gm = result["weight_gm"];
-            for (auto j = 0; j < _synapses[1].size(); j++) {
-                // You'll need to convert whatever Items is into a JSON type first
-                _Gp[i].push_back(_synapses[i][j].Gp);
-                _Gm[i].push_back(_synapses[i][j].Gm);
-            }
-        }
-
-        std::ofstream out(filename + ".json");
-        out << result;
-    }
-
+    /*
     void saveNeuronLayerMemV(std::string& filename, NeuronLayer _layers, double _time){
         auto result = nlohmann::json{
         {"membrane potential", json::array()}
@@ -68,51 +49,9 @@ namespace utils {
         std::ofstream out(filename + ".json");
         out << result;
     }
+    */
  
-    void callSynapseArrayGpGm(const char* filepath, SynapseArray _synapses){
-
-        std::ifstream ifs(filepath);
-        json _synapseSavedFile = json::parse(ifs);
-
-        // check the size of the _synapse and weight_gp
-        bool _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gp"].size()) 
-                        && (_synapses[0].size() == _synapseSavedFile["weight_gp"][0].size()));
-        
-        if (_synapseSavedFile.empty() || !_isSizeSame){
-            std::cout << "Synapse file error" << std::endl;
-        }
-
-        if (!_synapseSavedFile["weight_gp"].empty() && _isSizeSame) {
-            for (int i = 0; i < _synapses.size(); i++){
-                for (int j = 0; j < _synapses[0].size(); j++){
-                    _synapses[i][j].Gp = _synapseSavedFile["weight_gp"][i][j];
-                }
-            }
-        }
-
-        if (_synapseSavedFile["weight_gm"].empty()) {
-            for (int i = 0; i < _synapses.size(); i++){
-                for (int j = 0; j < _synapses[0].size(); j++){
-                    _synapses[i][j].Gm = 0;
-                }
-            }
-        } else {
-            _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gm"].size()) 
-                        && (_synapses[0].size() == _synapseSavedFile["weight_gm"][0].size()));
-            if (!_isSizeSame){
-                std::cout << "Synapse file error" << std::endl;
-            }
-            else {
-                for (int i = 0; i < _synapses.size(); i++){
-                    for (int j = 0; j < _synapses[0].size(); j++){
-                        _synapses[i][j].Gm = _synapseSavedFile["weight_gm"][i][j];
-                    }
-                }
-            }
-            
-        }
-
-   }
+    
     
     // IN PROGRESS
     /*

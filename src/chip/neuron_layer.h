@@ -4,6 +4,7 @@
 #include <vector>
 #include <type_traits>
 #include "neuron.h"
+#include "spike.h"
 
 // SFINAE
 // HOW TO USE neuron_layer<T>
@@ -13,6 +14,11 @@
 // neuron_layer<int> arr3;          -> compile error
 
 //**************************************************************************************************************//
+//----------------------------------------------------
+// Forward declarations.
+class spike;
+class neuron;
+
 template <typename NeuronType, std::enable_if_t<std::is_base_of<neuron, NeuronType>::value, bool> = true>
 class neuron_layer
 {
@@ -23,7 +29,7 @@ class neuron_layer
     // Constructor
     public: neuron_layer(){}
     // Destructor
-    public: ~neuron_layer();
+    public: ~neuron_layer(){}
     //----------------------------------------------------
     public: void ManualSet(param& _params){
         for (auto _neuron : this->_neurons){
@@ -37,9 +43,21 @@ class neuron_layer
         }
     }
     //----------------------------------------------------
+    public: void WhiteNoise(){
+        for (auto _neuron : this->_neurons){
+            _neuron.memV_WhiteNoise();
+        }
+    }
+    //----------------------------------------------------
 	public: void RandomWalk(){
         for (auto _neuron : this->_neurons){
             _neuron.memV_RandomWalk();
+        }
+    }
+    //----------------------------------------------------
+    public: void Reset(){
+        for (auto _neuron : this->_neurons){
+            _neuron.memV_Reset();
         }
     }
     //----------------------------------------------------
@@ -50,8 +68,12 @@ class neuron_layer
     //     }
     // }
     //----------------------------------------------------
-	public: void CompareThreshold(){
-
+	public: void saveNeuronLayerMemV(std::string& filename, neuron_layer _layers, double _time, int side);
+    //----------------------------------------------------
+    public: void writeNeuronLayerMemV(std::string& filename, neuron_layer _layers, double _time, int side);
+    //----------------------------------------------------
+    public: void loadSpikeToMagazine(){ // compare memV with Vth to generate spike
+        
     }
 
 };

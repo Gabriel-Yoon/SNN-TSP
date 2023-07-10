@@ -4,6 +4,7 @@
 
 //----------------------------------------------------
 rng::rng(param& _params){
+
 	if (_params.enable_random_walk) {
 		rng_randomwalk = new py::rng_binomial(0, 0.5);
 
