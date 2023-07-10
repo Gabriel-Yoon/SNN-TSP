@@ -71,8 +71,11 @@ void core::potentialUpdate(spike& run_spike){
     }
 }
 
-void core::STDP(){
+void core::STDP(spike& run_spike, int& phase){
+    //STDP works only on side_h
+    if(phase == data_phase){
 
+    }
 }
 
 /*
@@ -129,7 +132,8 @@ void core::print_params() {
 	std::cout << "tset_width				: " << params.tset_width << std::endl;
 	std::cout << "treset_width				: " << params.treset_width << std::endl;
 	std::cout << "--------------------------mode-------------------------- " << std::endl;
-	std::cout << "enable_random_walk 	:" << params.enable_random_walk << std::endl;
+	std::cout << "enable_gpgm        	:" << params.enable_gpgm << std::endl;
+    std::cout << "enable_random_walk 	:" << params.enable_random_walk << std::endl;
 	std::cout << "enable_white_noise 	:" << params.enable_white_noise << std::endl;
 	std::cout << "enable_sigmoid 		:" << params.enable_sigmoid << std::endl;
 	std::cout << "enable_ps2 			:" << params.enable_ps2 << std::endl;
@@ -185,10 +189,6 @@ void core::print_params() {
 		}
 	}
 	*/
-}
-
-void core::ext_spike_load(double tend) {
-
 }
 
 std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> core::load_mnist_28(std::string dataset = "training", np::array_1d<int> digits = np::arange(10))
@@ -280,7 +280,7 @@ std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> core::load_mnist_28(std:
 }
 
 void core::generateMagazine(double tend){
-    std::cout << "[START] Injection Magazine" << std::endl;
+    std::cout << "Injection Magazine" << std::endl;
     double timestep_injection = 10e-6;
     int neuron = 0; // start city : if city 1 is the start, neuron =0;
     double time;
@@ -305,13 +305,11 @@ void core::generateMagazine(double tend){
 
     std::ofstream out("magazine_injection.json");
     out << result;
-
-    std::cout << "[_END_] Injection Magazine" << std::endl;
 }
 
 void core::loadMagazine(const char* mag_file){   // load spikes into visibleMagazine
 
-    std::cout << "[START] Load Magazine" << std::endl;
+    std::cout << "Load Magazine" << std::endl;
     SpikeMagazine tempMagazine;
 
     // magazine_file == "magazine.json"
@@ -343,18 +341,13 @@ void core::loadMagazine(const char* mag_file){   // load spikes into visibleMaga
             delete spike_next;
             tempMagazine.pop();
         }
-
         visibleMagazine.push(make_pair(_spike->_spikeTime, _spike));
-
     }
-
-    std::cout << "[_END_] Load Magazine" << std::endl;
-
 }			
 
 void core::setRandomWalkSchedule(double tend, int side, RandomWalkSchedule RandomWalkSchedule){	
     // set random walk schedule. use annealing schedule here
-    cout << "[START] Setting Random Walk Schedule" << endl;
+    cout << "Setting Random Walk Schedule" << endl;
     double timestep_randomwalk = 10e-6;
     double time;
     double injection_step = tend / timestep_randomwalk;
@@ -371,11 +364,16 @@ void core::setRandomWalkSchedule(double tend, int side, RandomWalkSchedule Rando
     // make one for the specific function (ex. Simulated Annealing!)
 }
 
-int core::assignTask(spike **run_spike, double tpre, double tnow, int magazine_side) {
-    // return false for random walk, true for spike event (reset, st, dummy, real spike event)
+int core::assignTask(spike **run_spike, double& tpre, double& tnow, int magazine_side) {
     
-    // First you should perform Leak function. MAKE IT ASAP!
-    
+    // Leak function (Later add is_base_of to see if the neurons are based of lif_neurons)
+    for(int i = 0; i < visibleLayer._neurons.size(); i++){
+        visibleLayer._neurons[i].memV_Leak(tpre, tnow);
+    }
+    for(int i = 0; i < hiddenLayer._neurons.size(); i++){
+        hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
+    }
+
     enum case_id : int {
         visible_spike,
         hidden_spike,
@@ -387,6 +385,9 @@ int core::assignTask(spike **run_spike, double tpre, double tnow, int magazine_s
     double time[size];
     int case_id;
 
+    // compare latest task times in
+    // visibleMagazine, hiddenMagazine, visibleRandomWalkSchedule, hiddenRandomWalkSchedule
+    // to get the next task
     auto get_tnext = [&](auto _queue0, auto _queue1, auto _queue2, auto _queue3) {
         time[0] = (!_queue0.empty()) ? _queue0.top().first : -1;
         time[1] = (!_queue1.empty()) ? _queue1.top().first : -1;
@@ -402,139 +403,102 @@ int core::assignTask(spike **run_spike, double tpre, double tnow, int magazine_s
         return minVal;
     };
 
-    tpre = tnow;
     tnow = get_tnext(visibleMagazine, hiddenMagazine, visibleRandomWalkSchedule, hiddenRandomWalkSchedule);
-    std::cout << "tpre : " << tpre << " | tnow : " << tnow << std::endl;
 
     switch(case_id)
     {
         case visible_spike:
-            std::cout << "visible_spike" << std::endl;
             *run_spike = visibleMagazine.top().second;
             delete visibleMagazine.top().second;
             visibleMagazine.pop();
             magazine_side = side_v;
             return 1;
         case hidden_spike:
-            std::cout << "hidden_spike" << std::endl;
             *run_spike = hiddenMagazine.top().second;
             delete hiddenMagazine.top().second;
             hiddenMagazine.pop();
             magazine_side = side_h;
             return 1;
         case visible_random_walk:
-            std::cout << "visible_random_walk" << std::endl;
             visibleLayer.RandomWalk();
             magazine_side = side_v;
             return 0;
         case hidden_random_walk:
-            std::cout << "hidden_random_walk" << std::endl;
             hiddenLayer.RandomWalk();
             magazine_side = side_h;
             return 0;
         default:
-            std::cout << "No event scheduled" << std::endl;
             return -1;
     }
-
 }
 
 void core::shootSpike(spike& run_spike, int& phase){    
 
-    SpikeMagazine selfMagazine;
-    SpikeMagazine targetMagazine;
-
     spike *spikeCasing = new spike(run_spike);
     // 1. To self magazine
     // 1-1. Create ST_PAUSE Event
+    spike *run_spike_st_pause = new spike(*spikeCasing);
     if(params.hw_ISO_MOD) {
-        std::cout << "Generate ST_PAUSE event" << std::endl;
-        spike *run_spike_st_pause = new spike(*spikeCasing);
         run_spike_st_pause->_spikeTime = run_spike._spikeTime;
         run_spike_st_pause->_reset = false;
         run_spike_st_pause->_st = true;
-        selfMagazine.push(make_pair(run_spike._spikeTime, run_spike_st_pause));
         // delete run_spike_st_pause;
     }
 
+    spike *run_spike_reset = new spike(*spikeCasing);
     // 1-2. Create Reset Event
-    if(params.hw_RES_EN) {
-        std::cout << "Generate Reset event" << std::endl;
-        spike *run_spike_reset = new spike(*spikeCasing);
+    if(params.hw_RES_EN) {    
         run_spike_reset->_spikeTime = run_spike._spikeTime + params.delay_spikein2out;
         run_spike_reset->_reset = true;
         run_spike_reset->_st = false;
-        selfMagazine.push(make_pair(run_spike._spikeTime + params.delay_spikein2out, run_spike_reset));
         // delete run_spike_reset;
     }
 
     // 1-3. Create Dummy Event
-    std::cout << "Generate Dummy event" << std::endl;
     spike *run_spike_dummy = new spike(*spikeCasing);
     run_spike_dummy->_spikeTime = run_spike._spikeTime + params.refractory_time + FLOAT_EPSILON_TIME;
     run_spike_dummy->_reset = true;
     run_spike_dummy->_st = false;
-    selfMagazine.push(make_pair(run_spike._spikeTime + params.refractory_time + FLOAT_EPSILON_TIME, run_spike_dummy));
     // delete run_spike_dummy;
 
     // 2. To target magazine
-    std::cout << "Shoot spike!" << std::endl;
     spike *run_spike_target = new spike(run_spike);
     if(!params.enable_gpgm) {
         run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr + params.wlr_width;
         run_spike_target->_reset = false;
         run_spike_target->_st = false;
-        std::cout << "ERROR HERE?" << std::endl;
-        targetMagazine.push(make_pair(run_spike_target->_spikeTime, run_spike_target));
-        std::cout << "OR HERE?" << std::endl;
+
     } else { // enable _ gpgm
         if(phase == data_phase) {
             if(run_spike._side == side_v){
                 run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_data_v + params.wlr_width;
-                std::cout << "Target on-site1" << std::endl;
             } else {
                 run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_data_h + params.wlr_width;
-                std::cout << "Target on-site2" << std::endl;
             }
         } else {
             if(run_spike._side == side_h){
                 run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_model_v + params.wlr_width;
-                std::cout << "Target on-site3" << std::endl;
             } else {
                 run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_model_h + params.wlr_width;
-                std::cout << "Target on-site4" << std::endl;
             }
         }
-        targetMagazine.push(make_pair(run_spike_target->_spikeTime, run_spike_target));
     }
 
-    while(!selfMagazine.empty()){
-        spike *new_spike = selfMagazine.top().second;
-        if(run_spike._side == side_v){
-            visibleMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
-        } else {
-            std::cout << "-----HIDDEN SPIKE GENERATED!!-----" << std::endl;
-            hiddenMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
-        }
-        selfMagazine.pop();
+    if(run_spike._side == side_v){
+        visibleMagazine.push(make_pair(run_spike_reset->_spikeTime, run_spike_reset));
+        visibleMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
+        visibleMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
+        hiddenMagazine.push(make_pair(run_spike_target->_spikeTime, run_spike_target));
+    } else {
+        hiddenMagazine.push(make_pair(run_spike_reset->_spikeTime, run_spike_reset));
+        hiddenMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
+        hiddenMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
+        visibleMagazine.push(make_pair(run_spike_target->_spikeTime, run_spike_target));
     }
-
-    while(!targetMagazine.empty()){
-        spike *new_spike = targetMagazine.top().second;
-        if(run_spike._side == side_v){
-            hiddenMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
-        } else {
-            visibleMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
-        }
-        targetMagazine.pop();
-    }
-
-    // delete selfMagazine;
-    // delete targetMagazine;
 }
 
 void core::reloadSpike(double tnow) {
-    
+    // compare membrane potential with threshold voltage for new internal spikes
     for(int i = 0; i<visibleLayer._neurons.size(); i++){
         if(visibleLayer._neurons[i]._memV >= visibleLayer._neurons[i]._Vth){
             spike *new_spike = new spike;
@@ -558,13 +522,11 @@ void core::reloadSpike(double tnow) {
             hiddenMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
         }
     }
-    // compare threshold
-    // use loadSpike from spike_magazine
 }
 
 void core::run_simulation(){
     
-    double tend = 1.0;
+    double tend = 0.3;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -576,55 +538,68 @@ void core::run_simulation(){
 
     generateMagazine(tend);
     loadMagazine("/Users/gabriel/Development/SNN-TSP/src/build/magazine_injection.json");
+
     while(1){
-        std::cout << "[START] Assign Task" << std::endl;
+        std::cout << "tpre : " << tpre << " | tnow : " << tnow << std::endl;
         task = assignTask(&run_spike, tpre, tnow, magazine_side);
-        std::cout << "[_END_] Assign Task" << std::endl;
 
         if(task == 1) { // (_reset, _st) = ( , )
             if (run_spike->_reset) { // (1,-)
                 if (run_spike->_st) {                           // (1,1)
-                    std::cout << "(1,1) Shoot Spike" << std::endl;
+                    // For Boltzmann Machine mode, changed hidden spike to visible spike
+                    if(run_spike->_side == side_h && params.enable_BM){
+                        run_spike->_side = side_v;
+                    }
                     shootSpike(*run_spike, phase);
+                    if (run_spike->_side == side_h && params.enable_learning && !params.enable_BM){
+                        //STDP(*run_spike, phase);
+                    }
+                    tpre = tnow;
                 } else {                                        // (1,0)
-                    std::cout << "(1,0) Reset Event" << std::endl;
                     for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) {
                         if(it->first == side_v){
                             visibleLayer._neurons[it->second].memV_Reset();
+                            tpre = tnow;
                         } else {
                             hiddenLayer._neurons[it->second].memV_Reset();
+                            tpre = tnow;
                         }
 		            }
                 }
             } else{ // (0,-)
                 if (run_spike->_st) {                           // (0,1)
-                    std::cout << "(0,1) ST_PAUSE Event" << std::endl;
                     for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) {
                         if(it->first == side_v){
                             visibleLayer._neurons[it->second].turnOFF();
+                            tpre = tnow;
                         } else {
                             hiddenLayer._neurons[it->second].turnOFF();
+                            tpre = tnow;
                         }
 		            }
                 } else {                                          // (0,0) but self magazine dummy event
-                    std::cout << "(0,0) Event" << std::endl;
                     if (magazine_side == run_spike->_side) {
                         for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) {
                             if(it->first == side_v){
                                 visibleLayer._neurons[it->second].turnON();
+                                tpre = tnow;
                             } else {
                                 hiddenLayer._neurons[it->second].turnON();
+                                tpre = tnow;
                             }
 		                }
                     } else { // (0,0) but bullet from another magazine
                         potentialUpdate(*run_spike);
+                        tpre = tnow;
                     }
                 }
             }
+
         } else if (task == -1){
             std::cout << "No more event!" << std::endl;
         }
-        reloadSpike(tnow);
 
+        reloadSpike(tnow);
+        loop_count++;
     }
 }

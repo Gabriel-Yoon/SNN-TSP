@@ -85,6 +85,7 @@ param::param(const char* param_file) {
 	epoch_from = _SNNChipParam["epoch_from"];
 	epoch_to = _SNNChipParam["epoch_to"];
 
+	enable_gpgm = _SNNChipParam["enable_gpgm"];
 	enable_learning = _SNNChipParam["enable_learning"];
 	enable_random_walk = _SNNChipParam["enable_random_walk"];
 	enable_white_noise = _SNNChipParam["enable_white_noise"];
@@ -133,4 +134,5 @@ param::param(const char* param_file) {
 	hw_ISO_MOD = _SNNChipParam["hw_ISO_MOD"];
 	hw_RES_EN = _SNNChipParam["hw_RES_EN"];
 	hw_RES_BLK = _SNNChipParam["hw_RES_BLK"];
+	enable_BM = _SNNChipParam["enable_BM"];
 }  

@@ -50,6 +50,7 @@ class spike
     /*---------------------methods----------------*/
     // spk Class constructor.
     public: spike() : _spikeTime(0),_spk(),_reset(false),_st(false),_iso(0){}
+    public: ~spike(){}
     // function from previous code
 	public: spike(const spike &orig_spk) {
 		_spikeTime = orig_spk._spikeTime;

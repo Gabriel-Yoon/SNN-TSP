@@ -114,16 +114,11 @@ struct param {
     bool hw_ISO_MOD;
     bool hw_RES_EN;
     bool hw_RES_BLK;
+	bool enable_BM;
 
     param(const char* param_file);
     void print_parameters();
 
-};
-
-enum : int {
-    spk_type_both,
-    spk_type_ext,
-    spk_type_int,
 };
 //**************************************************************************************************************//
 #endif

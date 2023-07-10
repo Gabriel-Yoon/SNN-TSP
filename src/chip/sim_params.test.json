@@ -103,5 +103,7 @@
 
   "hw_ISO_MOD": true,
   "hw_RES_EN": true,
-  "hw_RES_BLK": true
+  "hw_RES_BLK": true,
+
+  "enable_BM" : true
 }

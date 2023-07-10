@@ -66,14 +66,7 @@ class core
 	private: RandomWalkSchedule visibleRandomWalkSchedule;
 	private: RandomWalkSchedule hiddenRandomWalkSchedule;
 
-	private: SpikeMagazine queue_ext;
-    private: SpikeMagazine queue_spk;
-    private: SpikeMagazine queue_wup_ext;
-    private: SpikeMagazine queue_wup_spk;
-
 	private: std::string export_ptn_file[2];
-
-	private: double* wsum[2];
 
 	/*
 	bool export_spk_en;
@@ -93,32 +86,26 @@ class core
 	/*---------------------methods----------------*/
 	// core constructor
 	public: core(const char* param_file);
-	public: double run();
-	public: void print_params();
 	public: void initialize();
-	public: void initialize_export();
+	public: void print_params();
+	public: void run_simulation();
+	// public: void initialize_export();
 
 	private: std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> load_mnist_28(std::string dataset, np::array_1d<int> digits);
+
 	private: void generateMagazine(double tend);
 	private: void loadMagazine(const char* mag_file);			// load spikes into _visibleMagazine
 	private: void setRandomWalkSchedule(double tend, int side, RandomWalkSchedule RandomWalkSchedule);	// set random walk schedule. use annealing schedule here
 
-	private: int assignTask(spike **run_spike, double tpre, double tnow, int magazine_side);	// reload spike from either the visible or hidden magazine
+	private: int assignTask(spike **run_spike, double& tpre, double& tnow, int magazine_side);	// reload spike from either the visible or hidden magazine
 	private: void shootSpike(spike& run_spike, int& phase); // shoot at other side magazine, create reset, st, dummy event at self magazine
 	private: void reloadSpike(double tnow); // compare
-	public: void run_simulation();
-
+	
 	// Potential Update
 	private: void potentialUpdate(spike& run_spike);
 
 	// Learning Method
-	private: void STDP();
-
-	private: void ext_spike_load(double tend);
-
-	int compare_threshold(double tnow);
-	private: int get_spk(spike **spk_now, int *which_spk);
-
+	private: void STDP(spike& run_spike, int& phase);
 };
 
 #endif
