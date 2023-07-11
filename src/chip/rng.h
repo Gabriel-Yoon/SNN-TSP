@@ -10,9 +10,11 @@ struct random_walk{
     typedef std::pair<int, double> randomwalkPosition;
 	randomwalkPosition _randomWalk; // pair<side, step_size>.
 
-	bool operator < (const random_walk& r) const{
-		return _time < r._time;
-	}
+	
+	//bool operator < (const random_walk& r) const{
+	//	return _time < r._time;
+	//}
+	
 };
 
 struct random_walk_cmp {

@@ -11,13 +11,14 @@ neuron::neuron(){
 	_refractoryPeriod = 4e-3;
 	_active = true;
 
-	_rng = nullptr;
+	//_rng = nullptr;
 	_randomWalkStep = 0.06;
 	_randomWalkStepUp = 0.06;
 	_randomWalkStepDown = 0.06;
 }
 //----------------------------------------------------
-neuron::~neuron(){ if(_rng != nullptr) ::free(_rng); }
+neuron::~neuron(){ //if(_rng != nullptr) ::free(_rng);
+}
 //----------------------------------------------------
 neuron::neuron(param &_params){
     _memV = _params.pt_init;                        // membrane potential init to reset potential
@@ -34,11 +35,11 @@ neuron::neuron(param &_params){
 	_randomWalkStepUp = _params.random_walk_step_up;
 	_randomWalkStepDown = _params.random_walk_step_down;
 
-	_rng = new rng(_params);
+	//_rng = new rng(_params);
 }
 //----------------------------------------------------
-void neuron::ManualSet(param& _params) {
-    _memV = _params.pt_init;                        // membrane potential init to reset potential
+void neuron::ManualSet(param& _params){
+	_memV = _params.pt_init;                        // membrane potential init to reset potential
     _Vreset = _params.pt_init;              	    // reset potential
     _Vth = _params.pt_threshold;               	    // threshold voltage
     _refractoryPeriod = _params.refractory_time;    // refractory period
@@ -46,6 +47,8 @@ void neuron::ManualSet(param& _params) {
     _randomWalkStep = _params.random_walk_step;
 	_randomWalkStepUp = _params.random_walk_step_up;
 	_randomWalkStepDown = _params.random_walk_step_down;
+
+	//_rng = new rng(_params);
 }
 //----------------------------------------------------
 void neuron::turnON(){
@@ -88,14 +91,14 @@ void neuron::updateLastSpkTime(double _newLastSpkTime) {
     this->_lastSpkTime = _newLastSpkTime;
 }
 //----------------------------------------------------
-void neuron::memV_WhiteNoise() {
-    this->_memV += _rng->rng_white_noise->get_val();
+void neuron::memV_WhiteNoise(rng& _rng) {
+    this->_memV += _rng.rng_white_noise->get_val();
 }
 //----------------------------------------------------
-void neuron::memV_RandomWalk() {
+void neuron::memV_RandomWalk(rng& _rng) {
 	
 	//bool r = py::random::uniform_binary();
-	bool _randomWalkFlag = this->_rng->rng_randomwalk->get_val();
+	bool _randomWalkFlag = _rng.rng_randomwalk->get_val();
 	bool _isStepUpDownSame = (_randomWalkStepUp == _randomWalkStepDown);
 	/*
 				  flag		
@@ -112,7 +115,8 @@ void neuron::memV_RandomWalk() {
 	if (!_isStepUpDownSame) {
 		_randomWalkValue = (_randomWalkFlag) ? _randomWalkStepUp : _randomWalkStepDown;
 	}
-	this->_memV += _randomWalkSign * _randomWalkValue;
+	this->_memV = this->_memV + _randomWalkSign * _randomWalkValue;
+	this->_memV = this->_memV + 0.06;
 }
 //----------------------------------------------------
 void neuron::memV_Reset() {

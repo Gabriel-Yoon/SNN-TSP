@@ -32,7 +32,6 @@ class neuron
     public: double _lastSpkTime;        // latest spike time history
     public: double _lastSpkTimeIN_PAUSE;// latest spike time history
     public: double _lastSpkTimeST_PAUSE;// latest spike time history
-    public: rng* _rng;
     /*---------------------methods----------------*/    
     /// LIF neuron Class constructor.
     public: neuron();
@@ -53,8 +52,8 @@ class neuron
     public: void add_memV(double _updateV);
     public: void updateLastSpkTime(double _newLastSpkTime); // Sets the last spike time to latest spike time
 
-    public: void memV_WhiteNoise();              // Update membrane potential by white noise
-    public: void memV_RandomWalk();              // Update membrane potential by random walk
+    public: void memV_WhiteNoise(rng& _rng);              // Update membrane potential by white noise
+    public: void memV_RandomWalk(rng& _rng);              // Update membrane potential by random walk
     public: void memV_Reset();                   // Reset memV
 };
 //**************************************************************************************************************//

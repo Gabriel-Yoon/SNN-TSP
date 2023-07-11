@@ -43,15 +43,15 @@ class neuron_layer
         }
     }
     //----------------------------------------------------
-    public: void WhiteNoise(){
+    public: void WhiteNoise(rng *_rng){
         for (auto _neuron : this->_neurons){
-            _neuron.memV_WhiteNoise();
+            _neuron.memV_WhiteNoise(_rng);
         }
     }
     //----------------------------------------------------
-	public: void RandomWalk(){
+	public: void RandomWalk(rng& _rng){
         for (auto _neuron : this->_neurons){
-            _neuron.memV_RandomWalk();
+            _neuron.memV_RandomWalk(_rng);
         }
     }
     //----------------------------------------------------
