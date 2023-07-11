@@ -44,6 +44,7 @@ class tsp;
 class core
 {
 	private: param params;
+	private: rng _rng;
 	std::ofstream os;
 	/*---------------------fields-----------------*/
 	typedef std::priority_queue<std::pair<double, spike*>, std::vector<std::pair<double, spike*>>, spk_cmp> SpikeMagazine;
@@ -95,12 +96,17 @@ class core
 
 	private: void generateMagazine(double tend);
 	private: void loadMagazine(const char* mag_file);			// load spikes into _visibleMagazine
-	private: void setRandomWalkSchedule(double tend, int side, RandomWalkSchedule RandomWalkSchedule);	// set random walk schedule. use annealing schedule here
+	private: void setRandomWalkSchedule(double tend, int side);	// set random walk schedule. use annealing schedule here
 
-	private: int assignTask(spike **run_spike, double& tpre, double& tnow, int magazine_side);	// reload spike from either the visible or hidden magazine
+	private: int assignTask(spike **run_spike, double& tpre, double& tnow, int* magazine_side);	// reload spike from either the visible or hidden magazine
 	private: void shootSpike(spike& run_spike, int& phase); // shoot at other side magazine, create reset, st, dummy event at self magazine
 	private: void reloadSpike(double tnow); // compare
+	private: void eraseTask(int& task_id);
 	
+	// Export Data
+	private: void makeSpikeFile(std::string filename);
+	private: void writeSpikeIntoFile(spike& run_spike);
+
 	// Potential Update
 	private: void potentialUpdate(spike& run_spike);
 
