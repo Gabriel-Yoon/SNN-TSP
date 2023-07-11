@@ -27,6 +27,28 @@ class spike_magazine
     public: spike_magazine(){}
     // Destructor
     public: ~spike_magazine(){}
+    public: void makeSpikeMagazineFile(std::string filename){
+        auto result = nlohmann::json{
+        {"time", json::array()},
+        {"neuron", json::array()},
+        };
+
+        std::ofstream out(filename + ".json");
+        out << result;
+    }
+    public: void writeSpikeMagazine(spike* run_spike){
+        std::string filepath = "";
+        std::ifstream ifs(filepath);
+        json _spikesavedfile = json::parse(ifs);
+        
+        for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) { //
+            auto& _time = _spikesavedfile["time"];
+            auto& _neuron = _spikesavedfile["neuron"];
+            
+            _time.push_back(run_spike->_spikeTime);
+            _neuron.push_back(it->second);
+        }
+    }
 };
 
 #endif
