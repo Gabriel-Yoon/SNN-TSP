@@ -36,13 +36,11 @@ class spike
     friend class synapse;
     friend class core;
 
-    typedef std::list<std::pair<int, int>> spikePosition;
+    // typedef std::list<std::pair<int, int>> spikePosition;
     /*---------------------fields-----------------*/
     public: double _spikeTime;
     public: int _coreNum;
-    public: int _side;
-    public: int _neuronNum;
-    public: spikePosition _spk; // pair<side, neuron_index>.
+    public: std::list<std::pair<int, int>> _spk; // pair<side, neuron_index>.
     public: bool _reset;
 	public: bool _st;
 	public: int _iso; // not using
@@ -63,12 +61,13 @@ class spike
 		_st = orig_spk._st;
 		_iso = orig_spk._iso;
 	}
-    // function from previous code -> plz change this to operator
+    
     public: void merge(const spike &m_spk) {
 		for(auto it = m_spk._spk.begin(); it != m_spk._spk.end(); it++) {
 			_spk.push_back(*it);
 		}
 	}
+
     // assignment operator
     public: spike& operator = (const spike&);
     // relational operators
