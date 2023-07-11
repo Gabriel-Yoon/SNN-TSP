@@ -28,7 +28,7 @@ namespace py {
 		std::bernoulli_distribution rng;
 	
 		rng_binomial(int seed, double p) {
-			assert(p >= 0 && p <= 0);
+			assert(p >= 0 && p <= 1);
 			engine = std::mt19937(seed);
 			rng = std::bernoulli_distribution(p);
 		}
