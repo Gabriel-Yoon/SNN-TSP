@@ -90,6 +90,7 @@ param::param(const char* param_file) {
 	enable_random_walk = _SNNChipParam["enable_random_walk"];
 	enable_white_noise = _SNNChipParam["enable_white_noise"];
 	enable_sigmoid = _SNNChipParam["enable_sigmoid"];
+	enable_simulated_annealing = _SNNChipParam["enable_simulated_annealing"];
 
 	enable_sns = _SNNChipParam["enable_sns"];
 	enable_s2m = _SNNChipParam["enable_s2m"];

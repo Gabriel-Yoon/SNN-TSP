@@ -79,6 +79,7 @@ struct param {
 	bool enable_random_walk;
 	bool enable_white_noise;                // white noise for random walk
 	bool enable_sigmoid;                    // sigmoid function for random walk
+	bool enable_simulated_annealing;
 
 	bool enable_sns;
 	bool enable_s2m;
