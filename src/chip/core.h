@@ -51,6 +51,7 @@ class core
 	typedef std::priority_queue<std::pair<double, random_walk*>, std::vector<std::pair<double, random_walk*>>, random_walk_cmp> RandomWalkSchedule;
 	typedef neuron_layer<lif_neuron> LIFNeuronLayer;
 	typedef synapse_array<synapse> PCMSynapseArray;
+	typedef std::vector<std::pair<double, int>> SpikeRecorder;
 
 
 	public: int _numCity;
@@ -67,7 +68,8 @@ class core
 	private: RandomWalkSchedule visibleRandomWalkSchedule;
 	private: RandomWalkSchedule hiddenRandomWalkSchedule;
 
-	private: std::string export_ptn_file[2];
+	private: SpikeRecorder spikeRecorder;
+	private: std::string potentialFilePath[2];
 
 	/*
 	bool export_spk_en;
@@ -98,7 +100,7 @@ class core
 	private: void loadMagazine(const char* mag_file);			// load spikes into _visibleMagazine
 	private: void setRandomWalkSchedule(double tend, int side);	// set random walk schedule. use annealing schedule here
 
-	private: int assignTask(spike **run_spike, double& tpre, double& tnow, int* magazine_side);	// reload spike from either the visible or hidden magazine
+	private: int assignTask(spike **run_spike, double& tpre, double& tnow, double& tend, int* magazine_side);	// reload spike from either the visible or hidden magazine
 	private: void shootSpike(spike& run_spike, int& phase); // shoot at other side magazine, create reset, st, dummy event at self magazine
 	private: void reloadSpike(double tnow); // compare
 	private: void eraseTask(int& task_id);
@@ -106,6 +108,8 @@ class core
 	// Export Data
 	private: void makeSpikeFile(std::string filename);
 	private: void writeSpikeIntoFile(spike& run_spike);
+	private: void exportSpikeRecorder();
+	private: void exportNeuronPotentialToJson(double& tnow);
 
 	// Potential Update
 	private: void potentialUpdate(spike& run_spike);

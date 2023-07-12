@@ -18,9 +18,10 @@ core::core(const char* param_file) : params(param_file), _rng(params)
 	num_neurons[side_v] = _numCity* _numCity;
     num_neurons[side_h] = _numCity* _numCity;
 
+    potentialFilePath[side_v] = "VisibleMemV.json";
+    potentialFilePath[side_h] = "HiddenMemV.json";
+
     std::string cpu_str = "core0.";
-    export_ptn_file[0] = cpu_str + "export_ptn_file_v"+ "ptn_v.dat";
-    export_ptn_file[1] = cpu_str + "export_ptn_file_h"+ "ptn_h.dat";
 
 }
 
@@ -80,36 +81,6 @@ void core::writeSpikeIntoFile(spike& run_spike){
             _neuron.push_back(it->second);
         }
         out << result;
-}
-
-void core::potentialUpdate(spike& run_spike){
-
-    for(auto it = run_spike._spk.begin(); it != run_spike._spk.end(); it++){
-        if(it->first == side_v){           // spike is from side_v
-            if(params.enable_gpgm){
-                for(int i = 0; i < synapseArray._synapses[it->second].size(); i++){
-                    if (hiddenLayer._neurons[i]._active){
-                        hiddenLayer._neurons[i].add_memV(synapseArray.delta_G(it->second, i));
-                    }
-                }
-            }
-        } else{                                 // spike is from side_h
-            if(params.enable_gpgm){
-                for(int i = 0; i < synapseArray._synapses.size(); i++){
-                    if (visibleLayer._neurons[i]._active){
-                        visibleLayer._neurons[i].add_memV(synapseArray.delta_G(i, it->second));
-                    }   
-                }
-            }
-        }
-    }
-}
-
-void core::STDP(spike& run_spike, int& phase){
-    //STDP works only on side_h
-    if(phase == data_phase){
-
-    }
 }
 
 /*
@@ -315,7 +286,7 @@ std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> core::load_mnist_28(std:
 
 void core::generateMagazine(double tend){
     std::cout << "Injection Magazine" << std::endl;
-    double timestep_injection = 10e-6;
+    double timestep_injection = 40e-6;
     int neuron = 0; // start city : if city 1 is the start, neuron =0;
     double time;
     double injection_step = tend / timestep_injection;
@@ -391,28 +362,21 @@ void core::setRandomWalkSchedule(double tend, int side){
         random_walk* rw = new random_walk;
         rw->_time = (i+1) * timestep_randomwalk;
         rw->_randomWalk.first = side; // which side to random walk
-        rw->_randomWalk.second = 0.06; // randomwalk step
+        rw->_randomWalk.second = 0.06; // manual or auto
         if (side == side_v){
             visibleRandomWalkSchedule.push(make_pair(rw->_time, rw));
         } else { // side_h
             hiddenRandomWalkSchedule.push(make_pair(rw->_time, rw));
         }
-        
     }
 
     // make one for the specific function (ex. Simulated Annealing!)
 }
 
-int core::assignTask(spike **run_spike, double& tpre, double& tnow, int* magazine_side) {
+int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend, int* magazine_side) {
     
-    // Leak function (Later add is_base_of to see if the neurons are based of lif_neurons)
-    if (tnow > tpre){
-        for(int i = 0; i < visibleLayer._neurons.size(); i++){
-            visibleLayer._neurons[i].memV_Leak(tpre, tnow);
-        }
-        for(int i = 0; i < hiddenLayer._neurons.size(); i++){
-            hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
-        }
+    if(tnow > tend){
+        return -1;
     }
 
     enum case_id : int {
@@ -449,6 +413,19 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, int* magazin
 
     tnow = get_tnext(visibleMagazine, hiddenMagazine, visibleRandomWalkSchedule, hiddenRandomWalkSchedule);
 
+    // Leak function (Later add is_base_of to see if the neurons are based of lif_neurons)
+    if (tnow != tpre){
+        for(int i = 0; i < visibleLayer._neurons.size(); i++){
+            visibleLayer._neurons[i].memV_Leak(tpre, tnow);
+        }
+        for(int i = 0; i < hiddenLayer._neurons.size(); i++){
+            std::cout << "Before : " << hiddenLayer._neurons[i]._memV << std::endl;
+            hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
+            std::cout << "After : " << hiddenLayer._neurons[i]._memV << std::endl;
+        }
+        exportNeuronPotentialToJson(tnow);
+    }
+
     switch(case_id)
     {
         case visible_spike:
@@ -456,6 +433,7 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, int* magazin
             *magazine_side = side_v;
             return 0;
         case hidden_spike:
+            std::cout << "-----hiddenSpike!!" << std::endl;
             *run_spike = hiddenMagazine.top().second;
             *magazine_side = side_h;
             return 1;
@@ -468,7 +446,7 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, int* magazin
             *magazine_side = side_h;
             return 3;
         default:
-            std::cout << "WRONG TASK ID" << std::endl;
+            std::cout << "SIMULATION END" << std::endl;
             return -1;       
     }
 }
@@ -477,9 +455,9 @@ void core::shootSpike(spike& run_spike, int& phase){
     for(auto it = run_spike._spk.begin(); it != run_spike._spk.end(); it++){
         
         writeSpikeIntoFile(run_spike);
-
+        spikeRecorder.push_back(make_pair(run_spike._spikeTime, it->second));
         // TEMPORARY CODE
-        // turn neuron OFF right away
+        // double check turn neuron OFF right away
         if(it->first == side_v){
             visibleLayer._neurons[it->second].turnOFF();
         } else {
@@ -495,10 +473,11 @@ void core::shootSpike(spike& run_spike, int& phase){
             run_spike_st_pause->_st = true;
             run_spike_st_pause->_spk.push_back(make_pair(it->first, it->second));
             if(params.enable_BM){ // WTA condition
-                int h_WTA = it->second / _numCity + 1;
-                int h_city = it->second % _numCity + 1;
-                for(int wta_num = 1; wta_num <= _numCity; wta_num++){
-                    int iso_city = wta_num * _numCity + h_city;
+                // int h_WTA = it->second / _numCity + 1;
+                int h_city = it->second % _numCity;
+                // Be aware of the index! the real city num is : h_city = it->second % _numCity + 1;
+                for(int wta_num = 0; wta_num < _numCity; wta_num++){
+                    int iso_city = h_city + wta_num * _numCity;
                     run_spike_st_pause->_spk.push_back(make_pair(side_h, iso_city));
                 }
             }
@@ -519,11 +498,11 @@ void core::shootSpike(spike& run_spike, int& phase){
         run_spike_dummy->_st = false;
         run_spike_dummy->_spk.push_back(make_pair(it->first, it->second));
         if(params.enable_BM){ // WTA condition
-            int h_WTA = it->second / _numCity + 1;
-            int h_city = it->second % _numCity + 1;
-            for(int wta_num = 1; wta_num <= _numCity; wta_num++){
-                int iso_city = wta_num * _numCity + h_city;
-                run_spike_dummy->_spk.push_back(make_pair(it->first, iso_city));
+            // int h_WTA = it->second / _numCity + 1;
+            int h_city = it->second % _numCity;
+            for(int wta_num = 0; wta_num < _numCity; wta_num++){
+                int iso_city = h_city + wta_num * _numCity;
+                run_spike_dummy->_spk.push_back(make_pair(side_h, iso_city));
             }
         }
 
@@ -549,6 +528,7 @@ void core::shootSpike(spike& run_spike, int& phase){
                 }
             }
         }
+        run_spike_target->_spk.push_back(make_pair(it->first, it->second));
 
         if(it->first == side_v){
             visibleMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
@@ -570,7 +550,8 @@ void core::reloadSpike(double tnow) {
     // compare membrane potential with threshold voltage for new internal spikes
     for(int i = 0; i<visibleLayer._neurons.size(); i++){
         if(visibleLayer._neurons[i]._memV >= visibleLayer._neurons[i]._Vth && visibleLayer._neurons[i]._active == true){
-            std::cout << "new spike at visible layer neuron number : " << i << std::endl;
+            std::cout << "<<<<<new spike at visible layer neuron number : " << i << std::endl;
+            visibleLayer._neurons[i].turnOFF();
             spike *new_spike = new spike;
             new_spike->_spikeTime = tnow;
             new_spike->_spk.push_back(make_pair(side_v, i));
@@ -582,7 +563,8 @@ void core::reloadSpike(double tnow) {
 
     for(int i = 0; i<hiddenLayer._neurons.size(); i++){
         if(hiddenLayer._neurons[i]._memV >= hiddenLayer._neurons[i]._Vth && hiddenLayer._neurons[i]._active == true){
-            std::cout << "new spike at hidden layer neuron number : " << i << std::endl;
+            std::cout << "<<<<<new spike at hidden layer neuron number : " << i << std::endl;
+            hiddenLayer._neurons[i].turnOFF();
             spike *new_spike = new spike;
             new_spike->_spikeTime = tnow;
             new_spike->_spk.push_back(make_pair(side_h, i));
@@ -617,9 +599,38 @@ void core::eraseTask(int& task_id){
     
 }
 
+void core::potentialUpdate(spike& run_spike){
+    for(auto it = run_spike._spk.begin(); it != run_spike._spk.end(); it++){
+        if(it->first == side_v){  // spike is from side_v so update potential in hidden side
+            if(params.enable_gpgm){
+                for(int i = 0; i < synapseArray._synapses[it->second].size(); i++){
+                    if (hiddenLayer._neurons[i]._active){
+                        hiddenLayer._neurons[i]._memV += synapseArray.delta_G(it->second, i);
+                    }
+                }
+            }
+        } else {  // spike is from side_h so update potential in visible side
+            if(params.enable_gpgm){
+                for(int i = 0; i < synapseArray._synapses.size(); i++){
+                    if (visibleLayer._neurons[i]._active){
+                        visibleLayer._neurons[i]._memV += synapseArray.delta_G(i, it->second);
+                    }   
+                }
+            }
+        }
+    }
+}
+
+void core::STDP(spike& run_spike, int& phase){
+    //STDP works only on side_h
+    if(phase == data_phase){
+
+    }
+}
+
 void core::run_simulation(){
     
-    double tend = 0.3;
+    double tend = 0.03;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -639,7 +650,7 @@ void core::run_simulation(){
 
     while(1){
         
-        task_id = assignTask(&run_spike, tpre, tnow, &magazine_side);
+        task_id = assignTask(&run_spike, tpre, tnow, tend, &magazine_side);
         std::cout << "tpre : " << tpre << " | tnow : " << tnow << std::endl;
         if(task_id == 0 || task_id == 1) { // (_reset, _st) = ( , )
             if (run_spike->_reset) { // (1,-)
@@ -668,33 +679,41 @@ void core::run_simulation(){
                 }
             } else{ // (0,-)
                 if (run_spike->_st) {                           // (0,1)
+                    std::cout << " ST_PAUSE SIZE : " << run_spike->_spk.size() << std::endl;
                     for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) {
                         if(it->first == side_v){
+                            std::cout << " TURN OFF AT visible neuron : " << it->second << std::endl;
                             visibleLayer._neurons[it->second].turnOFF();
                             tpre = tnow;
                         } else {
+                            std::cout << " TURN OFF AT hidden neuron : " << it->second << std::endl;
                             hiddenLayer._neurons[it->second].turnOFF();
                             tpre = tnow;
                         }
 		            }
                 } else {                                          // (0,0) but self magazine dummy event
+                    std::cout << " DUMMY SIZE : " << run_spike->_spk.size() << std::endl;
                     if (magazine_side == run_spike->_spk.begin()->first) {
                         for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) {
                             if(it->first == side_v){
+                                std::cout << " TURN ON AT visible neuron : " << it->second << std::endl;
                                 visibleLayer._neurons[it->second].turnON();
                                 tpre = tnow;
                             } else {
+                                std::cout << " TURN OFF AT hidden neuron : " << it->second << std::endl;
                                 hiddenLayer._neurons[it->second].turnON();
                                 tpre = tnow;
                             }
 		                }
                     } else { // (0,0) but spike derived from another side
                         potentialUpdate(*run_spike);
+                        reloadSpike(tnow);
                         tpre = tnow;
                     }
                 }
             }
         } else if (task_id == 2 || task_id == 3){ // random walk task ids
+            reloadSpike(tnow);
             tpre = tnow;
         } else if (task_id == -1){
             std::cout << "No more event!" << std::endl;
@@ -703,7 +722,77 @@ void core::run_simulation(){
         tpre = tnow;
 
         eraseTask(task_id);
-        reloadSpike(tnow);
         loop_count++;
+    }
+
+    // After the Loop
+    exportSpikeRecorder();
+}
+
+// *************EXPORT****************
+
+void core::exportSpikeRecorder() {
+    auto result = nlohmann::json{
+        {"time", json::array()},
+        {"neuron", json::array()},
+        };
+
+        for (auto i = 0; i < spikeRecorder.size(); i++) {
+            auto& _Gp = result["time"];
+            auto& _Gm = result["neuron"];
+
+            _Gp[i].push_back(spikeRecorder[i].first);
+            _Gm[i].push_back(spikeRecorder[i].second);
+        }
+
+        std::ofstream out("spike_history.json");
+        out << result;
+}
+
+void core::exportNeuronPotentialToJson(double& tnow) {
+    
+    for(int side = 0; side < 2; side++) {
+        
+        std::string filename = potentialFilePath[side];
+        
+        // Gather neuron potentials
+        std::vector<double> neuronPotentials;
+        if (side == side_v){
+            for (const auto& neuron : visibleLayer._neurons) {
+                neuronPotentials.push_back(neuron._memV);
+            }
+        } else {
+            for (const auto& neuron : hiddenLayer._neurons) {
+                neuronPotentials.push_back(neuron._memV);
+            }
+        }
+
+        nlohmann::json existingData;
+        // Open the existing JSON file
+        std::ifstream inputFile(filename);
+        if (inputFile.is_open()) {
+            // Load the existing JSON data from the file
+            inputFile >> existingData;
+            inputFile.close();
+        }
+
+        // Create a new JSON object for the neuron data
+        json newNeuronData;
+        newNeuronData["time"] = tnow;
+        newNeuronData["neuronPotentials"] = neuronPotentials;
+
+        // Add the neuron data to the existing JSON object
+        existingData["neuronData"].push_back(newNeuronData);
+
+        // Write the modified JSON data back to the file
+        std::ofstream outputFile(filename);
+        if (!outputFile.is_open()) {
+            std::cout << "Failed to open the output file." << std::endl;
+            return;
+        }
+
+        outputFile << std::setw(4) << existingData << std::endl;
+        outputFile.close();
+
     }
 }
