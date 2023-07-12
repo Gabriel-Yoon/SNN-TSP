@@ -111,7 +111,7 @@ struct spikePositionTimeCompare {
 */
 
 // assignment operator
-
+/*
 inline spike& spike::operator = (const spike& t)
 {
     _spikeTime = t._spikeTime;
@@ -184,5 +184,5 @@ inline const spike operator -(const spike& t1, const spike& t2)
 {// Need Modification
 	//return t1 -= t2;
 }
-
+*/
 #endif /* _SPK_H_ */

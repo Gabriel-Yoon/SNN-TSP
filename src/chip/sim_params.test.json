@@ -63,6 +63,7 @@
   "enable_random_walk": true,
   "enable_white_noise": false,
   "enable_sigmoid": false,
+  "enable_simulated_annealing": false,
 
   "enable_ps2": false,
   "ps2_probability": 0.5,
