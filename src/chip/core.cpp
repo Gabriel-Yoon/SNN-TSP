@@ -419,9 +419,7 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
             visibleLayer._neurons[i].memV_Leak(tpre, tnow);
         }
         for(int i = 0; i < hiddenLayer._neurons.size(); i++){
-            std::cout << "Before : " << hiddenLayer._neurons[i]._memV << std::endl;
             hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
-            std::cout << "After : " << hiddenLayer._neurons[i]._memV << std::endl;
         }
         exportNeuronPotentialToJson(tnow);
     }
@@ -433,7 +431,6 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
             *magazine_side = side_v;
             return 0;
         case hidden_spike:
-            std::cout << "-----hiddenSpike!!" << std::endl;
             *run_spike = hiddenMagazine.top().second;
             *magazine_side = side_h;
             return 1;
@@ -679,28 +676,22 @@ void core::run_simulation(){
                 }
             } else{ // (0,-)
                 if (run_spike->_st) {                           // (0,1)
-                    std::cout << " ST_PAUSE SIZE : " << run_spike->_spk.size() << std::endl;
                     for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) {
                         if(it->first == side_v){
-                            std::cout << " TURN OFF AT visible neuron : " << it->second << std::endl;
                             visibleLayer._neurons[it->second].turnOFF();
                             tpre = tnow;
                         } else {
-                            std::cout << " TURN OFF AT hidden neuron : " << it->second << std::endl;
                             hiddenLayer._neurons[it->second].turnOFF();
                             tpre = tnow;
                         }
 		            }
                 } else {                                          // (0,0) but self magazine dummy event
-                    std::cout << " DUMMY SIZE : " << run_spike->_spk.size() << std::endl;
                     if (magazine_side == run_spike->_spk.begin()->first) {
                         for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) {
                             if(it->first == side_v){
-                                std::cout << " TURN ON AT visible neuron : " << it->second << std::endl;
                                 visibleLayer._neurons[it->second].turnON();
                                 tpre = tnow;
                             } else {
-                                std::cout << " TURN OFF AT hidden neuron : " << it->second << std::endl;
                                 hiddenLayer._neurons[it->second].turnON();
                                 tpre = tnow;
                             }
