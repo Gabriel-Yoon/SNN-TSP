@@ -110,6 +110,7 @@ class core
 	private: void writeSpikeIntoFile(spike& run_spike);
 	private: void exportSpikeRecorder();
 	private: void exportNeuronPotentialToJson(double& tnow);
+	private: void exportSynapseWeightsToJson(const std::string& filename);
 
 	// Potential Update
 	private: void potentialUpdate(spike& run_spike);

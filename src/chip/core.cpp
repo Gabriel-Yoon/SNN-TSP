@@ -44,6 +44,7 @@ void core::initialize(){
     synapseArray.inspectWeightValues(params.min_weight, params.max_weight);
     std::string save_file_name = "core_synapse_weight";
     synapseArray.saveSynapseArrayGpGm(save_file_name);
+    exportSynapseWeightsToJson("weight_gp_gm.json");
     std::cout << "[_END_]Synapse Array Setting" << std::endl;
 
     // Make Spike SaveFile
@@ -785,5 +786,33 @@ void core::exportNeuronPotentialToJson(double& tnow) {
         outputFile << std::setw(4) << existingData << std::endl;
         outputFile.close();
 
+    }
+}
+
+void core::exportSynapseWeightsToJson(const std::string& filename) {
+    // Create a JSON object
+    json root;
+
+    // Iterate over the 2D vector and add synapse values to JSON object
+    for (const auto& row : synapseArray._synapses) {
+        json rowJson;
+        for (const auto& synapse : row) {
+            json synapseJson;
+            synapseJson["gp"] = synapse.Gp;
+            synapseJson["gm"] = synapse.Gm;
+            rowJson.push_back(synapseJson);
+        }
+        root.push_back(rowJson);
+    }
+
+    // Open the output file
+    std::ofstream outputFile(filename);
+    if (outputFile.is_open()) {
+        // Write the JSON object to the output file
+        outputFile << root.dump(4);
+        outputFile.close();
+        std::cout << "JSON export successful." << std::endl;
+    } else {
+        std::cerr << "Unable to open file: " << filename << std::endl;
     }
 }
