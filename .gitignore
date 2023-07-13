@@ -21,3 +21,4 @@ Debug
 Debug
 .DS_Store
 src/tsp/tsp_data.json_weight.json
+*.pyc
