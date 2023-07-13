@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 def plotSpikeFromJson(filename):
@@ -64,6 +65,66 @@ def plotNeuronPotentialsFromJson(filename):
     plt.grid(True)
     plt.show()
 
-# Usage
-filename = 'data.json'
-plotNeuronPotentialsFromJson(filename)
+# Function to plot synapse array weights (gp and gm) from JSON file
+def plotSynapseWeightsFromJson(filename):
+    # Read JSON file
+    with open(filename) as file:
+        data = json.load(file)
+
+    # Convert JSON data to a 2D numpy array
+    synapseData = np.array(data)
+
+    # Separate gp and gm values
+    gpData = np.array([[synapse["gp"] for synapse in row] for row in synapseData])
+    gmData = np.array([[synapse["gm"] for synapse in row] for row in synapseData])
+
+
+    # Create a figure and subplots
+    fig, axes = plt.subplots(1, 2, figsize=(20, 8))
+
+    # Create heatmaps using seaborn
+    heatmap_gp = sns.heatmap(gpData, cmap='viridis', annot=True, fmt=".2f", cbar=True, ax=axes[0],
+                             annot_kws={"size": 6}, cbar_kws={"shrink": 0.6})
+    heatmap_gm = sns.heatmap(gmData, cmap='viridis', annot=True, fmt=".2f", cbar=True, ax=axes[1],
+                             annot_kws={"size": 6}, cbar_kws={"shrink": 0.6})
+
+    # Adjust the colorbar size and fontsize
+    cbar1 = axes[0].collections[0].colorbar
+    cbar1.ax.tick_params(labelsize=6)
+    cbar1.ax.yaxis.set_tick_params(width=0.5)  # Adjust the width of the colorbar ticks
+
+    cbar2 = axes[1].collections[0].colorbar
+    cbar2.ax.tick_params(labelsize=6)
+    cbar2.ax.yaxis.set_tick_params(width=0.5)  # Adjust the width of the colorbar ticks
+
+
+    # Set titles and labels
+    axes[0].set_title('Synapse Array Gp Values')
+    axes[0].set_xlabel('Hidden Neurons', fontsize=8)
+    axes[0].set_ylabel('Visible Neurons', fontsize=8)
+    axes[0].tick_params(axis='both', which='both', labelsize=6)
+    axes[0].set_aspect('equal')
+    axes[1].set_title('Synapse Array Gm Values')
+    axes[1].set_xlabel('Hidden Neurons', fontsize=8)
+    axes[1].set_ylabel('Visible Neurons', fontsize=8)
+    axes[1].tick_params(axis='both', which='both', labelsize=6)
+    axes[1].set_aspect('equal')
+
+    # Add grid to highlight every 5 synapses
+    num_rows, num_cols = gpData.shape
+    for i in range(0, num_rows, 5):
+        axes[0].axhline(i, color='white', linewidth=0.5)
+    for j in range(0, num_cols, 5):
+        axes[0].axvline(j, color='white', linewidth=0.5)
+    for i in range(0, num_rows, 5):
+        axes[1].axhline(i, color='white', linewidth=0.5)
+    for j in range(0, num_cols, 5):
+        axes[1].axvline(j, color='white', linewidth=0.5)
+
+
+    # Adjust the layout with left margin
+    plt.subplots_adjust(left=0.5, right=0.55, bottom=0.1, top=0.9, wspace=0.25)
+    plt.tight_layout()
+
+    # Display the plot
+    plt.show()
