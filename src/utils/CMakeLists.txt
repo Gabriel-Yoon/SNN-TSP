@@ -13,8 +13,8 @@ FetchContent_Declare(json
 FetchContent_MakeAvailable(json)
 
 # make snn_lib
-file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${SNN-TSP_SOURCE_DIR}/utils/*.cpp")
-file(GLOB SOURCE_LIST CONFIGURE_DEPENDS "${SNN-TSP_SOURCE_DIR}/utils/*.hpp")
+file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+file(GLOB SOURCE_LIST CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 add_library(snn_lib ${SOURCE_LIST} ${HEADER_LIST})
 
 target_include_directories(snn_lib PUBLIC ${snn_lib_INCLUDE_DIRS})

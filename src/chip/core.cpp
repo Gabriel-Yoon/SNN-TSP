@@ -4,6 +4,8 @@
 
 #include "core.h"
 
+using json = nlohmann::json;
+
 enum : int {
     data_phase,
     model_phase
@@ -11,9 +13,17 @@ enum : int {
 
 spike *spk_null;
 
-core::core(const char* param_file) : params(param_file), _rng(params)
+core::core(const char* param_file, const std::string& tsp_data_file_path) : params(param_file), _rng(params)
 {
-    _numCity = 5;
+    // param_file == "params.json"
+    std::ifstream f(tsp_data_file_path);
+    json _TSPData = json::parse(f);
+	
+	// timestep_injection = 30e-6;
+    
+	_numCity = _TSPData["num_city"];
+    _solutionDistance = _TSPData["solution"];
+    _optimalItinerary = _TSPData["optimal_itinerary"].get<std::vector<int>>();
 
 	num_neurons[side_v] = _numCity* _numCity;
     num_neurons[side_h] = _numCity* _numCity;
@@ -40,76 +50,17 @@ void core::initialize(){
     // Synapse Array Setting
     std::cout << "[START]Synapse Array Setting" << std::endl;
     synapseArray.setSynapseSize(num_neurons[side_v], num_neurons[side_h]);
-    synapseArray.callSynapseArrayGpGm("/Users/gabriel/Development/SNN-TSP/src/build/weight.json");
+    synapseArray.callSynapseArrayGpGm("/Users/gabriel/Development/SNN-TSP/build/weight.json");
     synapseArray.inspectWeightValues(params.min_weight, params.max_weight);
     std::string save_file_name = "core_synapse_weight";
     synapseArray.saveSynapseArrayGpGm(save_file_name);
-    exportSynapseWeightsToJson("weight_gp_gm.json");
+    exportSynapseWeightsToJson("weight_gp_gm.json", 0.0);
     std::cout << "[_END_]Synapse Array Setting" << std::endl;
 
     // Make Spike SaveFile
     //makeSpikeFile("spikes");
     
 }
-
-void core::makeSpikeFile(std::string filename){
-        auto result = nlohmann::json{
-        {"time", json::array()},
-        {"neuron", json::array()},
-        };
-
-        std::ofstream out(filename + ".json");
-        out << result;
-}
-
-void core::writeSpikeIntoFile(spike& run_spike){
-        std::string filepath = "/Users/gabriel/Development/SNN-TSP/src/build/spikes.json";
-        std::ofstream out(filepath);
-        
-        auto result = nlohmann::json{
-        {"time", json::array()},
-        {"neuron", json::array()},
-        };
-
-        //std::ifstream ifs(filepath);
-        //json _spikesavedfile = json::parse(ifs);
-        
-        auto& _time = result["time"];
-        auto& _neuron = result["neuron"];
-
-        for(auto it = run_spike._spk.begin(); it != run_spike._spk.end(); it++) { //            
-            _time.push_back(run_spike._spikeTime);
-            _neuron.push_back(it->second);
-        }
-        out << result;
-}
-
-/*
-void core::initialize_export() {
-
-    ofs_spk_int = new ofstream[4];
-    ofs_spk_ext = new ofstream[4];
-    export_file = new string[4];
-    if(export_spk_en) {
-        ofs_spk_int[0].open(export_spk_file[0].c_str(), ios::binary); //int v x
-        ofs_spk_int[1].open(export_spk_file[1].c_str(), ios::binary); //int v y
-        ofs_spk_int[2].open(export_spk_file[2].c_str(), ios::binary); //int h x
-        ofs_spk_int[3].open(export_spk_file[3].c_str(), ios::binary); //int h y
-        ofs_spk_ext[0].open(export_spk_file[0].c_str(), ios::binary); //ext v x
-        ofs_spk_ext[1].open(export_spk_file[1].c_str(), ios::binary); //ext v y
-        ofs_spk_ext[2].open(export_spk_file[2].c_str(), ios::binary); //ext h x
-        ofs_spk_ext[3].open(export_spk_file[3].c_str(), ios::binary); //ext h y
-    }
-
-    ofs_ptn_v = new ofstream;
-    ofs_ptn_h = new ofstream;
-    if(export_ptn_en){
-        ofs_ptn_v->open(export_ptn_file[0].c_str(), ios::binary);
-        ofs_ptn_h->open(export_ptn_file[1].c_str(), ios::binary);
-    }
-
-}
-*/
 
 void core::print_params() {
 	// Should add neuron info, synapse info, etc.
@@ -287,26 +238,26 @@ std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> core::load_mnist_28(std:
 
 void core::generateMagazine(double tend){
     std::cout << "Injection Magazine" << std::endl;
-    double timestep_injection = 40e-6;
-    int neuron = 0; // start city : if city 1 is the start, neuron =0;
+    double timestep_injection = 2e-3;
     double time;
     double injection_step = tend / timestep_injection;
 
     auto result = nlohmann::json{
-        {"time", json::array()},
-        {"side", json::array()},
-        {"neuron", json::array()},
+        {"time", nlohmann::json::array()},
+        {"side", nlohmann::json::array()},
+        {"neuron", nlohmann::json::array()},
     };
 
     for (int i = 1; i < injection_step; i++) {
-        auto& _spikeTime = result["time"];
-        auto& _side = result["side"];
-        auto& _neuronNum = result["neuron"];
+        for (int j = 0; j < _optimalItinerary.size(); j++) {
+            auto& _spikeTime = result["time"];
+            auto& _side = result["side"];
+            auto& _neuronNum = result["neuron"];
 
-        _spikeTime.push_back(i*timestep_injection);
-        _side.push_back(side_v);
-        _neuronNum.push_back(neuron);
-
+            _spikeTime.push_back(i*timestep_injection);
+            _side.push_back(side_v);
+            _neuronNum.push_back(j*_numCity + _optimalItinerary[j] - 1);
+        }
     }
 
     std::ofstream out("magazine_injection.json");
@@ -330,6 +281,7 @@ void core::loadMagazine(const char* mag_file){   // load spikes into visibleMaga
         _spike->_spk.push_back(std::make_pair(_magFile["side"][i], _magFile["neuron"][i]));
         _spike->_reset = true;
         _spike->_st = true;
+        _spike->_wup = true;
         visibleMagazine.push(make_pair(_spike->_spikeTime, _spike));
         
         //save a spike to tempMagazine
@@ -354,7 +306,7 @@ void core::loadMagazine(const char* mag_file){   // load spikes into visibleMaga
 void core::setRandomWalkSchedule(double tend, int side){	
     // set random walk schedule. use annealing schedule here
     cout << "Setting Random Walk Schedule" << endl;
-    double timestep_randomwalk = 10e-6;
+    double timestep_randomwalk = 1e-3;
     double time;
     double injection_step = tend / timestep_randomwalk;
     
@@ -452,8 +404,16 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
 void core::shootSpike(spike& run_spike, int& phase){    
     for(auto it = run_spike._spk.begin(); it != run_spike._spk.end(); it++){
         
-        writeSpikeIntoFile(run_spike);
-        spikeRecorder.push_back(make_pair(run_spike._spikeTime, it->second));
+        // writeSpikeIntoFile(run_spike);
+        spikeRecorder.push_back(std::make_pair(run_spike._spikeTime, it->second));
+
+        // Collect Shells for WUP Event
+        if(it->first == side_v){
+            hiddenShellCatcher.push_back(std::make_pair(run_spike._spikeTime, it->second));
+        } else {
+            visibleShellCatcher.push_back(std::make_pair(run_spike._spikeTime, it->second));
+        }        
+
         // TEMPORARY CODE
         // double check turn neuron OFF right away
         if(it->first == side_v){
@@ -463,12 +423,13 @@ void core::shootSpike(spike& run_spike, int& phase){
         }
 
         // 1. To self magazine
-        // 1-1. Create ST_PAUSE Event
+        // 1-1. ST_PAUSE Event
         spike *run_spike_st_pause = new spike;
         if(params.hw_ISO_MOD) {
             run_spike_st_pause->_spikeTime = run_spike._spikeTime + FLOAT_EPSILON_TIME;
             run_spike_st_pause->_reset = false;
             run_spike_st_pause->_st = true;
+            run_spike_st_pause->_wup = false;
             run_spike_st_pause->_spk.push_back(make_pair(it->first, it->second));
             if(params.enable_BM){ // WTA condition
                 // int h_WTA = it->second / _numCity + 1;
@@ -481,19 +442,21 @@ void core::shootSpike(spike& run_spike, int& phase){
             }
         }
 
-        // 1-2. Create Reset Event
+        // 1-2. Reset Event
         spike *run_spike_reset = new spike;
         if(params.hw_RES_EN) {    
             run_spike_reset->_spikeTime = run_spike._spikeTime + params.delay_spikein2out;
             run_spike_reset->_reset = true;
             run_spike_reset->_st = false;
+            run_spike_reset->_wup = false;
         }
 
-        // 1-3. Create Dummy Event
+        // 1-3. Dummy Event
         spike *run_spike_dummy = new spike;
         run_spike_dummy->_spikeTime = run_spike._spikeTime + params.refractory_time + FLOAT_EPSILON_TIME;
         run_spike_dummy->_reset = false;
         run_spike_dummy->_st = false;
+        run_spike_dummy->_wup = false;
         run_spike_dummy->_spk.push_back(make_pair(it->first, it->second));
         if(params.enable_BM){ // WTA condition
             // int h_WTA = it->second / _numCity + 1;
@@ -505,39 +468,68 @@ void core::shootSpike(spike& run_spike, int& phase){
         }
 
         // 2. To target magazine
-        spike *run_spike_target = new spike;
+        // 2-1. Potential update event
+        spike *run_spike_target_pup = new spike;
         if(!params.enable_gpgm) {
-            run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr + params.wlr_width;
-            run_spike_target->_reset = false;
-            run_spike_target->_st = false;
+            run_spike_target_pup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr + params.wlr_width;
+            run_spike_target_pup->_reset = false;
+            run_spike_target_pup->_st = false;
+            run_spike_target_pup->_wup = false;
 
         } else { // enable _ gpgm
             if(phase == data_phase) {
                 if(it->second == side_v){
-                    run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_data_v + params.wlr_width;
+                    run_spike_target_pup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_data_v + params.wlr_width;
                 } else {
-                    run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_data_h + params.wlr_width;
+                    run_spike_target_pup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_data_h + params.wlr_width;
                 }
             } else {
                 if(it->second == side_h){
-                    run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_model_v + params.wlr_width;
+                    run_spike_target_pup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_model_v + params.wlr_width;
                 } else {
-                    run_spike_target->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_model_h + params.wlr_width;
+                    run_spike_target_pup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr_model_h + params.wlr_width;
                 }
             }
         }
-        run_spike_target->_spk.push_back(make_pair(it->first, it->second));
+        run_spike_target_pup->_spk.push_back(make_pair(it->first, it->second));
+
+        // 2-2. Weight update event
+        spike *run_spike_target_wup = new spike;
+        if(!params.enable_gpgm) {
+            run_spike_target_wup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wup;
+            run_spike_target_wup->_reset = false;
+            run_spike_target_wup->_st = false;
+            run_spike_target_wup->_wup = true; // _wup = true only!
+
+        } else { // enable _ gpgm
+            if(it->second == side_v) {
+                if(phase == data_phase){
+                    run_spike_target_wup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2td3;
+                } else {
+                    run_spike_target_wup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2td3 - params.tset_width;
+                }
+            } else { // side_h
+                if(phase == data_phase){
+                    run_spike_target_wup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wup_data;
+                } else {
+                    run_spike_target_wup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wup_model;
+                }
+            }
+        }
+        run_spike_target_wup->_spk.push_back(make_pair(it->first, it->second));
 
         if(it->first == side_v){
             visibleMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
-            visibleMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
             visibleMagazine.push(make_pair(run_spike_reset->_spikeTime, run_spike_reset));
-            hiddenMagazine.push(make_pair(run_spike_target->_spikeTime, run_spike_target));
+            visibleMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
+            hiddenMagazine.push(make_pair(run_spike_target_pup->_spikeTime, run_spike_target_pup));
+            hiddenMagazine.push(make_pair(run_spike_target_wup->_spikeTime, run_spike_target_wup));
         } else {
             hiddenMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
             hiddenMagazine.push(make_pair(run_spike_reset->_spikeTime, run_spike_reset));
             hiddenMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
-            visibleMagazine.push(make_pair(run_spike_target->_spikeTime, run_spike_target));
+            visibleMagazine.push(make_pair(run_spike_target_pup->_spikeTime, run_spike_target_pup));
+            visibleMagazine.push(make_pair(run_spike_target_wup->_spikeTime, run_spike_target_wup));
         }
 
     }
@@ -620,15 +612,69 @@ void core::potentialUpdate(spike& run_spike){
 }
 
 void core::STDP(spike& run_spike, int& phase){
-    //STDP works only on side_h
-    if(phase == data_phase){
+    // REMEMBER
+    // For BM, STDP works only on side_h
+    // Use ShellCatcher and the recent generated spikes to compare
 
-    }
+    double set_start_time;
+    double set_end_time;
+
+    double reset_start_time;
+    double reset_end_time;
+
+    for(auto spike = run_spike._spk.begin(); spike != run_spike._spk.end(); spike++) {
+        
+        if(phase == data_phase){
+        
+            // set Gp
+            set_start_time = run_spike._spikeTime - params.tset_width;
+            set_end_time = run_spike._spikeTime;
+            if (set_start_time < 0.0) set_start_time = 0.0;
+            for (auto it = hiddenShellCatcher.begin(); it != hiddenShellCatcher.end(); it++) {
+                if (set_start_time < it->first && it->first < set_end_time){
+                    synapseArray._synapses[it->second][spike->second].setGp();
+                }
+            }
+
+            // reset Gm
+            reset_start_time = run_spike._spikeTime - params.treset_width;
+            reset_end_time = run_spike._spikeTime;
+            if (reset_start_time < 0.0) reset_start_time = 0.0;
+            for (auto it = hiddenShellCatcher.begin(); it != hiddenShellCatcher.end(); it++) {
+                if (reset_start_time < it->first && it->first < reset_end_time){
+                    synapseArray._synapses[it->second][spike->second].resetGm();
+                }
+            }
+        
+        } else { // model_phase
+
+            // reset Gp
+            reset_start_time = run_spike._spikeTime - params.tset_width;
+            reset_end_time = run_spike._spikeTime - params.tset_width + params.treset_width;
+            if (reset_start_time < 0.0) reset_start_time = 0.0;
+            for (auto it = hiddenShellCatcher.begin(); it != hiddenShellCatcher.end(); it++) {
+                if (reset_start_time < it->first && it->first < reset_end_time){
+                    synapseArray._synapses[it->second][spike->second].resetGp();
+                }
+            }
+
+            // set Gm
+            set_start_time = run_spike._spikeTime - params.tset_width;
+            set_end_time = run_spike._spikeTime;
+            if (set_start_time < 0.0) set_start_time = 0.0;
+            for (auto it = hiddenShellCatcher.begin(); it != hiddenShellCatcher.end(); it++) {
+                if (set_start_time < it->first && it->first < set_end_time){
+                    synapseArray._synapses[it->second][spike->second].setGm();
+                }
+            }
+        }
+	}
+    
 }
 
 void core::run_simulation(){
     
-    double tend = 0.03;
+    double tend = 10;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -641,7 +687,7 @@ void core::run_simulation(){
     cout << setprecision(9);
 
     generateMagazine(tend); // additional utility if there is no external magazine
-    loadMagazine("/Users/gabriel/Development/SNN-TSP/src/build/magazine_injection.json");
+    loadMagazine("/Users/gabriel/Development/SNN-TSP/build/magazine_injection.json");
 
     setRandomWalkSchedule(tend, side_v);
     setRandomWalkSchedule(tend, side_h);
@@ -653,14 +699,19 @@ void core::run_simulation(){
         if(task_id == 0 || task_id == 1) { // (_reset, _st) = ( , )
             if (run_spike->_reset) { // (1,-)
                 if (run_spike->_st) {                           // (1,1)
-                    // For Boltzmann Machine mode, changed hidden spike to visible spike
+                    // **For Boltzmann Machine mode, changed hidden spike to visible spike**
                     if(run_spike->_spk.begin()->first == side_h && params.enable_BM){
                         run_spike->_spk.begin()->first = side_v;
+                        if(params.enable_learning){
+                            std::cout << "Learning" << std::endl;
+                            STDP(*run_spike, phase);
+                            exportSynapseWeightsToJson("weight_gp_gm.json", tnow);
+                        }
                     }
 
                     shootSpike(*run_spike, phase);
                     
-                    if (run_spike->_spk.begin()->first == side_h && params.enable_learning && !params.enable_BM){
+                    if (run_spike->_spk.begin()->first == side_h && params.enable_learning){
                         //STDP(*run_spike, phase);
                     }
                     tpre = tnow;
@@ -687,6 +738,7 @@ void core::run_simulation(){
                         }
 		            }
                 } else {                                          // (0,0) but self magazine dummy event
+                    if (run_spike->_wup) {continue;}                // nothing to do when the bullet is for wup event
                     if (magazine_side == run_spike->_spk.begin()->first) {
                         for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) {
                             if(it->first == side_v){
@@ -718,15 +770,48 @@ void core::run_simulation(){
     }
 
     // After the Loop
-    exportSpikeRecorder();
+    exportSpikeHistoryToJson("spike_history.json");
+    //exportSpikeRecorder();
 }
 
-// *************EXPORT****************
+// ------------------------EXPORT FUNCTIONS------------------------
 
-void core::exportSpikeRecorder() {
+void core::makeSpikeFile(std::string filename){ // obsolete
+        auto result = nlohmann::json{
+        {"time", nlohmann::json::array()},
+        {"neuron", nlohmann::json::array()},
+        };
+
+        std::ofstream out(filename + ".json");
+        out << result;
+}
+
+void core::writeSpikeIntoFile(spike& run_spike){ // obsolete
+        std::string filepath = "/Users/gabriel/Development/SNN-TSP/src/build/spikes.json";
+        std::ofstream out(filepath);
+        
+        auto result = nlohmann::json{
+        {"time", nlohmann::json::array()},
+        {"neuron", nlohmann::json::array()},
+        };
+
+        //std::ifstream ifs(filepath);
+        //json _spikesavedfile = json::parse(ifs);
+        
+        auto& _time = result["time"];
+        auto& _neuron = result["neuron"];
+
+        for(auto it = run_spike._spk.begin(); it != run_spike._spk.end(); it++) { //            
+            _time.push_back(run_spike._spikeTime);
+            _neuron.push_back(it->second);
+        }
+        out << result;
+}
+
+void core::exportSpikeRecorder() { // obsolete
     auto result = nlohmann::json{
-        {"time", json::array()},
-        {"neuron", json::array()},
+        {"time", nlohmann::json::array()},
+        {"neuron", nlohmann::json::array()},
         };
 
         for (auto i = 0; i < spikeRecorder.size(); i++) {
@@ -739,6 +824,29 @@ void core::exportSpikeRecorder() {
 
         std::ofstream out("spike_history.json");
         out << result;
+}
+
+void core::exportSpikeHistoryToJson(const std::string& filename){
+        // Create a JSON object for the spike history
+    nlohmann::json spikeData;
+
+    // Add spike time and neuron number for each spike to the JSON object
+    for (const auto& spike : spikeRecorder) {
+        nlohmann::json spikeEntry;
+        spikeEntry["time"] = spike.first;
+        spikeEntry["neuron"] = spike.second;
+        spikeData.push_back(spikeEntry);
+    }
+
+    // Write the JSON data to the file
+    std::ofstream outputFile(filename);
+    if (!outputFile.is_open()) {
+        std::cout << "Failed to open the output file." << std::endl;
+        return;
+    }
+
+    outputFile << std::setw(4) << spikeData << std::endl;
+    outputFile.close();
 }
 
 void core::exportNeuronPotentialToJson(double& tnow) {
@@ -789,7 +897,14 @@ void core::exportNeuronPotentialToJson(double& tnow) {
     }
 }
 
-void core::exportSynapseWeightsToJson(const std::string& filename) {
+void core::exportSynapseWeightsToJson(const std::string& filename, double tnow) {
+    // Convert tnow to a string representation
+    std::string tnowStr = std::to_string(static_cast<int>(tnow / 1e-6));
+
+    // Construct the new filename by appending the tnow info
+    std::string newFilename = filename;
+    newFilename.insert(newFilename.find_last_of('.'), "_" + tnowStr);
+    
     // Create a JSON object
     json root;
 
@@ -806,13 +921,13 @@ void core::exportSynapseWeightsToJson(const std::string& filename) {
     }
 
     // Open the output file
-    std::ofstream outputFile(filename);
+    std::ofstream outputFile(newFilename);
     if (outputFile.is_open()) {
         // Write the JSON object to the output file
         outputFile << root.dump(4);
         outputFile.close();
         std::cout << "JSON export successful." << std::endl;
     } else {
-        std::cerr << "Unable to open file: " << filename << std::endl;
+        std::cerr << "Unable to open file: " << newFilename << std::endl;
     }
 }

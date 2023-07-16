@@ -7,7 +7,6 @@
   "steps_model": 40000,
 
   "num_of_label": 10,
-  "num_of_city": 5,
 
   "wlr_width": 80e-9,
   "refractory_time": 4e-3,

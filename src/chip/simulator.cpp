@@ -37,8 +37,8 @@ int main(int argc, char *argv[]) {
     */
 
     char* chip_param_file_path = "/Users/gabriel/Development/SNN-TSP/src/chip/sim_params.test.json";
-    
-    core mycore(chip_param_file_path);
+    const std::string tsp_data_file_path = "/Users/gabriel/Development/SNN-TSP/build/tsp_data.json";
+    core mycore(chip_param_file_path, tsp_data_file_path);
     //mycore.print_params();
     mycore.initialize();
     mycore.print_params();

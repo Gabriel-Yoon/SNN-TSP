@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <utility>
 
-#include "../utils/utils.h"
 #include "param.h"
 #include "rng.h"
 

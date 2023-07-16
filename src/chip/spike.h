@@ -43,11 +43,12 @@ class spike
     public: std::list<std::pair<int, int>> _spk; // pair<side, neuron_index>.
     public: bool _reset;
 	public: bool _st;
+    public: bool _wup;
 	public: int _iso; // not using
 
     /*---------------------methods----------------*/
     // spk Class constructor.
-    public: spike() : _spikeTime(0),_spk(),_reset(false),_st(false),_iso(0){}
+    public: spike() : _spikeTime(0),_spk(),_reset(false),_st(false),_wup(false),_iso(0){}
     public: ~spike(){}
     // function from previous code
 	public: spike(const spike &orig_spk) {

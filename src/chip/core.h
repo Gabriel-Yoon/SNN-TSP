@@ -51,10 +51,12 @@ class core
 	typedef std::priority_queue<std::pair<double, random_walk*>, std::vector<std::pair<double, random_walk*>>, random_walk_cmp> RandomWalkSchedule;
 	typedef neuron_layer<lif_neuron> LIFNeuronLayer;
 	typedef synapse_array<synapse> PCMSynapseArray;
-	typedef std::vector<std::pair<double, int>> SpikeRecorder;
+	typedef std::vector<std::pair<double, int>> ShellCatcher;
 
 
 	public: int _numCity;
+	public: int _solutionDistance;
+	public: std::vector<int> _optimalItinerary;
 	private: int num_neurons[2];
 
 	private: LIFNeuronLayer visibleLayer;
@@ -63,12 +65,15 @@ class core
 
 	private: SpikeMagazine visibleMagazine;
 	private: SpikeMagazine hiddenMagazine;
-	private: SpikeMagazine ShellCatcher; // this is for recording the spike history
-
+	
 	private: RandomWalkSchedule visibleRandomWalkSchedule;
 	private: RandomWalkSchedule hiddenRandomWalkSchedule;
 
-	private: SpikeRecorder spikeRecorder;
+	private: ShellCatcher visibleShellCatcher; // <time, neuron_index>
+	private: ShellCatcher hiddenShellCatcher; // <time, neuron_index>
+
+	//private: SpikeMagazine ShellCatcher; // this is for recording the spike history
+	private: ShellCatcher spikeRecorder; // <side, neuron_index>
 	private: std::string potentialFilePath[2];
 
 	/*
@@ -88,7 +93,7 @@ class core
 	*/
 	/*---------------------methods----------------*/
 	// core constructor
-	public: core(const char* param_file);
+	public: core(const char* param_file, const std::string& tsp_data_file_path);
 	public: void initialize();
 	public: void print_params();
 	public: void run_simulation();
@@ -109,8 +114,9 @@ class core
 	private: void makeSpikeFile(std::string filename);
 	private: void writeSpikeIntoFile(spike& run_spike);
 	private: void exportSpikeRecorder();
+	private: void exportSpikeHistoryToJson(const std::string& filename);
 	private: void exportNeuronPotentialToJson(double& tnow);
-	private: void exportSynapseWeightsToJson(const std::string& filename);
+	private: void exportSynapseWeightsToJson(const std::string& filename, double tnow);
 
 	// Potential Update
 	private: void potentialUpdate(spike& run_spike);
