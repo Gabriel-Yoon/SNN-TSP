@@ -1,9 +1,70 @@
+import os
+import sys
 import json
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import mplcursors
 
-def plotSpikeFromJson(filename):
+def plot_data(json_files, output_folder):
+    print("ON THE WAY??")
+    # Process each JSON file in the JSON_FILES directory
+    for json_file in json_files:
+        # Get the base name of the JSON file (without the directory path)
+        base_name = os.path.basename(json_file)
+        base_name = os.path.splitext(base_name)[0]
+        output_file = os.path.join(output_folder, f"{base_name}.png")
+        if base_name == "weight_gp_gm" :
+            print(output_file)
+            plotSynapseWeightsFromJson(json_file, output_file)
+        if base_name == "spike_history":
+            plotEventPlotFromJson(json_file, output_file)
+        
+    #    plotSynapseWeightsFromJson(data)    # weight_gp_gm.json
+    #    plotEventPlotFromJson(data)         # spike_history.json
+
+def plotEventPlotFromJson(filename, spike_history_filename):
+    # Read the data from tsp_data.json to get the number of neurons
+    with open(filename, 'r') as file:
+        data = json.load(file)
+
+    num_city = data.get("num_city", 0)  # Get the number of neurons (if "num_city" field exists)
+    total_neurons = num_city * num_city  # Total number of y-axis indexes
+
+    # Read the spike history from spike_history.json
+    with open(spike_history_filename, 'r') as spike_file:
+        spike_data = json.load(spike_file)
+
+    # Prepare the data for plotting
+    neuron_indices = []
+    spike_times = []
+    for entry in spike_data:
+        neuron_indices.append(entry["neuron"])
+        spike_times.append(entry["time"])
+
+    # Sort spike_times based on neuron_indices
+    sorted_indices, sorted_times = zip(*sorted(zip(neuron_indices, spike_times)))
+
+    # Create the event plot
+    fig, ax = plt.subplots()
+    ax.eventplot(sorted_times, lineoffsets=sorted_indices, colors='b')
+
+    # Set y-axis limits and ticks
+    ax.set_ylim(-0.5, total_neurons - 0.5)
+    ax.set_yticks(np.arange(0, total_neurons, num_city))
+    ax.set_yticklabels(np.arange(num_city))  # Assuming neurons are indexed from 0 to num_city - 1
+
+    # Add gridlines
+    for i in range(num_city, total_neurons, num_city):
+        ax.axhline(i - 0.5, color='gray', linestyle='--')
+
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Neuron Index')
+    ax.set_title('Event Plot')
+
+    plt.show()
+
+def plotSpikeFromJson(filename, output_file):
     # Open the JSON file
     with open('/Users/gabriel/Development/SNN-TSP/src/build/spike_history.json', 'r') as file:
         # Load the JSON data
@@ -27,7 +88,7 @@ def plotSpikeFromJson(filename):
     # Plot the spike timing for each neuron index using eventplot
     event_height = 0.8  # Vertical position of the event markers
     for index, spike_time in spike_times.items():
-        plt.eventplot(spike_time, lineoffsets=event_height * index, linelengths=0.5)
+        fig = plt.eventplot(spike_time, lineoffsets=event_height * index, linelengths=0.5)
 
     # Customize the plot
     plt.xlabel('Time')
@@ -35,11 +96,18 @@ def plotSpikeFromJson(filename):
     plt.title('Spike Timing for Neuron Indices')
     plt.yticks(list(spike_times.keys()), list(spike_times.keys()))
 
-    # Display the plot
-    plt.show()
+    # Get the path of the current script
+    script_path = os.path.abspath(__file__)
+    script_directory = os.path.dirname(script_path)
 
+    # Save the plot to a file in the same folder as the script
+    output_file = os.path.join(script_directory, 'spikes.png')
+    plt.savefig(output_file)
 
-def plotNeuronPotentialsFromJson(filename):
+    # Close the figure to free up memory
+    plt.close(fig)
+
+def plotNeuronPotentialsFromJson(filename, output_file):
     # Load the JSON data from the file
     with open(filename, 'r') as file:
         data = json.load(file)
@@ -54,7 +122,7 @@ def plotNeuronPotentialsFromJson(filename):
         neuronPotentials.append(entry['neuronPotentials'])
 
     # Plot the neuron potential data
-    plt.figure()
+    fig = plt.figure()
     for i, potentials in enumerate(neuronPotentials):
         plt.plot(times[i], potentials, label=f'Neuron {i+1}')
 
@@ -63,12 +131,17 @@ def plotNeuronPotentialsFromJson(filename):
     plt.title('Neuron Potential vs. Time')
     plt.legend()
     plt.grid(True)
-    plt.show()
+    
+    # Save the plot to a file
+    plt.savefig(output_file)
+
+    # Close the figure to free up memory
+    plt.close(fig)
 
 # Function to plot synapse array weights (gp and gm) from JSON file
-def plotSynapseWeightsFromJson(filename):
+def plotSynapseWeightsFromJson(filename, output_file):
     # Read JSON file
-    with open(filename) as file:
+    with open(filename, 'r') as file:
         data = json.load(file)
 
     # Convert JSON data to a 2D numpy array
@@ -126,5 +199,25 @@ def plotSynapseWeightsFromJson(filename):
     plt.subplots_adjust(left=0.5, right=0.55, bottom=0.1, top=0.9, wspace=0.25)
     plt.tight_layout()
 
-    # Display the plot
     plt.show()
+    # plt.savefig(output_file)
+
+    # Close the figure to free up memory
+    plt.close(fig)
+
+
+#//**************************************************************************************************************//
+if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print("Usage: python plot_script.py <json_files_directory> <output_folder>")
+        sys.exit(1)
+
+    json_files_directory = sys.argv[1]
+    output_folder = sys.argv[2]
+
+    # Find all JSON files in the specified directory
+    json_files = [os.path.join(json_files_directory, file) for file in os.listdir(json_files_directory) if file.endswith('.json')]
+    print("PYTHON ON THE WAY!!")
+    print(output_folder)
+
+    plot_data(json_files, output_folder)
