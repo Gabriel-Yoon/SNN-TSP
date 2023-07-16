@@ -5,6 +5,9 @@
 #include <type_traits>
 
 #include "synapse.h"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 template <typename SynapseType, std::enable_if_t<std::is_base_of<synapse, SynapseType>::value, bool> = true>
 class synapse_array
@@ -60,8 +63,8 @@ class synapse_array
     //----------------------------------------------------
     public: void saveSynapseArrayGpGm(std::string& filename){
         auto result = nlohmann::json{
-        {"weight_gp", json::array()},
-        {"weight_gm", json::array()},
+        {"weight_gp", nlohmann::json::array()},
+        {"weight_gm", nlohmann::json::array()},
         };
 
         for (auto i = 0; i < _synapses[0].size(); i++) {

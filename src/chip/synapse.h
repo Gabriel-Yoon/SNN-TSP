@@ -6,6 +6,9 @@
 #include <cstdint>
 #include <utility>
 
+#include "param.h"
+#include "rng.h"
+
 enum : int {
     side_v,
     side_h
@@ -22,9 +25,31 @@ class synapse {
     /*---------------------fields-----------------*/
     public: double Gp;
     public: double Gm;
-    /*---------------------method-----------------*/
-    public: synapse() : Gp(0), Gm(0) {}
+    
+    public: double maxGp;
+    public: double minGp;
+    public: double maxGm;
+    public: double minGm;
 
+    public: double dG_set;
+    public: double dG_set_sigma_cycle;
+    public: double dG_set_seed_cycle;
+    public: double dG_set_sigma_device;
+    public: double dG_set_seed_device;
+
+    public: double dG_reset;
+    public: double dG_reset_sigma_cycle;
+    public: double dG_reset_seed_cycle;
+    public: double dG_reset_sigma_device;
+    public: double dG_reset_seed_device;
+
+    /*---------------------method-----------------*/
+    public: synapse();
+    public: ~synapse(){};
+    public: void setGp();
+    public: void resetGp();
+    public: void setGm();
+    public: void resetGm();
 
 };
 #endif
