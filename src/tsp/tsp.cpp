@@ -11,14 +11,19 @@ using json = nlohmann::json;
 extern double INIT_PERFORMANCE = 0;
 namespace csp {
 
-    tsp::tsp(const char* param_file){
-        // param_file == "tsp_data_26.json"
-        std::ifstream f(param_file);
+    tsp::tsp(const std::string& tsp_json_file_path, const std::string& tsp_matrix_file_path, const std::string& tsp_itinerary_file_path){
+        
+        read_distance_matrix(tsp_matrix_file_path);
+        load_itinerary(tsp_itinerary_file_path);
+        calculate_minimal_total_distance();
+        read_and_write_json_file(tsp_json_file_path);
+
+        
+        // param_file == "tsp_data.json"
+        std::ifstream f(tsp_json_file_path);
         json _TSPparam = json::parse(f);
         std::cout << "TSP PARSING --------" << std::endl;
-        _numCity = _TSPparam["num_city"];
-        std::cout << _numCity << std::endl;
-        _solutionDistance = _TSPparam["solution_distance"]; // 19 for 5 cities, 937 for 26 cities.
+        std::cout << "number of cities are : " << _numCity << std::endl;
         _solveMode = _TSPparam["mode"];
         
         // TSP Inhibition Weight Setup
@@ -29,17 +34,18 @@ namespace csp {
         _grad = _TSPparam["grad"];
         
         std::cout << "TSP PARSING COMPLETE" << std::endl;
+    }
 
+    void tsp::initialize() {
         SetNumNeurons();
         SetWeightMatrix();
-        
+
         std::string _weightFilename = "weight";
         exportWeightToFile(_weightFilename);
     }
 
     // Set number of neurons in v,h layer
     inline void tsp::SetNumNeurons() {
-       
         if (_solveMode == "bilateral_BM") {
             if (_numCity % 2 == 0) { // even number of city
                 num_neurons[side_v] = (_numCity / 2) * (_numCity / 2);
@@ -76,20 +82,6 @@ namespace csp {
 
         // Initializing max element as INT_MIN 
         double max_distance = 0;
-        ofstream exportFile_weight_setup;
-        exportFile_weight_setup.open("weight_setup.csv");
-        // checking each element of matrix 
-        // if it is greater than maxElement, 
-        // update maxElement
-
-        // Answer : 1 - 3 - 2 - 5 - 4
-        distance_matrix = {
-            {0, 3, 4, 2, 7},
-            {3, 0, 4, 6, 3},
-            {4, 4, 0, 5, 8},
-            {2, 6, 5, 0, 6},
-            {7, 3, 8, 6, 0},
-        };
 
         for (int i = 0; i < _numCity; i++) {
             for (int j = 0; j < _numCity; j++) {
@@ -250,14 +242,8 @@ namespace csp {
                 else if (weight < min_w) {
                     weight = min_w;
                 }
-                //cout << weight_flag;
-                exportFile_weight_setup << weight_matrix[v_idx][h_idx].Gp << ",";
             }
-            exportFile_weight_setup << "\n";
-            //printf("\n");
         }
-        //printf("\n");
-        exportFile_weight_setup.close();
         cout << "[_END_] WEIGHT SETUP" << endl;
     }
 
@@ -386,5 +372,95 @@ namespace csp {
             };
             */
 
+    // Function to update the distance_matrix in the JSON data
+    // Function to read and write JSON data to a file
+    void tsp::read_and_write_json_file(const std::string& file_path) {
+        // Read the existing JSON data
+        json data;
+        std::ifstream read_file(file_path);
+        if (read_file) {
+            read_file >> data;
+        }
+
+        // Update or create the distance_matrix in the JSON data
+        data["distance_matrix"] = distance_matrix;
+        data["num_city"] = _numCity;
+        data["optimal_itinerary"] = _itinerary;
+        data["solution"] = this->_solutionDistance;
+
+        // Write the updated JSON data back to the file
+        std::ofstream write_file(file_path);
+        if (write_file) {
+            write_file << std::setw(4) << data << std::endl;
+        }
+    }
+
+    // Function to read the distance matrix from the input file and count the number of cities (rows)
+    void tsp::read_distance_matrix(const std::string& file_path) {
+        std::ifstream file(file_path);
+        _numCity = 0; // Initialize the number of cities (rows) count
+        if (file) {
+            std::string line;
+            while (std::getline(file, line)) {
+                std::vector<double> row;
+                std::istringstream iss(line);
+                double value;
+                while (iss >> value) {
+                    row.push_back(value);
+                }
+                distance_matrix.push_back(row);
+                _numCity++; // Increment the number of cities count for each row read
+            }
+        }
+    }
+
+    // Function to load the itinerary data from the txt file and find the optimal itinerary
+    void tsp::load_itinerary(const std::string& file_path) {
+        std::ifstream file(file_path);
+        if (file) {
+            int city;
+            while (file >> city) {
+                _itinerary.push_back(city);
+            }
+        }
+    }
+
+    // Function to calculate the minimal total distance following the route of the itinerary data
+    void tsp::calculate_minimal_total_distance() {
+        this->_solutionDistance = 0.0;
+        for (size_t i = 1; i < this->_itinerary.size(); ++i) {
+            int from_city = this->_itinerary[i - 1] - 1;
+            int to_city = this->_itinerary[i] - 1;
+            this->_solutionDistance += this->distance_matrix[from_city][to_city];
+        }
+
+        // Add the distance to return to the starting city
+        int last_city = this->_itinerary.back() - 1;
+        int start_city = this->_itinerary.front() - 1;
+        this->_solutionDistance += this->distance_matrix[last_city][start_city];
+    }
+
+    void tsp::copy_json_file(const std::string& source_file_path, const std::string& destination_file_path) {
+        // Read the existing JSON data
+        std::ifstream source_file(source_file_path);
+        json data;
+        if (source_file) {
+            source_file >> data;
+        }
+        else {
+            std::cerr << "Error: Unable to read the source JSON file." << std::endl;
+            return;
+        }
+
+        // Write the JSON data to the destination file
+        std::ofstream destination_file(destination_file_path);
+        if (destination_file) {
+            destination_file << std::setw(4) << data << std::endl;
+            std::cout << "JSON file copied successfully." << std::endl;
+        }
+        else {
+            std::cerr << "Error: Unable to write the destination JSON file." << std::endl;
+        }
+    }
 
 }
