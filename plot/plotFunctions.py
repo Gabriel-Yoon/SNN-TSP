@@ -107,6 +107,22 @@ def plotSpikeFromJson(filename, output_file):
     # Close the figure to free up memory
     plt.close(fig)
 
+def plot_spike_raster(spike_data):
+    num_of_neurons = spike_data[0]["num_of_neurons"]
+    spikes = [(entry["neuron"], entry["time"]) for entry in spike_data[1:]]
+
+    neuron_ids = [entry[0] for entry in spikes]
+    spike_times = [entry[1] for entry in spikes]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.eventplot(spike_times, lineoffsets=neuron_ids, linelengths=0.7, colors="black")
+    ax.set_xlim(min(spike_times) - 0.001, max(spike_times) + 0.001)
+    ax.set_ylim(-1, num_of_neurons)
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Neuron Number")
+    ax.set_title("Spike Raster Plot")
+    plt.show()
+
 def plotNeuronPotentialsFromJson(filename, output_file):
     # Load the JSON data from the file
     with open(filename, 'r') as file:
@@ -199,8 +215,8 @@ def plotSynapseWeightsFromJson(filename, output_file):
     plt.subplots_adjust(left=0.5, right=0.55, bottom=0.1, top=0.9, wspace=0.25)
     plt.tight_layout()
 
+    plt.savefig(output_file)
     plt.show()
-    # plt.savefig(output_file)
 
     # Close the figure to free up memory
     plt.close(fig)
