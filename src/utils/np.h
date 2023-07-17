@@ -4,6 +4,7 @@
 
 //#define NDEBUG
 #include <assert.h>
+#include <cstdint>
 
 #include <tuple>
 #include <vector>
