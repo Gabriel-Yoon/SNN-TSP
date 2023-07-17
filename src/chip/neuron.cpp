@@ -21,7 +21,8 @@ neuron::~neuron(){ //if(_rng != nullptr) ::free(_rng);
 }
 //----------------------------------------------------
 neuron::neuron(param &_params){
-    _memV = _params.pt_init;                        // membrane potential init to reset potential
+    std::cout << "Neuron Setting" << std::endl;
+	_memV = _params.pt_init;                        // membrane potential init to reset potential
 	_Vreset = _params.pt_init;              	    // reset potential
     _Vth = _params.pt_threshold;               	    // threshold voltage
     _refractoryPeriod = _params.refractory_time;    // refractory period
@@ -39,6 +40,7 @@ neuron::neuron(param &_params){
 }
 //----------------------------------------------------
 void neuron::ManualSet(param& _params){
+	std::cout << "Neuron Manual Set" << std::endl;
 	_memV = _params.pt_init;                        // membrane potential init to reset potential
     _Vreset = _params.pt_init;              	    // reset potential
     _Vth = _params.pt_threshold;               	    // threshold voltage
@@ -115,8 +117,13 @@ void neuron::memV_RandomWalk(rng& _rng) {
 	if (!_isStepUpDownSame) {
 		_randomWalkValue = (_randomWalkFlag) ? _randomWalkStepUp : _randomWalkStepDown;
 	}
-	this->_memV = this->_memV + _randomWalkSign * _randomWalkValue;
-	this->_memV = this->_memV + 0.06;
+
+	if (this->_memV + _randomWalkSign * _randomWalkValue < 1e-6){
+		this->_memV = 0.0;
+	} else {
+		this->_memV += _randomWalkSign * _randomWalkValue;
+	}
+
 }
 //----------------------------------------------------
 void neuron::memV_Reset() {

@@ -40,9 +40,13 @@ void core::initialize(){
     // Neuron Layer Setting
     std::cout << "[START]Neuron Layer Setting" << std::endl;
     visibleLayer._neurons.resize(num_neurons[side_v]);
-    visibleLayer.ManualSet(params);
+    for (auto _neuron : visibleLayer._neurons) {
+        _neuron.ManualSet(this->params);
+    }
     hiddenLayer._neurons.resize(num_neurons[side_h]);
-    hiddenLayer.ManualSet(params);
+    for (auto _neuron : hiddenLayer._neurons) {
+        _neuron.ManualSet(this->params);
+    }
     std::cout << "Visible Layer Neurons : " << visibleLayer._neurons.size()<< std::endl;
     std::cout << "Hidden Layer Neurons : " << hiddenLayer._neurons.size()<< std::endl;
     std::cout << "[_END_]Neuron Layer Setting" << std::endl;
@@ -367,10 +371,14 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
     // Leak function (Later add is_base_of to see if the neurons are based of lif_neurons)
     if (tnow != tpre){
         for(int i = 0; i < visibleLayer._neurons.size(); i++){
+            std::cout << "LEAK BEFORE" << visibleLayer._neurons[i]._memV << std::endl;
             visibleLayer._neurons[i].memV_Leak(tpre, tnow);
+            std::cout << "LEAK AFTER" << visibleLayer._neurons[i]._memV << std::endl;
         }
         for(int i = 0; i < hiddenLayer._neurons.size(); i++){
+            std::cout << "LEAK BEFORE" << hiddenLayer._neurons[i]._memV << std::endl;
             hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
+            std::cout << "LEAK AFTER" << hiddenLayer._neurons[i]._memV << std::endl;
         }
         exportNeuronPotentialToJson(tnow);
     }
@@ -386,11 +394,17 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
             *magazine_side = side_h;
             return 1;
         case visible_random_walk:
-            visibleLayer.RandomWalk(_rng);
+            // visibleLayer.RandomWalk(this->_rng);
+            for (int i = 0; i<visibleLayer._neurons.size(); i++) {
+                visibleLayer._neurons[i].memV_RandomWalk(this->_rng);
+            }
             *magazine_side = side_v;
             return 2;
         case hidden_random_walk:
-            hiddenLayer.RandomWalk(_rng);
+            // hiddenLayer.RandomWalk(this->_rng);
+            for (int i = 0; i<hiddenLayer._neurons.size(); i++) {
+                visibleLayer._neurons[i].memV_RandomWalk(this->_rng);
+            }
             *magazine_side = side_h;
             return 3;
         default:
@@ -672,7 +686,7 @@ void core::STDP(spike& run_spike, int& phase){
 
 void core::run_simulation(){
     
-    double tend = 0.01;
+    double tend = 0.002;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -687,7 +701,9 @@ void core::run_simulation(){
     generateMagazine(tend); // additional utility if there is no external magazine
     loadMagazine("magazine_injection.json");
 
-    setRandomWalkSchedule(tend, side_v);
+    if (!params.enable_BM) {
+        setRandomWalkSchedule(tend, side_v);
+    }
     setRandomWalkSchedule(tend, side_h);
 
     while(1){

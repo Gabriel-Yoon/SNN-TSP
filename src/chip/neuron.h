@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 #include <utility>
+#include <iostream>
 
 #include "param.h"
 #include "rng.h"
