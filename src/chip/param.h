@@ -13,6 +13,7 @@ struct param {
 
 	double timestep;						// Timescale for external spikes
 	double timestep_rng;					// Timescale for random walk event
+	double timestep_injection;
 	
 	int steps_transition;					// Num of time steps for transition between 2 phases
 	int steps_data;							// Num of time steps for data phase per 1 pattern

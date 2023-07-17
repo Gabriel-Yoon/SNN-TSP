@@ -1,6 +1,7 @@
 {
   "timestep": 1e-6,
   "timestep_rng": 10e-6,
+  "timestep_injection": 2e-3,
 
   "steps_transition": 10000,
   "steps_data": 40000,

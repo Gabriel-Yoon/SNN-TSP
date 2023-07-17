@@ -238,9 +238,8 @@ std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> core::load_mnist_28(std:
 
 void core::generateMagazine(double tend){
     std::cout << "Injection Magazine" << std::endl;
-    double timestep_injection = 2e-3;
     double time;
-    double injection_step = tend / timestep_injection;
+    double injection_step = tend / params.timestep_injection;
 
     auto result = nlohmann::json{
         {"time", nlohmann::json::array()},
@@ -254,7 +253,7 @@ void core::generateMagazine(double tend){
             auto& _side = result["side"];
             auto& _neuronNum = result["neuron"];
 
-            _spikeTime.push_back(i*timestep_injection);
+            _spikeTime.push_back(i*params.timestep_injection);
             _side.push_back(side_v);
             _neuronNum.push_back(j*_numCity + _optimalItinerary[j] - 1);
         }
@@ -306,14 +305,13 @@ void core::loadMagazine(const char* mag_file){   // load spikes into visibleMaga
 void core::setRandomWalkSchedule(double tend, int side){	
     // set random walk schedule. use annealing schedule here
     cout << "Setting Random Walk Schedule" << endl;
-    double timestep_randomwalk = 1e-3;
     double time;
-    double injection_step = tend / timestep_randomwalk;
+    double injection_step = tend / params.timestep_rng;
     
     // Random Walk distribued evenly with the spacing of timestep_randomwalk
     for (int i = 0; i < injection_step; i++) {
         random_walk* rw = new random_walk;
-        rw->_time = (i+1) * timestep_randomwalk;
+        rw->_time = (i+1) * params.timestep_rng;
         rw->_randomWalk.first = side; // which side to random walk
         rw->_randomWalk.second = 0.06; // manual or auto
         if (side == side_v){

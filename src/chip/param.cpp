@@ -22,6 +22,7 @@ param::param(const char* param_file) {
     
 	timestep = _SNNChipParam["timestep"];
 	timestep_rng = _SNNChipParam["timestep_rng"];
+	timestep_injection = _SNNChipParam["timestep_injection"];
 
 	steps_transition = _SNNChipParam["steps_transition"];
 	steps_data = _SNNChipParam["steps_data"];
