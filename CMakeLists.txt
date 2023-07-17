@@ -39,10 +39,11 @@ set(OUTPUT_FOLDER "output_${CURRENT_TIME}")
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER})
 
 # Custom target to run both tsp and snn_tsp
-add_custom_target(run_all
+add_custom_target(run
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tsp> ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/$<TARGET_FILE_NAME:tsp>
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:snn_tsp> ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/$<TARGET_FILE_NAME:snn_tsp>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_data.json ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_matrix.txt ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_itinerary.txt ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/chip/sim_params.test.json ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
