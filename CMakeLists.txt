@@ -32,46 +32,32 @@ add_subdirectory(src/chip)
 
 # Set the output folder name with the current time
 string(TIMESTAMP CURRENT_TIME "%Y-%m-%d-%H-%M-%S")
-set(GLOB OUTPUT_FOLDER "output_${CURRENT_TIME}")
+message(${CURRENT_TIME})
+set(OUTPUT_FOLDER "output_${CURRENT_TIME}")
 
 # Create the output directory
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER})
 
-# Set the output directory for tsp and snn_tsp
-set_target_properties(tsp PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER})
-set_target_properties(snn_tsp PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER})
+# Custom target to run both tsp and snn_tsp
+add_custom_target(run_all
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tsp> ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/$<TARGET_FILE_NAME:tsp>
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:snn_tsp> ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/$<TARGET_FILE_NAME:snn_tsp>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_matrix.txt ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_itinerary.txt ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/chip/sim_params.test.json ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/plot ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/plot
+    COMMAND $<TARGET_FILE:tsp>
+    COMMAND $<TARGET_FILE:snn_tsp>
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMENT "Running tsp and snn_tsp at ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}"
+)
 
-# Copy the tsp and snn_tsp executables to the output folder
-#add_custom_command(
-#    TARGET tsp POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tsp> ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/$<TARGET_FILE_NAME:tsp>
-#    COMMENT "Copying tsp executable to the output folder"
-#)
-
-#add_custom_command(
-#    TARGET snn_tsp POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:snn_tsp> ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/$<TARGET_FILE_NAME:snn_tsp>
-#    COMMENT "Copying snn_tsp executable to the output folder"
-#)
-
-# Run the tsp and snn_tsp executables from the output folder
-#add_custom_target(run_tsp
-#    COMMAND ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/tsp/$<TARGET_FILE_NAME:tsp>
-#    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
-#    COMMENT "Running tsp"
-#)
-
-#add_custom_target(run_snn_tsp
-#    COMMAND ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/snn_tsp/$<TARGET_FILE_NAME:snn_tsp>
-#    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
-#    COMMENT "Running snn_tsp"
-#)
-#
 # Set snn_tsp_build target as a dependency of tsp_build
-# add_dependencies(run_tsp run_snn_tsp)
+add_dependencies(tsp snn_tsp)
 
-# Create a custom target to run both tsp and snn_tsp
-#add_custom_target(run
-#    DEPENDS run_tsp run_snn_tsp
-#    COMMENT "Running tsp and snn_tsp"
-#)
+# Set run_all target as a dependency of the build_all target
+add_custom_target(build_all
+    DEPENDS run_all
+    COMMENT "Building all targets"
+)

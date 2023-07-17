@@ -50,7 +50,7 @@ void core::initialize(){
     // Synapse Array Setting
     std::cout << "[START]Synapse Array Setting" << std::endl;
     synapseArray.setSynapseSize(num_neurons[side_v], num_neurons[side_h]);
-    synapseArray.callSynapseArrayGpGm("/Users/gabriel/Development/SNN-TSP/build/weight.json");
+    synapseArray.callSynapseArrayGpGm("weight.json");
     synapseArray.inspectWeightValues(params.min_weight, params.max_weight);
     std::string save_file_name = "core_synapse_weight";
     synapseArray.saveSynapseArrayGpGm(save_file_name);
@@ -674,7 +674,7 @@ void core::STDP(spike& run_spike, int& phase){
 
 void core::run_simulation(){
     
-    double tend = 10;
+    double tend = 0.01;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -687,7 +687,7 @@ void core::run_simulation(){
     cout << setprecision(9);
 
     generateMagazine(tend); // additional utility if there is no external magazine
-    loadMagazine("/Users/gabriel/Development/SNN-TSP/build/magazine_injection.json");
+    loadMagazine("magazine_injection.json");
 
     setRandomWalkSchedule(tend, side_v);
     setRandomWalkSchedule(tend, side_h);
@@ -829,6 +829,10 @@ void core::exportSpikeRecorder() { // obsolete
 void core::exportSpikeHistoryToJson(const std::string& filename){
         // Create a JSON object for the spike history
     nlohmann::json spikeData;
+
+    nlohmann::json num_city;
+    num_city["num_of_neurons"] = visibleLayer._neurons.size();
+    spikeData.push_back(num_city);
 
     // Add spike time and neuron number for each spike to the JSON object
     for (const auto& spike : spikeRecorder) {
