@@ -11,9 +11,9 @@ int main(int argc, char* argv[]) {
 
     const std::string json_file_path = "tsp_data.json";
 
-    const std::string tsp_json_file_path = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_data.json";
-    const std::string tsp_matrix_file_path = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_matrix.txt";
-    const std::string tsp_itinerary_file_path = "/Users/gabriel/Development/SNN-TSP/src/tsp/tsp_itinerary.txt";
+    const std::string tsp_json_file_path = "tsp_data.json";
+    const std::string tsp_matrix_file_path = "tsp_matrix.txt";
+    const std::string tsp_itinerary_file_path = "tsp_itinerary.txt";
     // For personal Windows computer, the absolute path for the tsp_data.json is below
     //_TSPDataJsonFilePath = "C:/Users/Gabriel/dev/test/tsp/tsp_data.json";
 
