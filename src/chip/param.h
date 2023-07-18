@@ -117,6 +117,7 @@ struct param {
     bool hw_RES_EN;
     bool hw_RES_BLK;
 	bool enable_BM;
+	bool enable_WTA;
 
     param(const char* param_file);
     void print_parameters();

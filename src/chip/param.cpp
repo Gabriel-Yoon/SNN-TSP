@@ -137,4 +137,5 @@ param::param(const char* param_file) {
 	hw_RES_EN = _SNNChipParam["hw_RES_EN"];
 	hw_RES_BLK = _SNNChipParam["hw_RES_BLK"];
 	enable_BM = _SNNChipParam["enable_BM"];
+	enable_WTA = _SNNChipParam["enable_WTA"];
 }  
