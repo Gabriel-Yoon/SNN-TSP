@@ -50,6 +50,8 @@ add_custom_target(run
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/plot ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/plot
     COMMAND $<TARGET_FILE:tsp>
     COMMAND $<TARGET_FILE:snn_tsp>
+    COMMAND ${CMAKE_COMMAND} -E echo "Running main.py..."
+    COMMAND ${CMAKE_COMMAND} -E env python3 ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/plot/main.py
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
     COMMENT "Running tsp and snn_tsp at ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}"
 )
