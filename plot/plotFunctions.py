@@ -4,7 +4,6 @@ import json
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-import mplcursors
 
 def plot_data(json_files, output_folder):
     print("ON THE WAY??")
