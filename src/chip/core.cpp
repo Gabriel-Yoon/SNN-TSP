@@ -634,7 +634,7 @@ void core::STDP(spike& run_spike, int& phase){
 
 void core::run_simulation(){
     
-    double tend = 0.1;
+    double tend = 0.01;
     double tnow = 0.0;
     double tpre = 0.0;
 
