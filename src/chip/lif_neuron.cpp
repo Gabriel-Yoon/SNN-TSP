@@ -20,7 +20,8 @@ double& lif_neuron::leakyTau() { // getter function
 }
 //----------------------------------------------------
 void lif_neuron::memV_Leak(double& tpre, double& tnow) {
-    this->_memV = this->_memV * std::exp(-(tnow - tpre) / _leakyTau);
+    double newmemV = this->_memV * std::exp(-(tnow - tpre) / _leakyTau);
+	this->_memV = newmemV;
 }
 //----------------------------------------------------
 

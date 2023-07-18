@@ -33,6 +33,7 @@
 #include "synapse.h"
 #include "synapse_array.h"
 #include "param.h"
+#include "phase.h"
 #include "../tsp/tsp.h"
 
 //**************************************************************************************************************//

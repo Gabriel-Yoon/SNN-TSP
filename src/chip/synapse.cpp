@@ -49,7 +49,7 @@ void synapse::setGm(){
 }
 //----------------------------------------------------
 void synapse::resetGm(){
-    if(this->Gm + this->dG_reset > this->minGm){
+    if(this->Gm + this->dG_reset < this->minGm){
         this->Gm = this->minGp;
     } else{
         this->Gm += dG_reset;
