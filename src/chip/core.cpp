@@ -6,11 +6,6 @@
 
 using json = nlohmann::json;
 
-enum : int {
-    data_phase,
-    model_phase
-};
-
 spike *spk_null;
 
 core::core(const char* param_file, const std::string& tsp_data_file_path) : params(param_file), _rng(params)
@@ -152,94 +147,6 @@ void core::print_params() {
 	*/
 }
 
-std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> core::load_mnist_28(std::string dataset = "training", np::array_1d<int> digits = np::arange(10))
-{
-	std::string fname_img, fname_lbl;
-	if (dataset == "training") {
-		fname_img = "../../../train-images.idx3-ubyte";
-		fname_lbl = "../../../train-labels.idx1-ubyte";
-	}
-	else if (dataset == "testing") {
-		fname_img = "../../../t10k-images.idx3-ubyte";
-		fname_lbl = "../../../t10k-labels.idx1-ubyte";
-	}
-	else {
-		throw std::invalid_argument("dataset must be 'testing' or 'training'");
-	}
-
-	std::ifstream flbl(fname_lbl, std::ifstream::in | std::ifstream::binary);
-	if (flbl.good() != true) {
-		std::cout << "file open error: " << fname_lbl << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	uint32_t magic_nr = fs::read_uint32_be(flbl);
-	uint32_t size = fs::read_uint32_be(flbl);
-	(void)magic_nr;
-#if 0
-	std::cout << "magic_nr: " << magic_nr << " size: " << size << std::endl;
-#endif
-	std::vector<int8_t> lbl = fs::read_all_int8(flbl);
-#if 0
-	for (int8_t v : lbl) {
-		printf("%d, ", v);
-	}
-	printf("\n");
-#endif
-	flbl.close();
-
-	std::ifstream fimg(fname_img, std::ifstream::in | std::ifstream::binary);
-	if (fimg.good() != true) {
-		std::cout << "file open error: " << fname_img << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	magic_nr = fs::read_uint32_be(fimg);
-	size = fs::read_uint32_be(fimg);
-	uint32_t rows = fs::read_uint32_be(fimg);
-	uint32_t cols = fs::read_uint32_be(fimg);
-#if 0
-	std::cout << "magic_nr: " << magic_nr << " size: " << size
-		<< " rows: " << rows << " cols: " << cols << std::endl;
-#endif
-	std::vector<uint8_t> img = fs::read_all_uint8(fimg);
-#if 0
-	for (uint8_t v : img) {
-		printf("%d, ", v);
-	}
-	printf("\n");
-	exit(EXIT_FAILURE);
-#endif
-	fimg.close();
-
-	std::vector<uint32_t> ind;
-	for (uint32_t k = 0; k < size; k++) {
-		if (std::find(digits.begin(), digits.end(), lbl[k]) != digits.end()) {
-			ind.push_back(k);
-		}
-	}
-	unsigned int N = ind.size();
-
-#if 0
-	std::cout << "N: " << ind.size() << std::endl;
-	for (uint32_t v : ind) {
-		printf("%d, ", v);
-	}
-	exit(EXIT_FAILURE);
-#endif
-
-	auto images = np::zeros<uint8_t>(N, rows * cols);
-	auto labels = np::zeros<int8_t>(N, 1);
-
-	for (unsigned int i = 0; i < ind.size(); i++) {
-		images[i].clear();
-		images[i].reserve(rows * cols);
-		images[i].insert(images[i].begin(), img.begin() + ind[i] * rows * cols,
-			img.begin() + (ind[i] + 1) * rows * cols);
-		labels[i][0] = lbl[ind[i]];
-	}
-
-	return { images, labels }; // image : [# of image,784]  label : [# of image,1]
-}
-
 void core::generateMagazine(double tend){
     std::cout << "Injection Magazine" << std::endl;
     double time;
@@ -371,14 +278,10 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
     // Leak function (Later add is_base_of to see if the neurons are based of lif_neurons)
     if (tnow != tpre){
         for(int i = 0; i < visibleLayer._neurons.size(); i++){
-            std::cout << "LEAK BEFORE" << visibleLayer._neurons[i]._memV << std::endl;
             visibleLayer._neurons[i].memV_Leak(tpre, tnow);
-            std::cout << "LEAK AFTER" << visibleLayer._neurons[i]._memV << std::endl;
         }
         for(int i = 0; i < hiddenLayer._neurons.size(); i++){
-            std::cout << "LEAK BEFORE" << hiddenLayer._neurons[i]._memV << std::endl;
             hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
-            std::cout << "LEAK AFTER" << hiddenLayer._neurons[i]._memV << std::endl;
         }
         exportNeuronPotentialToJson(tnow);
     }
@@ -403,7 +306,7 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
         case hidden_random_walk:
             // hiddenLayer.RandomWalk(this->_rng);
             for (int i = 0; i<hiddenLayer._neurons.size(); i++) {
-                visibleLayer._neurons[i].memV_RandomWalk(this->_rng);
+                hiddenLayer._neurons[i].memV_RandomWalk(this->_rng);
             }
             *magazine_side = side_h;
             return 3;
@@ -428,9 +331,13 @@ void core::shootSpike(spike& run_spike, int& phase){
 
         // TEMPORARY CODE
         // double check turn neuron OFF right away
-        if(it->first == side_v){
+        // the neuron gets turned off through ST_PAUSE spike event
+        if(it->first == side_v){ // internal/external spike generated at visible side
             visibleLayer._neurons[it->second].turnOFF();
-        } else {
+            if(params.enable_BM){
+                hiddenLayer._neurons[it->second].turnOFF();    
+            }
+        } else { // internal/external spike generated at hidden side
             hiddenLayer._neurons[it->second].turnOFF();
         }
 
@@ -441,15 +348,17 @@ void core::shootSpike(spike& run_spike, int& phase){
             run_spike_st_pause->_spikeTime = run_spike._spikeTime + FLOAT_EPSILON_TIME;
             run_spike_st_pause->_reset = false;
             run_spike_st_pause->_st = true;
-            run_spike_st_pause->_wup = false;
+            run_spike_st_pause->_wup = false; // not being used for now
             run_spike_st_pause->_spk.push_back(make_pair(it->first, it->second));
-            if(params.enable_BM){ // WTA condition
-                // int h_WTA = it->second / _numCity + 1;
+            if(params.enable_BM && params.enable_WTA){ // WTA condition
+                int h_WTA = it->second / _numCity;
                 int h_city = it->second % _numCity;
                 // Be aware of the index! the real city num is : h_city = it->second % _numCity + 1;
-                for(int wta_num = 0; wta_num < _numCity; wta_num++){
-                    int iso_city = h_city + wta_num * _numCity;
-                    run_spike_st_pause->_spk.push_back(make_pair(side_h, iso_city));
+                for(int i = 0; i < _numCity; i++){
+                int iso_city = h_city + i * _numCity; // same city within different WTA module
+                int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                run_spike_st_pause->_spk.push_back(make_pair(side_h, iso_city));
+                run_spike_st_pause->_spk.push_back(make_pair(side_h, iso_WTA));
                 }
             }
         }
@@ -460,7 +369,7 @@ void core::shootSpike(spike& run_spike, int& phase){
             run_spike_reset->_spikeTime = run_spike._spikeTime + params.delay_spikein2out;
             run_spike_reset->_reset = true;
             run_spike_reset->_st = false;
-            run_spike_reset->_wup = false;
+            run_spike_reset->_wup = false; // not being used for now
         }
 
         // 1-3. Dummy Event
@@ -468,14 +377,16 @@ void core::shootSpike(spike& run_spike, int& phase){
         run_spike_dummy->_spikeTime = run_spike._spikeTime + params.refractory_time + FLOAT_EPSILON_TIME;
         run_spike_dummy->_reset = false;
         run_spike_dummy->_st = false;
-        run_spike_dummy->_wup = false;
+        run_spike_dummy->_wup = false; // not being used for now
         run_spike_dummy->_spk.push_back(make_pair(it->first, it->second));
-        if(params.enable_BM){ // WTA condition
-            // int h_WTA = it->second / _numCity + 1;
+        if(params.enable_BM && params.enable_WTA){ // WTA condition
+            int h_WTA = it->second / _numCity + 1;
             int h_city = it->second % _numCity;
-            for(int wta_num = 0; wta_num < _numCity; wta_num++){
-                int iso_city = h_city + wta_num * _numCity;
+            for(int i = 0; i < _numCity; i++){
+                int iso_city = h_city + i * _numCity; // same city within different WTA module
+                int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
                 run_spike_dummy->_spk.push_back(make_pair(side_h, iso_city));
+                run_spike_dummy->_spk.push_back(make_pair(side_h, iso_WTA));
             }
         }
 
@@ -486,7 +397,7 @@ void core::shootSpike(spike& run_spike, int& phase){
             run_spike_target_pup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wlr + params.wlr_width;
             run_spike_target_pup->_reset = false;
             run_spike_target_pup->_st = false;
-            run_spike_target_pup->_wup = false;
+            run_spike_target_pup->_wup = false; // not being used for now
 
         } else { // enable _ gpgm
             if(phase == data_phase) {
@@ -511,7 +422,7 @@ void core::shootSpike(spike& run_spike, int& phase){
             run_spike_target_wup->_spikeTime = run_spike._spikeTime + params.delay_spikein2out + params.delay_spikeout2wup;
             run_spike_target_wup->_reset = false;
             run_spike_target_wup->_st = false;
-            run_spike_target_wup->_wup = true; // _wup = true only!
+            run_spike_target_wup->_wup = true; // _wup = true only! - not being used for now
 
         } else { // enable _ gpgm
             if(it->second == side_v) {
@@ -686,7 +597,7 @@ void core::STDP(spike& run_spike, int& phase){
 
 void core::run_simulation(){
     
-    double tend = 0.002;
+    double tend = 0.01;
     double tnow = 0.0;
     double tpre = 0.0;
 
