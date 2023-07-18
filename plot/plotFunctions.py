@@ -215,7 +215,7 @@ def plotSynapseWeightsFromJson(filename, output_file):
     plt.tight_layout()
 
     plt.savefig(output_file)
-    plt.show()
+    #plt.show()
 
     # Close the figure to free up memory
     plt.close(fig)
