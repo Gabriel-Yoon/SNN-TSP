@@ -13,53 +13,72 @@ template <typename SynapseType, std::enable_if_t<std::is_base_of<synapse, Synaps
 class synapse_array
 {
     /*---------------------fields-----------------*/
-    public: std::vector<std::vector<synapse>> _synapses;
+    public: std::vector<std::vector<SynapseType>> _synapses;
     /*---------------------methods----------------*/
-    public: void callSynapseArrayGpGm(const char* filepath){
-
+    public: void callSynapseArrayGpGm(const std::string& filepath) {
         std::ifstream ifs(filepath);
         json _synapseSavedFile = json::parse(ifs);
 
-        // check the size of the _synapse and weight_gp
-        bool _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gp"].size()) 
-                        && (_synapses[0].size() == _synapseSavedFile["weight_gp"][0].size()));
-        
-        if (_synapseSavedFile.empty() || !_isSizeSame){
-            std::cout << "Synapse file error" << std::endl;
-            std::cout << "SynapseArray Size : " << _synapses.size() <<" * " << _synapses[0].size() << std::endl;
+        if (_synapseSavedFile.empty()) {
+            std::cout << "Synapse file error: Empty JSON file" << std::endl;
+            return;
         }
 
-        if (!_synapseSavedFile["weight_gp"].empty() && _isSizeSame) {
-            for (int i = 0; i < _synapses.size(); i++){
-                for (int j = 0; j < _synapses[0].size(); j++){
-                    _synapses[i][j].Gp = _synapseSavedFile["weight_gp"][i][j];
-                }
-            }
-            std::cout << "Synapse Gp Set Done" << std::endl;
+        // Validate the size of _synapses and weight_gp
+        if (_synapseSavedFile["weight_gp"].empty()) {
+            std::cout << "Synapse file error: weight_gp array not found" << std::endl;
+            return;
         }
 
-        if (_synapseSavedFile["weight_gm"].empty()) {
-            for (int i = 0; i < _synapses.size(); i++){
-                for (int j = 0; j < _synapses[0].size(); j++){
-                    _synapses[i][j].Gm = 0;
+        int num_rows = _synapseSavedFile["weight_gp"].size();
+        int num_cols = _synapseSavedFile["weight_gp"][0].size();
+
+        if (_synapses.size() != num_rows || _synapses[0].size() != num_cols) {
+            std::cout << "Synapse file error: Size mismatch between _synapses and weight_gp" << std::endl;
+            return;
+        }
+
+        for (int i = 0; i < num_rows; i++) {
+            if (_synapseSavedFile["weight_gp"][i].size() != num_cols) {
+                std::cout << "Synapse file error: weight_gp row size mismatch" << std::endl;
+                return;
+            }
+
+            for (int j = 0; j < num_cols; j++) {
+                // Assuming the JSON data contains valid floating-point values
+                _synapses[i][j].Gp = _synapseSavedFile["weight_gp"][i][j].get<double>();
+            }
+        }
+
+        std::cout << "Synapse Gp Set Done" << std::endl;
+
+        // Validate the size of weight_gm
+        if (!_synapseSavedFile["weight_gm"].empty()) {
+            if (_synapseSavedFile["weight_gm"].size() != num_rows ||
+                _synapseSavedFile["weight_gm"][0].size() != num_cols) {
+                std::cout << "Synapse file error: Size mismatch between _synapses and weight_gm" << std::endl;
+                return;
+            }
+
+            for (int i = 0; i < num_rows; i++) {
+                for (int j = 0; j < num_cols; j++) {
+                    // Assuming the JSON data contains valid floating-point values
+                    _synapses[i][j].Gm = _synapseSavedFile["weight_gm"][i][j].get<double>();
                 }
             }
+
+            std::cout << "Synapse Gm Set Done" << std::endl;
         } else {
-            _isSizeSame = ((_synapses.size() == _synapseSavedFile["weight_gm"].size()) 
-                        && (_synapses[0].size() == _synapseSavedFile["weight_gm"][0].size()));
-            if (_isSizeSame){
-                for (int i = 0; i < _synapses.size(); i++){
-                    for (int j = 0; j < _synapses[0].size(); j++){
-                        _synapses[i][j].Gm = _synapseSavedFile["weight_gm"][i][j];
-                    }
+            // If weight_gm is not found, set Gm to 0 for all synapses
+            for (int i = 0; i < num_rows; i++) {
+                for (int j = 0; j < num_cols; j++) {
+                    _synapses[i][j].Gm = 0.0;
                 }
-                std::cout << "Synapse Gm Set Done" << std::endl;
             }
-            else {
-                std::cout << "Synapse file error" << std::endl;
-            }   
+            std::cout << "Synapse Gm set to 0 for all synapses" << std::endl;
         }
     }
+
     //----------------------------------------------------
     public: void saveSynapseArrayGpGm(std::string& filename){
         auto result = nlohmann::json{
