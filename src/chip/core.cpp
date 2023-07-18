@@ -873,17 +873,12 @@ void core::exportNeuronPotentialToJson(double& tnow) {
 }
 
 void core::exportSynapseWeightsToJson(const std::string& filename, double tnow) {
-    // Convert tnow to a string representation
-    std::string tnowStr = std::to_string(static_cast<int>(tnow / 1e-6));
-
-    // Construct the new filename by appending the tnow info
+    
+    std::string tnowStr = std::to_string(tnow);
     std::string newFilename = filename;
     newFilename.insert(newFilename.find_last_of('.'), "_" + tnowStr);
     
-    // Create a JSON object
-    json root;
-
-    // Iterate over the 2D vector and add synapse values to JSON object
+    nlohmann::json root;
     for (const auto& row : synapseArray._synapses) {
         json rowJson;
         for (const auto& synapse : row) {
@@ -895,10 +890,8 @@ void core::exportSynapseWeightsToJson(const std::string& filename, double tnow) 
         root.push_back(rowJson);
     }
 
-    // Open the output file
     std::ofstream outputFile(newFilename);
     if (outputFile.is_open()) {
-        // Write the JSON object to the output file
         outputFile << root.dump(4);
         outputFile.close();
         std::cout << "JSON export successful." << std::endl;
