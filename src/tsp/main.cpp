@@ -17,9 +17,9 @@ int main(int argc, char* argv[]) {
     // For personal Windows computer, the absolute path for the tsp_data.json is below
     //_TSPDataJsonFilePath = "C:/Users/Gabriel/dev/test/tsp/tsp_data.json";
 
-    std::cout << "tsp_data.json has been updated with the distance matrix." << std::endl;
     csp::tsp tspsolver(tsp_json_file_path, tsp_matrix_file_path, tsp_itinerary_file_path);
     tspsolver.initialize();
+    tspsolver.read_and_write_json_file(tsp_json_file_path);
     tspsolver.copy_json_file(tsp_json_file_path, "tsp_data.json");
     std::cout << "TSP weight setting complete and file saved" << std::endl;
 

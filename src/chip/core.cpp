@@ -15,13 +15,17 @@ core::core(const char* param_file, const std::string& tsp_data_file_path) : para
     json _TSPData = json::parse(f);
 	
 	// timestep_injection = 30e-6;
-    
+    // ====== The Neuron , Synapse Settings are exclusive to TSP application ======
 	_numCity = _TSPData["num_city"];
     _solutionDistance = _TSPData["solution"];
     _optimalItinerary = _TSPData["optimal_itinerary"].get<std::vector<int>>();
 
-	num_neurons[side_v] = _numCity* _numCity;
-    num_neurons[side_h] = _numCity* _numCity;
+    num_neurons_bias[side_v] = _TSPData["num_neurons_bias"];
+    num_neurons_principal[side_v] = _TSPData["num_neurons_principal"];
+    num_neurons_principal[side_h] = _TSPData["num_neurons_principal"];
+
+	num_neurons[side_v] = num_neurons_principal[side_v] + num_neurons_bias[side_v];
+    num_neurons[side_h] = num_neurons_principal[side_h];
 
     potentialFilePath[side_v] = "VisibleMemV.json";
     potentialFilePath[side_h] = "HiddenMemV.json";
@@ -31,6 +35,12 @@ core::core(const char* param_file, const std::string& tsp_data_file_path) : para
 }
 
 void core::initialize(){
+
+    // TSP parameters Setting
+    _optimalItineraryNeuronNum.resize(_numCity);
+    for(int i = 0; i < _numCity; i++){
+        _optimalItineraryNeuronNum[i] = _optimalItinerary[i] + i * _numCity - 1;
+    }
 
     // Neuron Layer Setting
     std::cout << "[START]Neuron Layer Setting" << std::endl;
@@ -158,16 +168,43 @@ void core::generateMagazine(double tend){
         {"neuron", nlohmann::json::array()},
     };
 
-    for (int i = 1; i < injection_step; i++) {
-        for (int j = 0; j < _optimalItinerary.size(); j++) {
-            auto& _spikeTime = result["time"];
-            auto& _side = result["side"];
-            auto& _neuronNum = result["neuron"];
+    for (int i = 0; i < injection_step; i++) {
 
-            _spikeTime.push_back(i*params.timestep_injection);
-            _side.push_back(side_v);
-            _neuronNum.push_back(j*_numCity + _optimalItinerary[j] - 1);
+        if (num_neurons_bias[side_v] > 0){ // if there is bias neurons
+            if( i%2 == 0 ){ // spike injected directly to the optimal itinerary 
+                for (auto j : _optimalItineraryNeuronNum) {
+                    auto& _spikeTime = result["time"];
+                    auto& _side = result["side"];
+                    auto& _neuronNum = result["neuron"];
+
+                    _spikeTime.push_back(i*params.timestep_injection);
+                    _side.push_back(side_v);
+                    _neuronNum.push_back(j);
+                }
+            } else { // spike in bias neuron to increase memV of neurons of optimal itinerary
+                for (int j = num_neurons_principal[side_v]; j < num_neurons[side_v]; j++) {
+                    auto& _spikeTime = result["time"];
+                    auto& _side = result["side"];
+                    auto& _neuronNum = result["neuron"];
+
+                    _spikeTime.push_back(i*params.timestep_injection);
+                    _side.push_back(side_v);
+                    _neuronNum.push_back(j);
+                }
+            }
+        } else {
+            for (auto j : _optimalItineraryNeuronNum) {
+                auto& _spikeTime = result["time"];
+                auto& _side = result["side"];
+                auto& _neuronNum = result["neuron"];
+
+                _spikeTime.push_back(i*params.timestep_injection);
+                _side.push_back(side_v);
+                _neuronNum.push_back(j);
+            }
         }
+
+        
     }
 
     std::ofstream out("magazine_injection.json");
@@ -597,7 +634,7 @@ void core::STDP(spike& run_spike, int& phase){
 
 void core::run_simulation(){
     
-    double tend = 0.01;
+    double tend = 0.001;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -609,6 +646,14 @@ void core::run_simulation(){
     long int loop_count = 0;
     cout << setprecision(9);
 
+    auto get_phase = [&]() {
+        double stime = tnow - (double)((int)(tnow / params.timestep_injection*2)) * (params.timestep_injection*2);
+        if((0.0 <= stime) && (stime < params.timestep_injection))
+            return data_phase;
+        else
+            return model_phase;
+    };
+
     generateMagazine(tend); // additional utility if there is no external magazine
     loadMagazine("magazine_injection.json");
 
@@ -618,8 +663,9 @@ void core::run_simulation(){
     setRandomWalkSchedule(tend, side_h);
 
     while(1){
-        
+
         task_id = assignTask(&run_spike, tpre, tnow, tend, &magazine_side);
+        phase = get_phase();
         std::cout << "tpre : " << tpre << " | tnow : " << tnow << std::endl;
         if(task_id == 0 || task_id == 1) { // (_reset, _st) = ( , )
             if (run_spike->_reset) { // (1,-)

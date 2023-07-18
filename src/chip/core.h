@@ -58,7 +58,11 @@ class core
 	public: int _numCity;
 	public: int _solutionDistance;
 	public: std::vector<int> _optimalItinerary;
+	public: std::vector<int> _optimalItineraryNeuronNum;
+
 	private: int num_neurons[2];
+	private: int num_neurons_principal[2];
+	private: int num_neurons_bias[2];
 
 	private: LIFNeuronLayer visibleLayer;
 	private: LIFNeuronLayer hiddenLayer;

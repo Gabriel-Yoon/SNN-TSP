@@ -40,7 +40,10 @@ namespace csp
 
 		/*---------------------fields-----------------*/
 		public: int _numCity;
+		public: int _numNeuronsBias;
+		public: int _numNeuronsPrincipal;
 		public: std::vector<int> _itinerary;
+		public: std::vector<int> _itineraryNeuronNum;
 		public: double _solutionDistance; // 19 for 5 cities, 937 for 26 cities.
 		private: std::string _solveMode;
 		private: map<double, double> _performance; // (time, performance) format. totalDistance saved in this map

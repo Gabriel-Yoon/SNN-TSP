@@ -13,12 +13,10 @@ namespace csp {
 
     tsp::tsp(const std::string& tsp_json_file_path, const std::string& tsp_matrix_file_path, const std::string& tsp_itinerary_file_path){
         
-        read_distance_matrix(tsp_matrix_file_path);
+        read_distance_matrix(tsp_matrix_file_path); // get distance matrix and _numCity
         load_itinerary(tsp_itinerary_file_path);
         calculate_minimal_total_distance();
-        read_and_write_json_file(tsp_json_file_path);
 
-        
         // param_file == "tsp_data.json"
         std::ifstream f(tsp_json_file_path);
         json _TSPparam = json::parse(f);
@@ -32,7 +30,8 @@ namespace csp {
         _InhibitNonAdjWTASameCities = _TSPparam["nonAdjWTASameCities"];
         _b = _TSPparam["b"];
         _grad = _TSPparam["grad"];
-        
+        _numNeuronsBias = _TSPparam["num_neurons_bias"];
+
         std::cout << "TSP PARSING COMPLETE" << std::endl;
     }
 
@@ -56,7 +55,8 @@ namespace csp {
                 num_neurons[side_h] = ((_numCity + 1) / 2) * ((_numCity + 1) / 2);
             }
         } else if (_solveMode == "lateral_BM") {
-            num_neurons[side_v] = _numCity * _numCity;
+            _numNeuronsPrincipal = _numCity * _numCity;
+            num_neurons[side_v] = _numNeuronsPrincipal + _numNeuronsBias;
             num_neurons[side_h] = _numCity * _numCity;
         }
     }
@@ -183,11 +183,12 @@ namespace csp {
             - : UNDEFINED   | This would be 0 for now
          */
 
-        cout << "[START] WEIGHT SETUP" << endl;
+        std::cout << "[START] WEIGHT SETUP" << std::endl;
+        std::cout << "Weight for principal neurons" << std::endl;
         int v_WTA, v_city, h_WTA, h_city;
         // i : WTA Network, j : City
-        for (int v_idx = 0; v_idx < num_neurons[side_v]; v_idx++) {
-            for (int h_idx = 0; h_idx < num_neurons[side_h]; h_idx++) {
+        for (int v_idx = 0; v_idx < _numNeuronsPrincipal; v_idx++) {
+            for (int h_idx = 0; h_idx < _numNeuronsPrincipal; h_idx++) {
 
                 double max_w = 10;
                 double min_w = 0;
@@ -244,6 +245,17 @@ namespace csp {
                 }
             }
         }
+        std::cout << "Weight for bias neurons : visible side" << std::endl;
+        for (int v_idx = _numNeuronsPrincipal; v_idx < num_neurons[side_v]; v_idx++) {
+            for (auto h_idx : _itineraryNeuronNum) {
+                if (h_idx == 0){
+                    weight_matrix[v_idx][h_idx].Gp = 1.0;
+                } else {
+                    weight_matrix[v_idx][h_idx].Gp = 0.5;
+                }
+            }
+        }
+
         cout << "[_END_] WEIGHT SETUP" << endl;
     }
 
@@ -282,6 +294,9 @@ namespace csp {
         data["num_city"] = _numCity;
         data["optimal_itinerary"] = _itinerary;
         data["solution"] = this->_solutionDistance;
+        data["num_neurons_bias"] = _numNeuronsBias;
+        data["num_neurons_principal"] = _numNeuronsPrincipal;
+
 
         // Write the updated JSON data back to the file
         std::ofstream write_file(file_path);
@@ -317,6 +332,10 @@ namespace csp {
             while (file >> city) {
                 _itinerary.push_back(city);
             }
+        }
+        _itineraryNeuronNum.resize(_numCity);
+        for(int i = 0; i < _numCity; i++){
+            _itineraryNeuronNum[i] = _itinerary[i] + i * _numCity - 1;
         }
     }
 
