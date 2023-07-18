@@ -8,6 +8,7 @@
 #include <fstream>  //ofstream
 #include <stdio.h>
 #include <map>
+#include <math.h>
 
 #include "../utils/utils.h"
 #include "../utils/np.h"

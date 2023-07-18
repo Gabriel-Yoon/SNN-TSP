@@ -16,5 +16,5 @@
   "sameWTADiffCities": -0.3,
   "solution": 19.0,
   "num_neurons_principal": 25,
-  "num_neurons_bias": 1
+  "num_neurons_bias": 0
 }

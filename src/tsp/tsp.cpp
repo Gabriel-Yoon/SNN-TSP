@@ -206,13 +206,25 @@ namespace csp {
                         weight_flag = "0";
                     }
                     else { // in the same_WTA but btw different cities
-                        weight_matrix[v_idx][h_idx].Gp = _ExciteSameWTADiffCities;
+                        if (_ExciteSameWTADiffCities > 0) {
+                            weight_matrix[v_idx][h_idx].Gp = _ExciteSameWTADiffCities;
+                            weight_matrix[v_idx][h_idx].Gm = 0;
+                        } else {
+                            weight_matrix[v_idx][h_idx].Gp = 0;
+                            weight_matrix[v_idx][h_idx].Gm = fabs(_ExciteSameWTADiffCities);
+                        }
                         weight_flag = "-";
                     }
                 } // different WTA but neighbor===============================================================
                 else if (fabs((v_WTA)-(h_WTA)) == 1 || fabs((v_WTA)-(h_WTA)) == (_numCity - 1)) { // adjacent WTA
                     if (v_city == h_city) { // adjacent WTA - same city = inhibition!
-                        weight_matrix[v_idx][h_idx].Gp = _InhibitAdjWTASameCities;
+                        if (_InhibitAdjWTASameCities > 0){
+                            weight_matrix[v_idx][h_idx].Gp = _InhibitAdjWTASameCities;
+                            weight_matrix[v_idx][h_idx].Gm = 0;
+                        } else {
+                            weight_matrix[v_idx][h_idx].Gp = 0;
+                            weight_matrix[v_idx][h_idx].Gm = fabs(_InhibitAdjWTASameCities);
+                        }
                         weight_flag = "/";
                     }
                     else { // THE MOST IMPORTANT PART OF THE TRAVELING SALESMAN PROBLEM
@@ -222,7 +234,13 @@ namespace csp {
                 } // different WTA not neighbor===============================================================
                 else if (fabs((v_WTA % _numCity) - (h_WTA % _numCity)) != 1) { //non-adjacent WTA networks
                     if (v_city == h_city) {
-                        weight_matrix[v_idx][h_idx].Gp = _InhibitNonAdjWTASameCities; // inhibition btw same cities
+                        if (_InhibitNonAdjWTASameCities > 0){// inhibition btw same cities
+                            weight_matrix[v_idx][h_idx].Gp = _InhibitNonAdjWTASameCities;
+                            weight_matrix[v_idx][h_idx].Gm = 0;
+                        } else {
+                            weight_matrix[v_idx][h_idx].Gp = 0;
+                            weight_matrix[v_idx][h_idx].Gm = fabs(_InhibitNonAdjWTASameCities);
+                        }
                         weight_flag = "|";
                     }
                     else { // no connection
@@ -232,7 +250,7 @@ namespace csp {
                 }
 
                 if (v_idx == 0 && h_city == 1) {
-                    weight_matrix[v_idx][h_idx].Gp = -0.3;
+                    weight_matrix[v_idx][h_idx].Gm = fabs(-0.3);
                 }
 
                 // Check for weight value if they touch the boundaries
