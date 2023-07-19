@@ -33,7 +33,7 @@ void synapse::setGp(){
 }
 //----------------------------------------------------
 void synapse::resetGp(){
-    if(this->Gp + this->dG_reset > this->minGp){
+    if(this->Gp + this->dG_reset < this->minGp){
         this->Gp = this->minGp;
     } else{
         this->Gp += dG_reset;
