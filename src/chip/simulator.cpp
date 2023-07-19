@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     system("color 0A");
     */
 
-   double tend = 0.01;
+   double tend = 1;
 
     if (argc >= 2) {
         try {
