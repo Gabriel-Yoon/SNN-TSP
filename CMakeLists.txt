@@ -48,8 +48,8 @@ add_custom_target(run
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_itinerary.txt ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/chip/sim_params.test.json ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/plot ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/plot
-    COMMAND $<TARGET_FILE:tsp>
-    COMMAND $<TARGET_FILE:snn_tsp>
+    COMMAND $<TARGET_FILE:tsp> ${ARGV}
+    COMMAND $<TARGET_FILE:snn_tsp> ${ARGV}
     COMMAND ${CMAKE_COMMAND} -E echo "Running main.py..."
     COMMAND ${CMAKE_COMMAND} -E env python3 ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/plot/main.py
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}

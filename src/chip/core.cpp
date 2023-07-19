@@ -632,9 +632,9 @@ void core::STDP(spike& run_spike, int& phase){
     
 }
 
-void core::run_simulation(){
+void core::run_simulation(double& tend){
     
-    double tend = 0.01;
+    // double tend = 0.01;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -873,8 +873,8 @@ void core::exportNeuronPotentialToJson(double& tnow) {
 }
 
 void core::exportSynapseWeightsToJson(const std::string& filename, double tnow) {
-    
-    std::string tnowStr = std::to_string(tnow);
+
+    std::string tnowStr = std::to_string(static_cast<int>(tnow / 1e-6));
     std::string newFilename = filename;
     newFilename.insert(newFilename.find_last_of('.'), "_" + tnowStr);
     

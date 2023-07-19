@@ -101,7 +101,7 @@ class core
 	public: core(const char* param_file, const std::string& tsp_data_file_path);
 	public: void initialize();
 	public: void print_params();
-	public: void run_simulation();
+	public: void run_simulation(double& tend);
 	// public: void initialize_export();
 
 	private: std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> load_mnist_28(std::string dataset, np::array_1d<int> digits);
