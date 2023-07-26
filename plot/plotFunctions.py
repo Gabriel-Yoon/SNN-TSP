@@ -122,6 +122,52 @@ def plot_spike_raster(spike_data):
     ax.set_title("Spike Raster Plot")
     plt.show()
 
+def spike_raster_plot(json_file):
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+
+    num_of_neurons = data[0]['num_of_neurons']
+    spikes = [(entry['time'], entry['neuron']) for entry in data[1:]]
+
+    spike_times = [[] for _ in range(num_of_neurons)]
+    for time, neuron in spikes:
+        spike_times[neuron].append(time)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.eventplot(spike_times, linewidths=1)
+    ax.set_title('Spike Raster Plot')
+    ax.set_xlabel('Time (s)')
+    ax.set_ylabel('Neuron Index')
+    ax.set_yticks(range(num_of_neurons))
+    ax.set_ylim(-1, num_of_neurons)
+    ax.invert_yaxis()
+    plt.show()
+
+def plot_neuron_potentials(json_file):
+    with open(json_file, 'r') as file:
+        data = json.load(file)
+
+    neuron_data = data['neuronData']
+    num_neurons = len(neuron_data[0]['neuronPotentials'])
+    
+    fig, axs = plt.subplots(num_neurons, 1, figsize=(8, 3*num_neurons), sharex=True)
+
+    for i, ax in enumerate(axs):
+        time_steps = [entry['time'] for entry in neuron_data]
+        neuron_potentials = [entry['neuronPotentials'][i] for entry in neuron_data]
+        ax.plot(time_steps, neuron_potentials, linewidth=1)
+        ax.set_ylim(0, 1)  # Set y-axis limits from 0 to 1
+        ax.set_yticks([0, 1])  # Set y-axis ticks to 0 and 1 for all subplots
+        ax.legend([f'Neuron {i+1}'])
+        ax.grid(False)  # Remove the grid
+        ax.axhline(y=1, color='black', linewidth=1, linestyle='--')  # Black line at y=1
+
+    axs[-1].set_xlabel('Time')
+    fig.text(0.04, 0.5, 'Neuron Potential', va='center', rotation='vertical', fontsize=12)
+    plt.suptitle('Neuron Potentials vs. Time', fontsize=16)
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
 def plotNeuronPotentialsFromJson(filename, output_file):
     # Load the JSON data from the file
     with open(filename, 'r') as file:
