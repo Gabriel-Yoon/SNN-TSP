@@ -36,23 +36,13 @@ int main(int argc, char *argv[]) {
     system("color 0A");
     */
 
-   double tend = 1;
-
-    if (argc >= 2) {
-        try {
-            tend = std::stod(argv[1]);
-        } catch (const std::exception& e) {
-            std::cerr << "Invalid value for tend. Using the default value: " << tend << std::endl;
-        }
-    }
-
     char* chip_param_file_path = "sim_params.test.json";
     const std::string tsp_data_file_path = "tsp_data.json";
     core mycore(chip_param_file_path, tsp_data_file_path);
     //mycore.print_params();
     mycore.initialize();
     mycore.print_params();
-    mycore.run_simulation(tend);
+    mycore.run_simulation();
     
     std::cout << std::setprecision(4);
     std::cout << "simulation done" << std::endl;
