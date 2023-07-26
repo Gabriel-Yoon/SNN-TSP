@@ -170,19 +170,31 @@ void core::generateMagazine(double tend){
 
     for (int i = 0; i < injection_step; i++) {
 
-        if (num_neurons_bias[side_v] > 0){ // if there is bias neurons
-            if( i%2 == 0 ){ // spike injected directly to the optimal itinerary 
-                for (auto j : _optimalItineraryNeuronNum) {
-                    auto& _spikeTime = result["time"];
-                    auto& _side = result["side"];
-                    auto& _neuronNum = result["neuron"];
+        if (params.enable_learning) {
+            if (num_neurons_bias[side_v] > 0){ // if there is bias neurons
+                if( i%2 == 0 ){ // spike injected directly to the optimal itinerary 
+                    for (auto j : _optimalItineraryNeuronNum) {
+                        auto& _spikeTime = result["time"];
+                        auto& _side = result["side"];
+                        auto& _neuronNum = result["neuron"];
 
-                    _spikeTime.push_back(i*params.timestep_injection);
-                    _side.push_back(side_v);
-                    _neuronNum.push_back(j);
+                        _spikeTime.push_back(i*params.timestep_injection);
+                        _side.push_back(side_v);
+                        _neuronNum.push_back(j);
+                    }
+                } else { // spike in bias neuron to increase memV of neurons of optimal itinerary
+                    for (int j = num_neurons_principal[side_v]; j < num_neurons[side_v]; j++) {
+                        auto& _spikeTime = result["time"];
+                        auto& _side = result["side"];
+                        auto& _neuronNum = result["neuron"];
+
+                        _spikeTime.push_back(i*params.timestep_injection);
+                        _side.push_back(side_v);
+                        _neuronNum.push_back(j);
+                    }
                 }
-            } else { // spike in bias neuron to increase memV of neurons of optimal itinerary
-                for (int j = num_neurons_principal[side_v]; j < num_neurons[side_v]; j++) {
+            } else {
+                for (auto j : _optimalItineraryNeuronNum) {
                     auto& _spikeTime = result["time"];
                     auto& _side = result["side"];
                     auto& _neuronNum = result["neuron"];
@@ -193,18 +205,17 @@ void core::generateMagazine(double tend){
                 }
             }
         } else {
-            for (auto j : _optimalItineraryNeuronNum) {
+            for (int i = 1; i < injection_step; i++) {
                 auto& _spikeTime = result["time"];
                 auto& _side = result["side"];
                 auto& _neuronNum = result["neuron"];
 
                 _spikeTime.push_back(i*params.timestep_injection);
                 _side.push_back(side_v);
-                _neuronNum.push_back(j);
+                _neuronNum.push_back(0);
+
             }
         }
-
-        
     }
 
     std::ofstream out("magazine_injection.json");
@@ -320,7 +331,10 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
         for(int i = 0; i < hiddenLayer._neurons.size(); i++){
             hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
         }
-        exportNeuronPotentialToJson(tnow);
+        
+        if (tnow <= tend){
+            exportNeuronPotentialToJson(tnow);
+        }
     }
 
     switch(case_id)
@@ -354,7 +368,36 @@ int core::assignTask(spike **run_spike, double& tpre, double& tnow, double& tend
 }
 
 void core::shootSpike(spike& run_spike, int& phase){    
+    
     for(auto it = run_spike._spk.begin(); it != run_spike._spk.end(); it++){
+        // step : h_WTA, city: h_city
+        int h_WTA = it->second / _numCity;
+        int h_city = it->second % _numCity;
+        
+        // For WTA, turn neuron OFF right away inside the WTA.
+        // The neuron also gets turned off through ST_PAUSE spike event
+        if(it->first == side_v){ // internal/external spike generated at visible side
+            // other cities rather than city 1 in WTA 1 turn off
+            if(it->second != 0) visibleLayer._neurons[it->second].turnOFF();
+            
+            // Prevent multiple spikes from occuring in the same WTA
+            if(visibleLayer._neurons[it->second]._active == false) continue;
+
+            // Turn OFF other neurons in the same WTA
+            // These neurons will be turned on right after refractory period
+            for(int i = 0; i < _numCity; i++){
+                int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                visibleLayer._neurons[iso_WTA].turnOFF();
+            }            
+
+            // For BM structure, the hidden neurons also should be turned off to prevent from memV update
+            if(params.enable_BM){
+                hiddenLayer._neurons[it->second].turnOFF();    
+            }
+
+        } else { // internal/external spike generated at hidden side
+            hiddenLayer._neurons[it->second].turnOFF();
+        }
         
         // writeSpikeIntoFile(run_spike);
         spikeRecorder.push_back(std::make_pair(run_spike._spikeTime, it->second));
@@ -364,18 +407,6 @@ void core::shootSpike(spike& run_spike, int& phase){
             hiddenShellCatcher.push_back(std::make_pair(run_spike._spikeTime, it->second));
         } else {
             visibleShellCatcher.push_back(std::make_pair(run_spike._spikeTime, it->second));
-        }        
-
-        // TEMPORARY CODE
-        // double check turn neuron OFF right away
-        // the neuron gets turned off through ST_PAUSE spike event
-        if(it->first == side_v){ // internal/external spike generated at visible side
-            visibleLayer._neurons[it->second].turnOFF();
-            if(params.enable_BM){
-                hiddenLayer._neurons[it->second].turnOFF();    
-            }
-        } else { // internal/external spike generated at hidden side
-            hiddenLayer._neurons[it->second].turnOFF();
         }
 
         // 1. To self magazine
@@ -388,8 +419,6 @@ void core::shootSpike(spike& run_spike, int& phase){
             run_spike_st_pause->_wup = false; // not being used for now
             run_spike_st_pause->_spk.push_back(make_pair(it->first, it->second));
             if(params.enable_BM && params.enable_WTA){ // WTA condition
-                int h_WTA = it->second / _numCity;
-                int h_city = it->second % _numCity;
                 // Be aware of the index! the real city num is : h_city = it->second % _numCity + 1;
                 for(int i = 0; i < _numCity; i++){
                 int iso_city = h_city + i * _numCity; // same city within different WTA module
@@ -417,8 +446,6 @@ void core::shootSpike(spike& run_spike, int& phase){
         run_spike_dummy->_wup = false; // not being used for now
         run_spike_dummy->_spk.push_back(make_pair(it->first, it->second));
         if(params.enable_BM && params.enable_WTA){ // WTA condition
-            int h_WTA = it->second / _numCity + 1;
-            int h_city = it->second % _numCity;
             for(int i = 0; i < _numCity; i++){
                 int iso_city = h_city + i * _numCity; // same city within different WTA module
                 int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
@@ -501,7 +528,7 @@ void core::reloadSpike(double tnow) {
     for(int i = 0; i<visibleLayer._neurons.size(); i++){
         if(visibleLayer._neurons[i]._memV >= visibleLayer._neurons[i]._Vth && visibleLayer._neurons[i]._active == true){
             std::cout << "<<<<<new spike at visible layer neuron number : " << i << std::endl;
-            visibleLayer._neurons[i].turnOFF();
+            // visibleLayer._neurons[i].turnOFF();
             spike *new_spike = new spike;
             new_spike->_spikeTime = tnow;
             new_spike->_spk.push_back(make_pair(side_v, i));
@@ -514,7 +541,7 @@ void core::reloadSpike(double tnow) {
     for(int i = 0; i<hiddenLayer._neurons.size(); i++){
         if(hiddenLayer._neurons[i]._memV >= hiddenLayer._neurons[i]._Vth && hiddenLayer._neurons[i]._active == true){
             std::cout << "<<<<<new spike at hidden layer neuron number : " << i << std::endl;
-            hiddenLayer._neurons[i].turnOFF();
+            // hiddenLayer._neurons[i].turnOFF();
             spike *new_spike = new spike;
             new_spike->_spikeTime = tnow;
             new_spike->_spk.push_back(make_pair(side_h, i));
@@ -632,9 +659,9 @@ void core::STDP(spike& run_spike, int& phase){
     
 }
 
-void core::run_simulation(double& tend){
+void core::run_simulation(){
     
-    // double tend = 0.01;
+    double tend = 0.0001;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -647,11 +674,17 @@ void core::run_simulation(double& tend){
     cout << setprecision(9);
 
     auto get_phase = [&]() {
-        double stime = tnow - (double)((int)(tnow / params.timestep_injection*2)) * (params.timestep_injection*2);
-        if((0.0 <= stime) && (stime < params.timestep_injection))
+        
+        if (params.enable_learning){
+            double stime = tnow - (double)((int)(tnow / params.timestep_injection*2)) * (params.timestep_injection*2);
+            if((0.0 <= stime) && (stime < params.timestep_injection))
+                return data_phase;
+            else
+                return model_phase;
+        } else{
             return data_phase;
-        else
-            return model_phase;
+        }
+        
     };
 
     generateMagazine(tend); // additional utility if there is no external magazine
