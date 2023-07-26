@@ -1,7 +1,7 @@
 {
   "timestep": 1e-6,
   "timestep_rng": 10e-6,
-  "timestep_injection": 2e-3,
+  "timestep_injection": 2e-5,
 
   "steps_transition": 10000,
   "steps_data": 40000,
@@ -58,7 +58,7 @@
 
   "num_of_image_learning": 100,
   "num_of_image_inference": 100,
-  "enable_learning": true,
+  "enable_learning": false,
   "enable_gpgm": true,
 
   "enable_random_walk": true,
