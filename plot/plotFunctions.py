@@ -141,7 +141,9 @@ def spike_raster_plot(json_file):
     ax.set_yticks(range(num_of_neurons))
     ax.set_ylim(-1, num_of_neurons)
     ax.invert_yaxis()
-    plt.show()
+    # plt.show()
+    output_filename = f"SpikeRasterPlot.png"
+    plt.savefig(output_filename)
 
 def plot_neuron_potentials(json_file):
     with open(json_file, 'r') as file:
@@ -166,7 +168,10 @@ def plot_neuron_potentials(json_file):
     fig.text(0.04, 0.5, 'Neuron Potential', va='center', rotation='vertical', fontsize=12)
     plt.suptitle('Neuron Potentials vs. Time', fontsize=16)
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
+    # plt.show()
+    output_filename = f"NeuronPotentialPlot.png"
+    plt.savefig(output_filename)
+
 
 def plotNeuronPotentialsFromJson(filename, output_file):
     # Load the JSON data from the file
@@ -265,6 +270,8 @@ def plotSynapseWeightsFromJson(filename, output_file):
 
     # Close the figure to free up memory
     plt.close(fig)
+
+    print("weight figure named : " + output_file +" saved successfully")
 
 
 #//**************************************************************************************************************//
