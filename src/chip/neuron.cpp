@@ -127,6 +127,7 @@ void neuron::memV_RandomWalk(rng& _rng) {
 }
 //----------------------------------------------------
 void neuron::memV_Reset() {
-    this->_memV = _Vreset;
+    std::cout << "RESETTING??" << std::endl;
+	this->_memV = this->_Vreset;
 }
 //----------------------------------------------------
