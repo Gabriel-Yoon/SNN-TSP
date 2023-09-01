@@ -135,14 +135,16 @@ void neuron::memV_RandomWalk(rng &_rng)
 		_randomWalkValue = (_randomWalkFlag) ? this->_randomWalkStepUp : this->_randomWalkStepDown;
 	}
 
-	if (this->_memV + _randomWalkSign * _randomWalkValue < 1e-6)
-	{
-		this->_memV = 0.0;
-	}
-	else
-	{
-		this->_memV += _randomWalkSign * _randomWalkValue;
-	}
+	this->_memV += _randomWalkSign * _randomWalkValue;
+
+	// if (this->_memV + _randomWalkSign * _randomWalkValue < 1e-6)
+	// {
+	// 	this->_memV = 0.0;
+	// }
+	// else
+	// {
+	// 	this->_memV += _randomWalkSign * _randomWalkValue;
+	// }
 }
 //----------------------------------------------------
 void neuron::memV_Reset()
