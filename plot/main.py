@@ -16,11 +16,10 @@ for json_file in synapse_json_files:
 
     # Plot the synapse weights for each JSON file
     output_filename = f"weight_gp_gm_{t}.png"
-    # plotSynapseWeightsFromJson(os.path.join(json_directory, json_file), output_filename)
+    plotSynapseWeightsFromJson(os.path.join(json_directory, json_file), output_filename)
 
 spike_raster_plot(spike_history_file)
-# plot_neuron_potentials(hidden_potential_file)
-    
+plot_neuron_potentials(hidden_potential_file)
 
 #tsp_data_filename = "/Users/gabriel/Development/SNN-TSP/build/tsp_data.json"
 #spike_history_filename = "/Users/gabriel/Development/SNN-TSP/build/spike_history.json"
