@@ -1,6 +1,6 @@
 #include <math.h>
 #include <algorithm>
-//#include <unistd.h>
+// #include <unistd.h>
 
 #include "core.h"
 
@@ -19,6 +19,11 @@ core::core(const char *param_file, const std::string &tsp_data_file_path) : para
     _numCity = _TSPData["num_city"];
     _solutionDistance = _TSPData["solution"];
     _optimalItinerary = _TSPData["optimal_itinerary"].get<std::vector<int>>();
+    for (const auto &row : _TSPData["distance_matrix"])
+    {
+        std::vector<double> rowValues = row.get<std::vector<double>>();
+        _distanceMatrix.push_back(rowValues);
+    }
 
     num_neurons_bias[side_v] = _TSPData["num_neurons_bias"];
     num_neurons_principal[side_v] = _TSPData["num_neurons_principal"];
@@ -307,7 +312,7 @@ void core::setRandomWalkSchedule(double tend, int side)
         random_walk *rw = new random_walk;
         rw->_time = (i + 1) * params.timestep_rng;
         rw->_randomWalk.first = side;  // which side to random walk
-        rw->_randomWalk.second = 0.06; // manual or auto
+        rw->_randomWalk.second = 0.00; // manual or auto
         if (side == side_v)
         {
             visibleRandomWalkSchedule.push(make_pair(rw->_time, rw));
@@ -373,12 +378,16 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
         for (int i = 0; i < visibleLayer._neurons.size(); i++)
         {
             if (visibleLayer._neurons[i]._active)
+            {
                 visibleLayer._neurons[i].memV_Leak(tpre, tnow);
+            }
         }
         for (int i = 0; i < hiddenLayer._neurons.size(); i++)
         {
             if (hiddenLayer._neurons[i]._active)
+            {
                 hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
+            }
         }
 
         if (tnow <= tend)
@@ -390,28 +399,36 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
     switch (case_id)
     {
     case visible_spike:
+        std::cout << "Spike (Visible Side)" << std::endl;
         *run_spike = visibleMagazine.top().second;
         *magazine_side = side_v;
         return 0;
     case hidden_spike:
+        std::cout << "Spike (Hidden Side)" << std::endl;
         *run_spike = hiddenMagazine.top().second;
         *magazine_side = side_h;
         return 1;
     case visible_random_walk:
+        // std::cout << "Random Walk (Visible Side)" << std::endl;
         // visibleLayer.RandomWalk(this->_rng);
         for (int i = 0; i < visibleLayer._neurons.size(); i++)
         {
             if (visibleLayer._neurons[i]._active)
+            {
                 visibleLayer._neurons[i].memV_RandomWalk(this->_rng);
+            }
         }
         *magazine_side = side_v;
         return 2;
     case hidden_random_walk:
+        // std::cout << "Random Walk (Hidden Side)" << std::endl;
         // hiddenLayer.RandomWalk(this->_rng);
         for (int i = 0; i < hiddenLayer._neurons.size(); i++)
         {
             if (hiddenLayer._neurons[i]._active)
+            {
                 hiddenLayer._neurons[i].memV_RandomWalk(this->_rng);
+            }
         }
         *magazine_side = side_h;
         return 3;
@@ -466,12 +483,12 @@ void core::shootSpike(spike &run_spike, int &phase)
             // other cities rather than city 1 in WTA 1 turn off
             if (it->second != 0)
             {
-                std::cout << "TURNING OFF " << it->second << "at visible layer" << std::endl;
+                std::cout << "TURNING OFF " << it->second << " at visible layer" << std::endl;
                 visibleLayer._neurons[it->second].turnOFF();
                 // For BM structure, the hidden neurons also should be turned off to prevent from memV update
                 if (params.enable_BM)
                 {
-                    std::cout << "TURNING OFF " << it->second << "at hidden layer" << std::endl;
+                    std::cout << "TURNING OFF " << it->second << " at hidden layer" << std::endl;
                     hiddenLayer._neurons[it->second].turnOFF();
                 }
             }
@@ -512,7 +529,7 @@ void core::shootSpike(spike &run_spike, int &phase)
         }
 
         // 1. To self magazine
-        // 1-1. ST_PAUSE Event
+        // 1-1. ST_PAUSE Event (0,1)
         spike *run_spike_st_pause = new spike;
         if (params.hw_ISO_MOD)
         {
@@ -534,7 +551,7 @@ void core::shootSpike(spike &run_spike, int &phase)
             }
         }
 
-        // 1-2. Reset Event
+        // 1-2. Reset Event (1,0)
         spike *run_spike_reset = new spike;
         if (params.hw_RES_EN)
         {
@@ -563,7 +580,7 @@ void core::shootSpike(spike &run_spike, int &phase)
         }
 
         // 2. To target magazine
-        // 2-1. Potential update event
+        // 2-1. Potential update event (0,0)
         spike *run_spike_target_pup = new spike;
         if (!params.enable_gpgm)
         {
@@ -637,6 +654,7 @@ void core::shootSpike(spike &run_spike, int &phase)
 
         if (it->first == side_v)
         {
+            std::cout << "Magazine Push ON for VIS" << std::endl;
             visibleMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
             visibleMagazine.push(make_pair(run_spike_reset->_spikeTime, run_spike_reset));
             visibleMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
@@ -645,6 +663,7 @@ void core::shootSpike(spike &run_spike, int &phase)
         }
         else
         {
+            std::cout << "Magazine Push ON for HID" << std::endl;
             hiddenMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
             hiddenMagazine.push(make_pair(run_spike_reset->_spikeTime, run_spike_reset));
             hiddenMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
@@ -731,7 +750,9 @@ void core::potentialUpdate(spike &run_spike)
                 {
                     if (hiddenLayer._neurons[i]._active)
                     {
+                        std::cout << "Neuron # : " << i << " potential before : " << hiddenLayer._neurons[i]._memV << std::endl;
                         hiddenLayer._neurons[i]._memV += synapseArray.delta_G(it->second, i);
+                        std::cout << "Neuron # : " << i << " potential after  : " << hiddenLayer._neurons[i]._memV << std::endl;
                     }
                 }
             }
@@ -831,7 +852,7 @@ void core::STDP(spike &run_spike, int &phase)
 void core::run_simulation()
 {
 
-    double tend = 0.001;
+    double tend = 0.1;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -883,7 +904,9 @@ void core::run_simulation()
                     // ** For Boltzmann Machine mode, changed hidden spike to visible spike **
                     if (run_spike->_spk.begin()->first == side_h && params.enable_BM)
                     {
+                        std::cout << "$$$ Changed side from " << run_spike->_spk.begin()->first << "$$$" << std::endl;
                         run_spike->_spk.begin()->first = side_v;
+                        std::cout << "$$$ Changed side to   " << run_spike->_spk.begin()->first << "$$$" << std::endl;
                         if (params.enable_learning)
                         {
                             std::cout << "Learning" << std::endl;
@@ -953,7 +976,7 @@ void core::run_simulation()
                     {
                         continue;
                     }
-                    if (magazine_side == run_spike->_spk.begin()->first)
+                    if (magazine_side == run_spike->_spk.begin()->first) // (0,0) self magazine, turning on
                     {
                         for (auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++)
                         {
@@ -971,6 +994,7 @@ void core::run_simulation()
                     }
                     else // (0,0) but spike derived from another side
                     {
+                        std::cout << "Potential Update on" << std::endl;
                         potentialUpdate(*run_spike);
                         reloadSpike(tnow);
                         tpre = tnow;
@@ -996,6 +1020,7 @@ void core::run_simulation()
 
     // After the Loop
     exportSpikeHistoryToJson("spike_history.json");
+    exportPerformanceMostRecentSpikesToJson("performance.json", 1e-3, tend);
     // exportSpikeRecorder();
 }
 
@@ -1174,4 +1199,87 @@ void core::exportSynapseWeightsToJson(const std::string &filename, double tnow)
     {
         std::cerr << "Unable to open file: " << newFilename << std::endl;
     }
+}
+
+void core::exportPerformanceMostRecentSpikesToJson(const std::string &filename, double deltaTime, double tend)
+{
+    double performanceTime = 0.0;
+    double performanceStep = tend / deltaTime;
+    std::vector<int> recentSpikes(_numCity, -1);
+    std::vector<std::pair<int, double>> performance;
+    std::vector<int> route(_numCity);
+    for (int i = 0; i < _numCity; i++)
+    {
+        route[i] = i; // if 5 cities, 0 to 4 will be assigned
+    }
+
+    performance.push_back(std::make_pair(0, 0.0));
+
+    for (int i = 1; i < performanceStep; i++)
+    {
+        performanceTime = i * performanceStep;
+        for (const auto &spike : spikeRecorder)
+        {
+            if (spike.first < (performanceTime - deltaTime))
+            {
+                continue;
+            }
+            else if ((performanceTime - deltaTime) <= spike.first && spike.first < performanceTime)
+            {
+                recentSpikes[(spike.second) / _numCity] = spike.first; // neuron number type in
+            }
+            else if (performanceTime < spike.first)
+            {
+                break;
+            }
+        }
+    }
+    std::vector<int> sortedrecentSpikes = recentSpikes;
+    std::sort(sortedrecentSpikes.begin(), sortedrecentSpikes.end());
+
+    if (sortedrecentSpikes == route)
+    { // contains all the cities
+        // Calculate the distance
+        double _calcDistance = 0.0;
+        for (size_t i = 1; i < recentSpikes.size(); ++i)
+        {
+            int from_city = recentSpikes[i - 1] - 1;
+            int to_city = recentSpikes[i] - 1;
+            _calcDistance += _distanceMatrix[from_city][to_city];
+        }
+
+        // Add the distance to return to the starting city
+        int last_city = recentSpikes.back() - 1;
+        int start_city = recentSpikes.front() - 1;
+        _calcDistance += _distanceMatrix[last_city][start_city];
+
+        performance.push_back(std::make_pair(performanceTime, _solutionDistance / _calcDistance));
+    }
+    else
+    {
+        // Constraint not satisfied
+    }
+
+    // Create a JSON object for the spike history
+    nlohmann::json spikeData;
+
+    // Export to JSON file
+    for (const auto &spike : performance)
+    {
+        nlohmann::json spikeEntry;
+        spikeEntry["time"] = spike.first;
+        spikeEntry["performance"] = spike.second;
+        spikeData.push_back(spikeEntry);
+    }
+
+    // Write the JSON data to the file
+    std::ofstream outputFile(filename);
+    if (!outputFile.is_open())
+    {
+        std::cout << "Failed to open the output file." << std::endl;
+        return;
+    }
+
+    outputFile << std::setw(4) << spikeData << std::endl;
+    outputFile.close();
 }
