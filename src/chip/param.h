@@ -9,56 +9,56 @@
 using namespace std;
 //**************************************************************************************************************//
 // Simulation parameter definitions
-struct param {
+struct param
+{
 
-	double timestep;						// Timescale for external spikes
-	double timestep_rng;					// Timescale for random walk event
+	double timestep;	 // Timescale for external spikes
+	double timestep_rng; // Timescale for random walk event
 	double timestep_injection;
-	
-	int steps_transition;					// Num of time steps for transition between 2 phases
-	int steps_data;							// Num of time steps for data phase per 1 pattern
-	int steps_model;						// Num of time steps for model phase per 1 pattern
+
+	int steps_transition; // Num of time steps for transition between 2 phases
+	int steps_data;		  // Num of time steps for data phase per 1 pattern
+	int steps_model;	  // Num of time steps for model phase per 1 pattern
 
 	int num_of_label;
 
-	double wlr_width;						// WLR(word line) width
-	double refractory_time;					// Refractory time
+	double wlr_width;		// WLR(word line) width
+	double refractory_time; // Refractory time
 
-	double delay_spikein2out;				// Spike in to out delay (bipolar & Gp/Gm)
-	double delay_spikeout2wlr;				// Spike out to wlr delay (bipolar)
+	double delay_spikein2out;  // Spike in to out delay (bipolar & Gp/Gm)
+	double delay_spikeout2wlr; // Spike out to wlr delay (bipolar)
 
-
-	double delay_spikeout2wlr_data_v;		// Spike out to wlr delay in data phase (Gp/Gm)
+	double delay_spikeout2wlr_data_v; // Spike out to wlr delay in data phase (Gp/Gm)
 	double delay_spikeout2wlr_data_h;
-	double delay_spikeout2wlr_model_v;		// Spike out to wlr delay in model phase (Gp/Gm)
+	double delay_spikeout2wlr_model_v; // Spike out to wlr delay in model phase (Gp/Gm)
 	double delay_spikeout2wlr_model_h;
 
-	double delay_spikeout2wup;				// Spike out to weight update delay (bipolar)
-	double delay_spikeout2wup_data;			// Spike out to weight update delay in data phase (Gp/Gm)
-	double delay_spikeout2wup_model;		// Spike out to weight update delay in model phase (Gp/Gm)
-	double delay_spikeout2td3;				// Spike out to TD3 delay (Gp/Gm)
+	double delay_spikeout2wup;		 // Spike out to weight update delay (bipolar)
+	double delay_spikeout2wup_data;	 // Spike out to weight update delay in data phase (Gp/Gm)
+	double delay_spikeout2wup_model; // Spike out to weight update delay in model phase (Gp/Gm)
+	double delay_spikeout2td3;		 // Spike out to TD3 delay (Gp/Gm)
 
-	double tset_width;						// Set pulse width (Gp/Gm)
-	double treset_width;					// Reset pulse width (Gp/Gm)
+	double tset_width;	 // Set pulse width (Gp/Gm)
+	double treset_width; // Reset pulse width (Gp/Gm)
 
-	double pt_init;							// Initial and reset potential vlaue
-	double pt_alpha;						// Alpha parameter for potential update by spike
+	double pt_init;	 // Initial and reset potential vlaue
+	double pt_alpha; // Alpha parameter for potential update by spike
 
-	double pt_lk_tau;						// Time constant for leakage
+	double pt_lk_tau; // Time constant for leakage
 	double pt_threshold;
 
-	double wt_delta_g_set;					// Weight update set step size (Gp/Gm)
-	double wt_delta_g_reset;				// Weight update reset step size (Gp/Gm)
+	double wt_delta_g_set;	 // Weight update set step size (Gp/Gm)
+	double wt_delta_g_reset; // Weight update reset step size (Gp/Gm)
 
-	double max_weight;						// Max weight (bipolar & Gp/Gm)
-	double min_weight;						// Min weight (bipolar & Gp/Gm)
+	double max_weight; // Max weight (bipolar & Gp/Gm)
+	double min_weight; // Min weight (bipolar & Gp/Gm)
 
-	double random_walk_step;				// Random walk step size
-	double random_walk_step_up;             // Random walk step Up size
-	double random_walk_step_down;           // Random walk step Dn size
+	double random_walk_step;	  // Random walk step size
+	double random_walk_step_up;	  // Random walk step Up size
+	double random_walk_step_down; // Random walk step Dn size
 
-	double sigmoid_mid;                     // Random walk -> sigmoid (mid)
-	double sigmoid_temp;                    // Random walk -> sigmoid (temp)
+	double sigmoid_mid;	 // Random walk -> sigmoid (mid)
+	double sigmoid_temp; // Random walk -> sigmoid (temp)
 
 	int neurons_visible_data;
 	int neurons_visible_label;
@@ -78,8 +78,8 @@ struct param {
 	bool enable_learning;
 	bool enable_gpgm;
 	bool enable_random_walk;
-	bool enable_white_noise;                // white noise for random walk
-	bool enable_sigmoid;                    // sigmoid function for random walk
+	bool enable_white_noise; // white noise for random walk
+	bool enable_sigmoid;	 // sigmoid function for random walk
 	bool enable_simulated_annealing;
 
 	bool enable_sns;
@@ -88,7 +88,7 @@ struct param {
 	bool enable_ps2;
 	double ps2_probability;
 
-	bool is_real_data;						// True = real data of device
+	bool is_real_data; // True = real data of device
 	bool is_synaptic_delay;
 	bool is_neuron_delay;
 
@@ -113,15 +113,14 @@ struct param {
 	double bias_rate_factor_v;
 	double bias_rate_factor_h;
 
-    bool hw_ISO_MOD;
-    bool hw_RES_EN;
-    bool hw_RES_BLK;
+	bool hw_ISO_MOD;
+	bool hw_RES_EN;
+	bool hw_RES_BLK;
 	bool enable_BM;
 	bool enable_WTA;
 
-    param(const char* param_file);
-    void print_parameters();
-
+	param(const char *param_file);
+	void print_parameters();
 };
 //**************************************************************************************************************//
 #endif

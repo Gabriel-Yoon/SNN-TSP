@@ -1,7 +1,7 @@
 {
   "timestep": 1e-6,
   "timestep_rng": 10e-6,
-  "timestep_injection": 2e-5,
+  "timestep_injection": 5e-3,
 
   "steps_transition": 10000,
   "steps_data": 40000,
@@ -27,7 +27,7 @@
   "tset_width": 4e-3,
   "treset_width": 4e-3,
 
-  "pt_init": 0.95,
+  "pt_init": 0.0,
   "pt_alpha": 0.1,
 
   "pt_lk_tau": 1e-3,
@@ -39,9 +39,9 @@
   "max_weight": 10.0,
   "min_weight": 0.0,
 
-  "random_walk_step": 0.06,
-  "random_walk_step_up": 0.06,
-  "random_walk_step_down": 0.06,
+  "random_walk_step": 0.0,
+  "random_walk_step_up": 0.0,
+  "random_walk_step_down": 0.0,
 
   "sigmoid_mid": 0.5,
   "sigmoid_temp": 4,

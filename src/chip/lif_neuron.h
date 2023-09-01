@@ -12,16 +12,18 @@
 //**************************************************************************************************************//
 class lif_neuron : public neuron
 {
-	/*---------------------fields-----------------*/
-	public: double _leakyTau;          // leaky tau value for LIF neuron
+    /*---------------------fields-----------------*/
+public:
+    double _leakyTau; // leaky tau value for LIF neuron
 
-	/*---------------------methods----------------*/
-    public: lif_neuron();
-    public: lif_neuron(param& _params);                         // LIF neuron Class constructor.
-    public: ~lif_neuron();                                      // LIF neuron Class destructor.
-    public: void ManualSet(param& _params);
-    public: double& leakyTau();                                 // (outdated)Gets the leaky tau
-    public: void memV_Leak(double& tpre, double& tnow); // Update membrane potential by leak
+    /*---------------------methods----------------*/
+public:
+    lif_neuron();
+    lif_neuron(param &_params); // LIF neuron Class constructor.
+    ~lif_neuron();              // LIF neuron Class destructor.
+    virtual void ManualSet(param &_params);
+    double &leakyTau();                         // (outdated)Gets the leaky tau
+    void memV_Leak(double &tpre, double &tnow); // Update membrane potential by leak
 };
 
 inline lif_neuron::lif_neuron() : _leakyTau(1e-3) {}

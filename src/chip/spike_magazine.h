@@ -6,6 +6,7 @@
 #include <vector>
 #include <queue>
 #include <functional>
+#include <nlohmann/json.hpp>
 
 #include "spike.h"
 #include "neuron.h"
@@ -19,32 +20,41 @@ class neuron;
 class spike_magazine
 {
     friend class spike;
-    
+
     /*---------------------fields-----------------*/
-    public: std::priority_queue<std::pair<double, spike*>, std::vector<std::pair<double, spike*>>, spk_cmp> _spikeMagazine;
+public:
+    std::priority_queue<std::pair<double, spike *>, std::vector<std::pair<double, spike *>>, spk_cmp> _spikeMagazine;
     /*---------------------methods----------------*/
+public:
     // Constructor
-    public: spike_magazine(){}
+    spike_magazine() {}
     // Destructor
-    public: ~spike_magazine(){}
-    public: void makeSpikeMagazineFile(std::string filename){
+    ~spike_magazine() {}
+
+public:
+    void makeSpikeMagazineFile(std::string filename)
+    {
         auto result = nlohmann::json{
-        {"time", json::array()},
-        {"neuron", json::array()},
+            {"time", json::array()},
+            {"neuron", json::array()},
         };
 
         std::ofstream out(filename + ".json");
         out << result;
     }
-    public: void writeSpikeMagazine(spike* run_spike){
+
+public:
+    void writeSpikeMagazine(spike *run_spike)
+    {
         std::string filepath = "";
         std::ifstream ifs(filepath);
         json _spikesavedfile = json::parse(ifs);
-        
-        for(auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++) { //
-            auto& _time = _spikesavedfile["time"];
-            auto& _neuron = _spikesavedfile["neuron"];
-            
+
+        for (auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++)
+        { //
+            auto &_time = _spikesavedfile["time"];
+            auto &_neuron = _spikesavedfile["neuron"];
+
             _time.push_back(run_spike->_spikeTime);
             _neuron.push_back(it->second);
         }
