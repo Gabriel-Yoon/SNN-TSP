@@ -852,7 +852,7 @@ void core::STDP(spike &run_spike, int &phase)
 void core::run_simulation()
 {
 
-    double tend = 0.1;
+    double tend = 0.03;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -982,6 +982,10 @@ void core::run_simulation()
                         {
                             if (it->first == side_v)
                             {
+                                if (params.enable_BM)
+                                {
+                                    hiddenLayer._neurons[it->second].turnON();
+                                }
                                 visibleLayer._neurons[it->second].turnON();
                                 tpre = tnow;
                             }
