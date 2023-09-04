@@ -149,7 +149,10 @@ void neuron::memV_RandomWalk(rng &_rng)
 //----------------------------------------------------
 void neuron::memV_Reset()
 {
-	std::cout << "RESETTING??" << std::endl;
-	this->_memV = this->_Vreset;
+	std::cout << "RESET before : " << this->_memV << std::endl;
+	// this->_memV = this->_Vreset;
+	double _resetValue = this->_Vreset;
+	this->_memV = _resetValue;
+	std::cout << "RESET after  : " << this->_memV << std::endl;
 }
 //----------------------------------------------------

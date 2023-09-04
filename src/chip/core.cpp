@@ -493,10 +493,11 @@ void core::shootSpike(spike &run_spike, int &phase)
                 }
             }
 
+            // Error occurred here!!
             // Prevent multiple spikes from occuring in the same WTA
             if (visibleLayer._neurons[it->second]._active == false)
             {
-                continue;
+                // continue;
             }
             if (WTA_iso_method)
             {
@@ -559,6 +560,7 @@ void core::shootSpike(spike &run_spike, int &phase)
             run_spike_reset->_reset = true;
             run_spike_reset->_st = false;
             run_spike_reset->_wup = false; // not being used for now
+            run_spike_reset->_spk.push_back(make_pair(it->first, it->second));
         }
 
         // 1-3. Dummy Event
@@ -588,6 +590,7 @@ void core::shootSpike(spike &run_spike, int &phase)
             run_spike_target_pup->_reset = false;
             run_spike_target_pup->_st = false;
             run_spike_target_pup->_wup = false; // not being used for now
+            run_spike_target_pup->_spk.push_back(make_pair(it->first, it->second));
         }
         else
         { // enable _ gpgm
@@ -654,16 +657,14 @@ void core::shootSpike(spike &run_spike, int &phase)
 
         if (it->first == side_v)
         {
-            std::cout << "Magazine Push ON for VIS" << std::endl;
             visibleMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
             visibleMagazine.push(make_pair(run_spike_reset->_spikeTime, run_spike_reset));
             visibleMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
             hiddenMagazine.push(make_pair(run_spike_target_pup->_spikeTime, run_spike_target_pup));
             hiddenMagazine.push(make_pair(run_spike_target_wup->_spikeTime, run_spike_target_wup));
         }
-        else
+        else // side_h
         {
-            std::cout << "Magazine Push ON for HID" << std::endl;
             hiddenMagazine.push(make_pair(run_spike_st_pause->_spikeTime, run_spike_st_pause));
             hiddenMagazine.push(make_pair(run_spike_reset->_spikeTime, run_spike_reset));
             hiddenMagazine.push(make_pair(run_spike_dummy->_spikeTime, run_spike_dummy));
@@ -703,13 +704,28 @@ void core::reloadSpike(double tnow)
             std::cout << "--------------------HERE--------------------" << std::endl;
             std::cout << "<<<<<new spike at hidden layer neuron number : " << i << std::endl;
             // hiddenLayer._neurons[i].turnOFF();
+
             spike *new_spike = new spike;
-            new_spike->_spikeTime = tnow;
-            new_spike->_spk.push_back(make_pair(side_h, i));
-            new_spike->_reset = true;
-            new_spike->_st = true;
+            // if BM structure, generated spike should be synchronized to the visible magazine
+            // ** For Boltzmann Machine mode, changed hidden spike to visible spike **
+            if (params.enable_BM)
+            {
+                new_spike->_spikeTime = tnow;
+                new_spike->_spk.push_back(make_pair(side_h, i));
+                new_spike->_reset = true;
+                new_spike->_st = true;
+                visibleMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
+            }
+            else
+            {
+                new_spike->_spikeTime = tnow;
+                new_spike->_spk.push_back(make_pair(side_h, i));
+                new_spike->_reset = true;
+                new_spike->_st = true;
+
+                hiddenMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
+            }
             spikeRecorder.push_back(std::make_pair(tnow, i));
-            hiddenMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
         }
     }
 }
@@ -852,7 +868,7 @@ void core::STDP(spike &run_spike, int &phase)
 void core::run_simulation()
 {
 
-    double tend = 0.03;
+    double tend = 0.009;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -901,12 +917,8 @@ void core::run_simulation()
             {
                 if (run_spike->_st) // (1,1)
                 {
-                    // ** For Boltzmann Machine mode, changed hidden spike to visible spike **
-                    if (run_spike->_spk.begin()->first == side_h && params.enable_BM)
+                    if (params.enable_BM)
                     {
-                        std::cout << "$$$ Changed side from " << run_spike->_spk.begin()->first << "$$$" << std::endl;
-                        run_spike->_spk.begin()->first = side_v;
-                        std::cout << "$$$ Changed side to   " << run_spike->_spk.begin()->first << "$$$" << std::endl;
                         if (params.enable_learning)
                         {
                             std::cout << "Learning" << std::endl;
@@ -925,26 +937,27 @@ void core::run_simulation()
                 }
                 else // (1,0)
                 {
-                    for (auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++)
+                    if (run_spike->_spk.begin()->first == side_v)
                     {
-                        if (it->first == side_v)
+                        if (params.enable_BM)
                         {
-                            if (params.enable_BM)
-                            {
-                                std::cout << "----------" << std::endl;
-                                std::cout << "RESET HERE" << std::endl;
-                                std::cout << "----------" << std::endl;
-                                hiddenLayer._neurons[it->second].memV_Reset();
-                            }
-                            else
-                            {
-                                visibleLayer._neurons[it->second].memV_Reset();
-                            }
+                            std::cout << "----------" << std::endl;
+                            std::cout << "RESET HERE" << std::endl;
+                            std::cout << "----------" << std::endl;
+                            std::cout << "Hidden Reset" << std::endl;
+                            std::cout << "Neuron Number : " << run_spike->_spk.begin()->second << std::endl;
+                            hiddenLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
                         }
                         else
                         {
-                            hiddenLayer._neurons[it->second].memV_Reset();
+                            std::cout << "Visible Reset" << std::endl;
+                            visibleLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
                         }
+                    }
+                    else
+                    {
+                        std::cout << "Hidden Reset" << std::endl;
+                        hiddenLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
                     }
                     tpre = tnow;
                 }
@@ -953,47 +966,49 @@ void core::run_simulation()
             {
                 if (run_spike->_st) // (0,1)
                 {
-                    for (auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++)
+                    if (run_spike->_spk.begin()->first == side_v)
                     {
-                        if (it->first == side_v)
+                        if (params.enable_BM)
                         {
-                            if (params.enable_BM)
-                            {
-                                hiddenLayer._neurons[it->second].turnOFF();
-                            }
-                            visibleLayer._neurons[it->second].turnOFF();
+                            hiddenLayer._neurons[run_spike->_spk.begin()->second].turnOFF();
                         }
                         else
                         {
-                            hiddenLayer._neurons[it->second].turnOFF();
+                            visibleLayer._neurons[run_spike->_spk.begin()->second].turnOFF();
                         }
+                    }
+                    else
+                    {
+                        hiddenLayer._neurons[run_spike->_spk.begin()->second].turnOFF();
                     }
                     tpre = tnow;
                 }
                 else // (0,0) but self magazine dummy event
                 {
-                    if (run_spike->_wup) // nothing to do when the bullet is for wup event
-                    {
-                        continue;
-                    }
+                    // if (run_spike->_wup) // nothing to do when the bullet is for wup event
+                    // {
+                    //     continue;
+                    // }
                     if (magazine_side == run_spike->_spk.begin()->first) // (0,0) self magazine, turning on
                     {
-                        for (auto it = run_spike->_spk.begin(); it != run_spike->_spk.end(); it++)
+                        if (run_spike->_spk.begin()->first == side_v)
                         {
-                            if (it->first == side_v)
+                            if (params.enable_BM)
                             {
-                                if (params.enable_BM)
-                                {
-                                    hiddenLayer._neurons[it->second].turnON();
-                                }
-                                visibleLayer._neurons[it->second].turnON();
-                                tpre = tnow;
+                                std::cout << "Turning on hidden : " << run_spike->_spk.begin()->second << std::endl;
+                                hiddenLayer._neurons[run_spike->_spk.begin()->second].turnON();
                             }
                             else
                             {
-                                hiddenLayer._neurons[it->second].turnON();
-                                tpre = tnow;
+                                std::cout << "Turning on visible : " << run_spike->_spk.begin()->second << std::endl;
+                                visibleLayer._neurons[run_spike->_spk.begin()->second].turnON();
                             }
+                            tpre = tnow;
+                        }
+                        else
+                        {
+                            hiddenLayer._neurons[run_spike->_spk.begin()->second].turnON();
+                            tpre = tnow;
                         }
                     }
                     else // (0,0) but spike derived from another side
