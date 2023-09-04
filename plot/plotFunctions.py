@@ -158,8 +158,10 @@ def plot_neuron_potentials(json_file):
         time_steps = [entry['time'] for entry in neuron_data]
         neuron_potentials = [entry['neuronPotentials'][i] for entry in neuron_data]
         ax.plot(time_steps, neuron_potentials, linewidth=1)
-        ax.set_ylim(0, 1)  # Set y-axis limits from 0 to 1
-        ax.set_yticks([0, 1])  # Set y-axis ticks to 0 and 1 for all subplots
+
+        ax.axhline(y=0, color='grey', linewidth=1, linestyle='--')  # Add grey line at y=0
+        ax.set_ylim(-1.02, 1.02) # Set y-axis limits from -1 to 1
+        ax.set_yticks([-1, 0, 1])  # Add 0 to y-axis ticks
         ax.legend([f'Neuron {i+1}'])
         ax.grid(False)  # Remove the grid
         ax.axhline(y=1, color='black', linewidth=1, linestyle='--')  # Black line at y=1
