@@ -467,9 +467,6 @@ void core::shootSpike(spike &run_spike, int &phase)
     - Random Walk should be performed on ON neurons only                            OK
 
     */
-
-    bool WTA_iso_method = false;
-
     for (auto it = run_spike._spk.begin(); it != run_spike._spk.end(); it++)
     {
         // step : h_WTA, city: h_city
@@ -499,21 +496,32 @@ void core::shootSpike(spike &run_spike, int &phase)
             {
                 // continue;
             }
-            if (WTA_iso_method)
+            if (params.enable_WTA)
             {
                 // Turn OFF other neurons in the same WTA
                 // These neurons will be turned on right after refractory period
                 for (int i = 0; i < _numCity; i++)
                 {
                     int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
-                    visibleLayer._neurons[iso_WTA].turnOFF();
+                    visibleLayer._neurons[iso_WTA].WTAisoOFF();
                 }
             }
         }
         else
         { // internal/external spike generated at hidden side
-            std::cout << "TURNING OFF " << it->second << "at hidden layer by hidden side spike" << std::endl;
+            std::cout << "TURNING OFF " << it->second << " at hidden layer by hidden side spike" << std::endl;
             hiddenLayer._neurons[it->second].turnOFF();
+            hiddenLayer._neurons[it->second].WTAisoOFF();
+            // neurons other than spiking neuron will be isolated by WTA
+            if (params.enable_WTA)
+            {
+                for (int i = 0; i < _numCity; i++)
+                {
+                    int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                    std::cout << "WTA iso " << it->second << " at hidden layer" << std::endl;
+                    hiddenLayer._neurons[iso_WTA].WTAisoOFF();
+                }
+            }
         }
 
         // writeSpikeIntoFile(run_spike);
@@ -679,7 +687,7 @@ void core::reloadSpike(double tnow)
     // compare membrane potential with threshold voltage for new internal spikes
     for (int i = 0; i < visibleLayer._neurons.size(); i++)
     {
-        if (visibleLayer._neurons[i]._memV >= visibleLayer._neurons[i]._Vth && visibleLayer._neurons[i]._active == true)
+        if (visibleLayer._neurons[i]._memV >= visibleLayer._neurons[i]._Vth && visibleLayer._neurons[i]._active == true && visibleLayer._neurons[i]._WTAiso == true)
         {
             std::cout << "<<<<<new spike at visible layer neuron number : " << i << std::endl;
             // visibleLayer._neurons[i].turnOFF();
@@ -695,7 +703,7 @@ void core::reloadSpike(double tnow)
     for (int i = 0; i < hiddenLayer._neurons.size(); i++)
     {
 
-        if (hiddenLayer._neurons[i]._memV >= hiddenLayer._neurons[i]._Vth && hiddenLayer._neurons[i]._active == true)
+        if (hiddenLayer._neurons[i]._memV >= hiddenLayer._neurons[i]._Vth && hiddenLayer._neurons[i]._active == true && hiddenLayer._neurons[i]._WTAiso == true)
         {
             std::cout << "--------------------HERE--------------------" << std::endl;
             std::cout << "--------------------HERE--------------------" << std::endl;
@@ -868,7 +876,7 @@ void core::STDP(spike &run_spike, int &phase)
 void core::run_simulation()
 {
 
-    double tend = 0.009;
+    double tend = 0.006;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -997,6 +1005,18 @@ void core::run_simulation()
                             {
                                 std::cout << "Turning on hidden : " << run_spike->_spk.begin()->second << std::endl;
                                 hiddenLayer._neurons[run_spike->_spk.begin()->second].turnON();
+                                // WTA turning on again
+                                if (params.enable_WTA)
+                                {
+                                    int h_WTA = run_spike->_spk.begin()->second / _numCity;
+                                    int h_city = run_spike->_spk.begin()->second % _numCity;
+                                    for (int i = 0; i < _numCity; i++)
+                                    {
+                                        int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                                        std::cout << "WTA iso " << run_spike->_spk.begin()->second << " at hidden layer" << std::endl;
+                                        visibleLayer._neurons[iso_WTA].WTAisoON();
+                                    }
+                                }
                             }
                             else
                             {

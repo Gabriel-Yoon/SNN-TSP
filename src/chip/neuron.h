@@ -25,7 +25,7 @@ public:
     double _Vreset;           // reset voltage
     double _refractoryPeriod; // refractory period
     bool _active;             // true = ON, false = OFF
-    bool _WTAiso;             // in WTA, the iso should be true for
+    bool _WTAiso;             // in WTA, the iso should be true when a neuron in WTA module fires
 
     double _randomWalkStep;
     double _randomWalkStepUp;
@@ -40,13 +40,18 @@ public:
     neuron(param &_params); // Manually set parameters from params
     ~neuron();
     virtual void ManualSet(param &_params);
+
     void turnON();
     void turnOFF();
     void switchONOFF();
-    double &memV();              // Gets the membrane potential
-    double &Vth();               // Gets the threshold voltage
-    double &lastSpkTime();       // Gets the latest spike time history
-    double &refractoryPeriod();  // Gets the refractory period
+    void WTAisoON();
+    void WTAisoOFF();
+
+    double &memV();             // Gets the membrane potential
+    double &Vth();              // Gets the threshold voltage
+    double &lastSpkTime();      // Gets the latest spike time history
+    double &refractoryPeriod(); // Gets the refractory period
+
     void set_memV(double _newV); // Sets the membrane potential to new value
     void add_memV(double _updateV);
     void updateLastSpkTime(double _newLastSpkTime); // Sets the last spike time to latest spike time

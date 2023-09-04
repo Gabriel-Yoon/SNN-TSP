@@ -11,6 +11,7 @@ neuron::neuron()
 	this->_Vreset = 0.0;
 	this->_refractoryPeriod = 4e-3;
 	this->_active = true;
+	this->_WTAiso = true;
 
 	//_rng = nullptr;
 	this->_randomWalkStep = 0.06;
@@ -30,6 +31,7 @@ neuron::neuron(param &_params)
 	this->_Vth = _params.pt_threshold;				   // threshold voltage
 	this->_refractoryPeriod = _params.refractory_time; // refractory period
 	this->_active = true;							   // ON
+	this->_WTAiso = true;
 
 	this->_lastSpkTime = -1;		 // latest spike time history
 	this->_lastSpkTimeIN_PAUSE = -1; // latest spike time history
@@ -70,6 +72,16 @@ void neuron::turnOFF()
 void neuron::switchONOFF()
 {
 	this->_active = !this->_active;
+}
+//----------------------------------------------------
+void neuron::WTAisoON()
+{
+	this->_WTAiso = true;
+}
+//----------------------------------------------------
+void neuron::WTAisoOFF()
+{
+	this->_WTAiso = false;
 }
 //----------------------------------------------------
 double &neuron::memV()
