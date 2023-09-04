@@ -1014,7 +1014,7 @@ void core::run_simulation()
                                     {
                                         int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
                                         std::cout << "WTA iso " << run_spike->_spk.begin()->second << " at hidden layer" << std::endl;
-                                        visibleLayer._neurons[iso_WTA].WTAisoON();
+                                        hiddenLayer._neurons[iso_WTA].WTAisoON();
                                     }
                                 }
                             }
