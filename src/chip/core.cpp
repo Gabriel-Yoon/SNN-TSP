@@ -518,7 +518,7 @@ void core::shootSpike(spike &run_spike, int &phase)
                 for (int i = 0; i < _numCity; i++)
                 {
                     int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
-                    std::cout << "WTA iso " << it->second << " at hidden layer" << std::endl;
+                    std::cout << "WTA iso " << iso_WTA << " at hidden layer" << std::endl;
                     hiddenLayer._neurons[iso_WTA].WTAisoOFF();
                 }
             }
@@ -578,16 +578,16 @@ void core::shootSpike(spike &run_spike, int &phase)
         run_spike_dummy->_st = false;
         run_spike_dummy->_wup = false; // not being used for now
         run_spike_dummy->_spk.push_back(make_pair(it->first, it->second));
-        if (params.enable_BM && params.enable_WTA)
-        { // WTA condition
-            for (int i = 0; i < _numCity; i++)
-            {
-                int iso_city = h_city + i * _numCity; // same city within different WTA module
-                int iso_WTA = i + h_WTA * _numCity;   // other cities within the same WTA module
-                run_spike_dummy->_spk.push_back(make_pair(side_h, iso_city));
-                run_spike_dummy->_spk.push_back(make_pair(side_h, iso_WTA));
-            }
-        }
+        // if (params.enable_BM && params.enable_WTA)
+        // { // WTA condition
+        //     for (int i = 0; i < _numCity; i++)
+        //     {
+        //         int iso_city = h_city + i * _numCity; // same city within different WTA module
+        //         int iso_WTA = i + h_WTA * _numCity;   // other cities within the same WTA module
+        //         run_spike_dummy->_spk.push_back(make_pair(side_h, iso_city));
+        //         run_spike_dummy->_spk.push_back(make_pair(side_h, iso_WTA));
+        //     }
+        // }
 
         // 2. To target magazine
         // 2-1. Potential update event (0,0)
@@ -949,20 +949,14 @@ void core::run_simulation()
                     {
                         if (params.enable_BM)
                         {
-                            std::cout << "----------" << std::endl;
-                            std::cout << "RESET HERE" << std::endl;
-                            std::cout << "----------" << std::endl;
-                            std::cout << "Hidden Reset" << std::endl;
-                            std::cout << "Neuron Number : " << run_spike->_spk.begin()->second << std::endl;
                             hiddenLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
                         }
                         else
                         {
-                            std::cout << "Visible Reset" << std::endl;
                             visibleLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
                         }
                     }
-                    else
+                    else // This is the case of BM
                     {
                         std::cout << "Hidden Reset" << std::endl;
                         hiddenLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
@@ -976,14 +970,7 @@ void core::run_simulation()
                 {
                     if (run_spike->_spk.begin()->first == side_v)
                     {
-                        if (params.enable_BM)
-                        {
-                            hiddenLayer._neurons[run_spike->_spk.begin()->second].turnOFF();
-                        }
-                        else
-                        {
-                            visibleLayer._neurons[run_spike->_spk.begin()->second].turnOFF();
-                        }
+                        visibleLayer._neurons[run_spike->_spk.begin()->second].turnOFF();
                     }
                     else
                     {
@@ -1013,7 +1000,7 @@ void core::run_simulation()
                                     for (int i = 0; i < _numCity; i++)
                                     {
                                         int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
-                                        std::cout << "WTA iso " << run_spike->_spk.begin()->second << " at hidden layer" << std::endl;
+                                        std::cout << "Turning on hidden : " << iso_WTA << std::endl;
                                         hiddenLayer._neurons[iso_WTA].WTAisoON();
                                     }
                                 }
@@ -1025,7 +1012,7 @@ void core::run_simulation()
                             }
                             tpre = tnow;
                         }
-                        else
+                        else // side_h
                         {
                             hiddenLayer._neurons[run_spike->_spk.begin()->second].turnON();
                             tpre = tnow;
