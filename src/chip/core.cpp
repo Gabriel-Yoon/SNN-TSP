@@ -399,12 +399,12 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
     switch (case_id)
     {
     case visible_spike:
-        std::cout << "Spike (Visible Side)" << std::endl;
+        std::cout << "TASK : Spike (Visible Side)" << std::endl;
         *run_spike = visibleMagazine.top().second;
         *magazine_side = side_v;
         return 0;
     case hidden_spike:
-        std::cout << "Spike (Hidden Side)" << std::endl;
+        std::cout << "TASK : Spike (Hidden Side)" << std::endl;
         *run_spike = hiddenMagazine.top().second;
         *magazine_side = side_h;
         return 1;
@@ -475,27 +475,45 @@ void core::shootSpike(spike &run_spike, int &phase)
 
         // For WTA, turn neuron OFF right away inside the WTA.
         // The neuron also gets turned off through ST_PAUSE spike event
-        if (it->first == side_v)
-        { // internal/external spike generated at visible side
+        if (it->first == side_v) // external spike
+        {                        // internal/external spike generated at visible side
             // other cities rather than city 1 in WTA 1 turn off
-            if (it->second != 0)
+            visibleLayer._neurons[it->second].turnOFF();
+
+            if (params.enable_BM)
             {
-                std::cout << "TURNING OFF " << it->second << " at visible layer" << std::endl;
-                visibleLayer._neurons[it->second].turnOFF();
-                // For BM structure, the hidden neurons also should be turned off to prevent from memV update
-                if (params.enable_BM)
+                std::cout << "TURNING OFF " << it->second << " at hidden layer" << std::endl;
+                hiddenLayer._neurons[it->second].turnOFF();
+                if (params.enable_WTA)
                 {
-                    std::cout << "TURNING OFF " << it->second << " at hidden layer" << std::endl;
-                    hiddenLayer._neurons[it->second].turnOFF();
+                    // Turn OFF other neurons in the same WTA
+                    // These neurons will be turned on right after refractory period
+                    for (int i = 0; i < _numCity; i++)
+                    {
+                        int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                        hiddenLayer._neurons[iso_WTA].WTAisoOFF();
+                    }
                 }
             }
+
+            // if (it->second != 0)
+            // {
+            //     std::cout << "TURNING OFF " << it->second << " at visible layer" << std::endl;
+            //     visibleLayer._neurons[it->second].turnOFF();
+            //     // For BM structure, the hidden neurons also should be turned off to prevent from memV update
+            //     if (params.enable_BM)
+            //     {
+            //         std::cout << "TURNING OFF " << it->second << " at hidden layer" << std::endl;
+            //         hiddenLayer._neurons[it->second].turnOFF();
+            //     }
+            // }
 
             // Error occurred here!!
             // Prevent multiple spikes from occuring in the same WTA
             if (visibleLayer._neurons[it->second]._active == false)
             {
                 // continue;
-            }
+            } // not being used for now
             if (params.enable_WTA)
             {
                 // Turn OFF other neurons in the same WTA
@@ -507,8 +525,8 @@ void core::shootSpike(spike &run_spike, int &phase)
                 }
             }
         }
-        else
-        { // internal/external spike generated at hidden side
+        else // internal spike
+        {    // (it->first == side_h) internal/external spike generated at hidden side
             std::cout << "TURNING OFF " << it->second << " at hidden layer by hidden side spike" << std::endl;
             hiddenLayer._neurons[it->second].turnOFF();
             hiddenLayer._neurons[it->second].WTAisoOFF();
@@ -730,7 +748,6 @@ void core::reloadSpike(double tnow)
                 new_spike->_spk.push_back(make_pair(side_h, i));
                 new_spike->_reset = true;
                 new_spike->_st = true;
-
                 hiddenMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
             }
             spikeRecorder.push_back(std::make_pair(tnow, i));
@@ -876,7 +893,7 @@ void core::STDP(spike &run_spike, int &phase)
 void core::run_simulation()
 {
 
-    double tend = 0.1;
+    double tend = 0.01;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -988,33 +1005,27 @@ void core::run_simulation()
                     {
                         if (run_spike->_spk.begin()->first == side_v)
                         {
-                            if (params.enable_BM)
-                            {
-                                std::cout << "Turning on hidden : " << run_spike->_spk.begin()->second << std::endl;
-                                hiddenLayer._neurons[run_spike->_spk.begin()->second].turnON();
-                                // WTA turning on again
-                                if (params.enable_WTA)
-                                {
-                                    int h_WTA = run_spike->_spk.begin()->second / _numCity;
-                                    int h_city = run_spike->_spk.begin()->second % _numCity;
-                                    for (int i = 0; i < _numCity; i++)
-                                    {
-                                        int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
-                                        std::cout << "Turning on hidden : " << iso_WTA << std::endl;
-                                        hiddenLayer._neurons[iso_WTA].WTAisoON();
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                std::cout << "Turning on visible : " << run_spike->_spk.begin()->second << std::endl;
-                                visibleLayer._neurons[run_spike->_spk.begin()->second].turnON();
-                            }
+                            std::cout << "Turning on visible : " << run_spike->_spk.begin()->second << std::endl;
+                            visibleLayer._neurons[run_spike->_spk.begin()->second].turnON();
                             tpre = tnow;
                         }
                         else // side_h
                         {
+                            std::cout << "Turning on hidden : " << run_spike->_spk.begin()->second << std::endl;
                             hiddenLayer._neurons[run_spike->_spk.begin()->second].turnON();
+
+                            // WTA turning on again
+                            if (params.enable_WTA)
+                            {
+                                int h_WTA = run_spike->_spk.begin()->second / _numCity;
+                                int h_city = run_spike->_spk.begin()->second % _numCity;
+                                for (int i = 0; i < _numCity; i++)
+                                {
+                                    int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                                    std::cout << "Turning on hidden : " << iso_WTA << std::endl;
+                                    hiddenLayer._neurons[iso_WTA].WTAisoON();
+                                }
+                            }
                             tpre = tnow;
                         }
                     }
