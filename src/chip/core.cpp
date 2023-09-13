@@ -697,6 +697,14 @@ void core::shootSpike(spike &run_spike, int &phase)
             visibleMagazine.push(make_pair(run_spike_target_pup->_spikeTime, run_spike_target_pup));
             visibleMagazine.push(make_pair(run_spike_target_wup->_spikeTime, run_spike_target_wup));
         }
+
+        // std::cout << "Error Just Before" << std::endl;
+        // // delete run_spike_st_pause;
+        // // delete run_spike_reset;
+        // // delete run_spike_dummy;
+        // // delete run_spike_target_pup;
+        // // delete run_spike_target_wup;
+        // std::cout << "Error After" << std::endl;
     }
 }
 
@@ -715,6 +723,8 @@ void core::reloadSpike(double tnow)
             new_spike->_reset = true;
             new_spike->_st = true;
             visibleMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
+
+            delete new_spike;
         }
     }
 
@@ -751,6 +761,8 @@ void core::reloadSpike(double tnow)
                 hiddenMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
             }
             spikeRecorder.push_back(std::make_pair(tnow, i));
+
+            delete new_spike;
         }
     }
 }
@@ -893,7 +905,7 @@ void core::STDP(spike &run_spike, int &phase)
 void core::run_simulation()
 {
 
-    double tend = 0.5;
+    double tend = 0.08;
     double tnow = 0.0;
     double tpre = 0.0;
 
