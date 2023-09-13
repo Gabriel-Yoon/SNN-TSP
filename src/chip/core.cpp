@@ -724,7 +724,7 @@ void core::reloadSpike(double tnow)
             new_spike->_st = true;
             visibleMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
 
-            delete new_spike;
+            // delete new_spike;
         }
     }
 
@@ -762,7 +762,7 @@ void core::reloadSpike(double tnow)
             }
             spikeRecorder.push_back(std::make_pair(tnow, i));
 
-            delete new_spike;
+            // delete new_spike;
         }
     }
 }
