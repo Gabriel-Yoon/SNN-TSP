@@ -741,6 +741,22 @@ void core::reloadSpike(double tnow)
             std::cout << "<<<<<new spike at hidden layer neuron number : " << i << std::endl;
             // hiddenLayer._neurons[i].turnOFF();
 
+            // WTAisoOFF should be performed in order to block other neurons inside the WTA to be spiking
+            // step : h_WTA, city: h_city
+            int h_WTA = i / _numCity;
+            int h_city = i % _numCity;
+
+            if (params.enable_WTA)
+            {
+                // Turn OFF other neurons in the same WTA
+                // These neurons will be turned on right after refractory period
+                for (int j = 0; j < _numCity; j++)
+                {
+                    int iso_WTA = j + h_WTA * _numCity; // other cities within the same WTA module
+                    hiddenLayer._neurons[iso_WTA].WTAisoOFF();
+                }
+            }
+
             spike *new_spike = new spike;
             // if BM structure, generated spike should be synchronized to the visible magazine
             // ** For Boltzmann Machine mode, changed hidden spike to visible spike **
