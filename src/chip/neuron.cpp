@@ -128,8 +128,8 @@ void neuron::memV_RandomWalk(rng &_rng)
 {
 
 	// bool r = py::random::uniform_binary();
-	bool _randomWalkFlag = _rng.rng_randomwalk->get_val();
-	bool _isStepUpDownSame = (_randomWalkStepUp == _randomWalkStepDown);
+	this->_randomWalkFlag = _rng.rng_randomwalk->get_val();
+	this->_isStepUpDownSame = (_randomWalkStepUp == _randomWalkStepDown);
 	/*
 				  flag
 	UPDOWN     T		F
@@ -140,8 +140,8 @@ void neuron::memV_RandomWalk(rng &_rng)
 		F |	  +up	  -down
 		  |
 	*/
-	int _randomWalkSign = (_randomWalkFlag) ? 1 : -1;
-	double _randomWalkValue = this->_randomWalkStep;
+	this->_randomWalkSign = (_randomWalkFlag) ? 1 : -1;
+	this->_randomWalkValue = this->_randomWalkStep;
 	if (!_isStepUpDownSame)
 	{
 		_randomWalkValue = (_randomWalkFlag) ? this->_randomWalkStepUp : this->_randomWalkStepDown;

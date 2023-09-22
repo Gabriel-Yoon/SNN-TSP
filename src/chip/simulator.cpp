@@ -5,30 +5,34 @@
 #include <vector>
 #include <queue>
 #include <stdio.h>
-#include <stdlib.h>  
+#include <stdlib.h>
 #include <time.h>
-//#include <sys/time.h>
-//#include <sys/resource.h>
+// #include <sys/time.h>
+// #include <sys/resource.h>
 
-//#include <windows.h> // Sleep �Լ�
+// #include <windows.h> // Sleep �Լ�
 
 #include "core.h"
 #include "../utils/utils.h"
 
 using namespace std;
 
-struct custom {
+struct custom
+{
     int x, y, value;
     custom(int v) : x(0), y(0), value(v) {}
 };
 
-struct cmp {
-    bool operator()(const custom& a, const custom& b) {
+struct cmp
+{
+    bool operator()(const custom &a, const custom &b)
+    {
         return a.value > b.value;
     }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     /*
     clock_t start, end;
     double result;
@@ -36,14 +40,14 @@ int main(int argc, char *argv[]) {
     system("color 0A");
     */
 
-    char* chip_param_file_path = "sim_params.test.json";
+    char *chip_param_file_path = "sim_params.test.json";
     const std::string tsp_data_file_path = "tsp_data.json";
     core mycore(chip_param_file_path, tsp_data_file_path);
-    //mycore.print_params();
+    // mycore.print_params();
     mycore.initialize();
     mycore.print_params();
     mycore.run_simulation();
-    
+
     std::cout << std::setprecision(4);
     std::cout << "simulation done" << std::endl;
     /*

@@ -56,6 +56,24 @@ add_custom_target(run
     COMMENT "Running tsp and snn_tsp at ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}"
 )
 
+# Create a custom target for running Valgrind
+# --tool=memcheck --leak-check=full --track-origins=yes --show-leak-kinds=all --leak-resolution=high --show-reachable=yes
+add_custom_target(valgrind
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tsp> ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/$<TARGET_FILE_NAME:tsp>
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:snn_tsp> ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/$<TARGET_FILE_NAME:snn_tsp>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_data.json ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_matrix.txt ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/tsp/tsp_itinerary.txt ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/chip/sim_params.test.json ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/plot ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}/plot
+    COMMAND valgrind --tool=memcheck --leak-check=full --track-origins=yes --show-leak-kinds=all --leak-resolution=high --show-reachable=yes
+        # $<TARGET_FILE:tsp> ${ARGV}
+        $<TARGET_FILE:snn_tsp> ${ARGV}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}
+    COMMENT "Running Valgrind on tsp and snn_tsp at ${CMAKE_BINARY_DIR}/${OUTPUT_FOLDER}"
+)
+
 # Set snn_tsp_build target as a dependency of tsp_build
 add_dependencies(tsp snn_tsp)
 

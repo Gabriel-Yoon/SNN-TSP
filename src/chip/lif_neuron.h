@@ -15,7 +15,8 @@ class lif_neuron : public neuron
     /*---------------------fields-----------------*/
 public:
     double _leakyTau; // leaky tau value for LIF neuron
-
+private:
+    double newmemV;
     /*---------------------methods----------------*/
 public:
     lif_neuron();

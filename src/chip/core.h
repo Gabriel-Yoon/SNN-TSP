@@ -129,6 +129,9 @@ private:
 
 	// Learning Method
 	void STDP(spike &run_spike, int &phase);
+
+	// Calculate firing rate
+	void run_calcFiringRate();
 };
 
 #endif

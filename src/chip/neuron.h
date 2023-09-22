@@ -33,6 +33,12 @@ public:
     double _lastSpkTime;         // latest spike time history
     double _lastSpkTimeIN_PAUSE; // latest spike time history
     double _lastSpkTimeST_PAUSE; // latest spike time history
+
+private:
+    bool _randomWalkFlag;
+    bool _isStepUpDownSame;
+    int _randomWalkSign;
+    double _randomWalkValue;
     /*---------------------methods----------------*/
     /// LIF neuron Class constructor.
 public:
