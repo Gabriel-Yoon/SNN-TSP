@@ -387,7 +387,7 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
         {
             if (hiddenLayer._neurons[i]._active)
             {
-                // hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
+                hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
             }
         }
 
@@ -428,7 +428,7 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
         {
             if (hiddenLayer._neurons[i]._active)
             {
-                // hiddenLayer._neurons[i].memV_RandomWalk(this->_rng);
+                hiddenLayer._neurons[i].memV_RandomWalk(this->_rng);
             }
         }
         *magazine_side = side_h;
@@ -1090,7 +1090,6 @@ void core::run_simulation()
 
     while (1)
     {
-
         task_id = assignTask(&run_spike, tpre, tnow, tend, &magazine_side);
         phase = get_phase();
         std::cout << "tpre : " << tpre << " | tnow : " << tnow << std::endl;
