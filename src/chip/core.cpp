@@ -797,23 +797,23 @@ void core::eraseTask(int &task_id)
     switch (task_id)
     {
     case 0:
-        std::cout << "Erasing case 0" << std::endl;
-        std::cout << visibleMagazine.top().second << std::endl;
+        // std::cout << "Erasing case 0" << std::endl;
+        // std::cout << visibleMagazine.top().second << std::endl;
         delete visibleMagazine.top().second;
         visibleMagazine.pop();
         break;
     case 1:
-        std::cout << "Erasing case 1" << std::endl;
-        std::cout << hiddenMagazine.top().second << std::endl;
+        // std::cout << "Erasing case 1" << std::endl;
+        // std::cout << hiddenMagazine.top().second << std::endl;
         delete hiddenMagazine.top().second;
         hiddenMagazine.pop();
         break;
     case 2:
-        std::cout << "Erasing case 2" << std::endl;
+        // std::cout << "Erasing case 2" << std::endl;
         visibleRandomWalkSchedule.pop();
         break;
     case 3:
-        std::cout << "Erasing case 3" << std::endl;
+        // std::cout << "Erasing case 3" << std::endl;
         hiddenRandomWalkSchedule.pop();
         break;
     default:
@@ -1051,7 +1051,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 0.01;
+    double tend = 0.5;
     double tnow = 0.0;
     double tpre = 0.0;
 
