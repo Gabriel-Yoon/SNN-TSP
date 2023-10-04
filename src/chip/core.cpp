@@ -393,7 +393,7 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
 
         if (tnow <= tend)
         {
-            exportNeuronPotentialToJson(tnow);
+            // exportNeuronPotentialToJson(tnow);
         }
     }
 
@@ -1051,7 +1051,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 0.5;
+    double tend = 50;
     double tnow = 0.0;
     double tpre = 0.0;
 
