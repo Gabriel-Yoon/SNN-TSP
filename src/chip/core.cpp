@@ -1052,7 +1052,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 2;
+    double tend = 3;
     double tnow = 0.0;
     double tpre = 0.0;
 
