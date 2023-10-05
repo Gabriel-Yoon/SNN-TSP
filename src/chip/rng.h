@@ -1,6 +1,7 @@
 #ifndef _RNG_H_
 #define _RNG_H_
 
+#include <random>
 #include "../utils/np.h"
 #include "../utils/py.h"
 #include "param.h"

@@ -6,7 +6,8 @@
 rng::rng(param& _params){
 
 	if (_params.enable_random_walk) {
-		rng_randomwalk = new py::rng_binomial(0, 0.5);
+		std::random_device rd;
+		rng_randomwalk = new py::rng_binomial(rd(), 0.5);
 
 		if (_params.random_walk_step_up == _params.random_walk_step_down) {
 			if (_params.random_walk_step_up != _params.random_walk_step || _params.random_walk_step_down != _params.random_walk_step) {
