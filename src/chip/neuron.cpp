@@ -6,10 +6,10 @@
 // Manual Setting from parameters file (JSON file)
 neuron::neuron()
 {
-	this->_memV = 0.0;
-	this->_Vth = 1.0;
-	this->_Vreset = 0.9;
-	this->_refractoryPeriod = 4e-3;
+	this->_memV = 0.0;					// first membrane potential voltage
+	this->_Vth = 1.0;					// threshold voltage
+	this->_Vreset = 0.9;				// reset potential		: 0.0
+	this->_refractoryPeriod = 4e-3;		// refractory period 	: 4 ms
 	this->_active = true;
 	this->_WTAiso = true;
 
