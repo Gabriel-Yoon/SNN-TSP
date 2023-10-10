@@ -402,12 +402,12 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
     switch (case_id)
     {
     case visible_spike:
-        std::cout << "TASK : Spike (Visible Side)" << std::endl;
+        // std::cout << "TASK : Spike (Visible Side)" << std::endl;
         *run_spike = visibleMagazine.top().second;
         *magazine_side = side_v;
         return 0;
     case hidden_spike:
-        std::cout << "TASK : Spike (Hidden Side)" << std::endl;
+        // std::cout << "TASK : Spike (Hidden Side)" << std::endl;
         *run_spike = hiddenMagazine.top().second;
         *magazine_side = side_h;
         return 1;
@@ -444,7 +444,7 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
 void core::shootSpike(spike &run_spike, int &phase)
 {
     int iso_WTA;
-    std::cout << "SHOOT SPIKE" << std::endl;
+    // std::cout << "SHOOT SPIKE" << std::endl;
     /*
     Procedure Alignment
 
@@ -728,7 +728,7 @@ void core::reloadSpike(double tnow)
     {
         if (visibleLayer._neurons[i]._memV >= visibleLayer._neurons[i]._Vth && visibleLayer._neurons[i]._active == true && visibleLayer._neurons[i]._WTAiso == true)
         {
-            std::cout << "<<<<<new spike at visible layer neuron number : " << i << std::endl;
+            // std::cout << "<<<<<new spike at visible layer neuron number : " << i << std::endl;
             // visibleLayer._neurons[i].turnOFF();
             spike *new_spike = new spike;
             new_spike->_spikeTime = tnow;
@@ -744,8 +744,9 @@ void core::reloadSpike(double tnow)
 
         if (hiddenLayer._neurons[i]._memV >= hiddenLayer._neurons[i]._Vth && hiddenLayer._neurons[i]._active == true && hiddenLayer._neurons[i]._WTAiso == true)
         {
-            std::cout << "--------------------HERE--------------------" << std::endl;
-            std::cout << "<<<<<new spike at hidden layer neuron number : " << i << std::endl;
+            std::cout << "--------------------" << std::endl;
+            std::cout << "HIDDEN : " << i << std::endl;
+            std::cout << "tnow   : " << tnow << std::endl;
 
             // hiddenLayer._neurons[i].turnOFF();
 
@@ -765,6 +766,8 @@ void core::reloadSpike(double tnow)
                 {
                     iso_sameWTA = j + h_WTA * _numCity;
                     iso_otherWTA = h_city + j * _numCity;
+                    // std::cout << "Turning off : " << iso_sameWTA << std::endl;
+                    // std::cout << "Turning off : " << iso_otherWTA << std::endl;
                     hiddenLayer._neurons[iso_sameWTA].WTAisoOFF();
                     hiddenLayer._neurons[iso_otherWTA].WTAisoOFF();
                 }
@@ -937,7 +940,7 @@ void core::STDP(spike &run_spike, int &phase)
 
 void core::run_calcFiringRate()
 {
-    double tend = 0.1;
+    double tend = 0.0012;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -1054,7 +1057,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 5;
+    double tend = 10;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -1095,7 +1098,7 @@ void core::run_simulation()
     {
         task_id = assignTask(&run_spike, tpre, tnow, tend, &magazine_side);
         phase = get_phase();
-        std::cout << "tpre : " << tpre << " | tnow : " << tnow << std::endl;
+        // std::cout << "tpre : " << tpre << " | tnow : " << tnow << std::endl;
         if (task_id == 0 || task_id == 1) // (_reset, _st) = ( , )
         {
             if (run_spike->_reset) // (1,-)
