@@ -123,7 +123,7 @@ private:
 	void exportNeuronPotentialToJson(double &tnow);
 	void exportSynapseWeightsToJson(const std::string &filename, double tnow);
 	void exportPerformanceMostRecentSpikesToJson(const std::string &filename, double deltaTime, double tend);
-
+	void exportPerformanceMostFiringSpikesToJson(const std::string &filename, double deltaTime, double tend);
 	// Potential Update
 	void potentialUpdate(spike &run_spike);
 

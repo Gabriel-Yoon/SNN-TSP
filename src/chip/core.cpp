@@ -388,6 +388,7 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
             if (hiddenLayer._neurons[i]._active)
             {
                 hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
+                // hiddenLayer._neurons[i].randomWalkStepSizeSimulatedAnnealing(tpre, tnow);
             }
         }
 
@@ -442,6 +443,7 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
 
 void core::shootSpike(spike &run_spike, int &phase)
 {
+    int iso_WTA;
     std::cout << "SHOOT SPIKE" << std::endl;
     /*
     Procedure Alignment
@@ -484,7 +486,7 @@ void core::shootSpike(spike &run_spike, int &phase)
 
             if (params.enable_BM)
             {
-                std::cout << "TURNING OFF " << it->second << " at hidden layer" << std::endl;
+                // std::cout << "TURNING OFF " << it->second << " at hidden layer" << std::endl;
                 hiddenLayer._neurons[it->second].turnOFF();
                 if (params.enable_WTA)
                 {
@@ -492,7 +494,7 @@ void core::shootSpike(spike &run_spike, int &phase)
                     // These neurons will be turned on right after refractory period
                     for (int i = 0; i < _numCity; i++)
                     {
-                        int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                        iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
                         hiddenLayer._neurons[iso_WTA].WTAisoOFF();
                     }
                 }
@@ -522,14 +524,14 @@ void core::shootSpike(spike &run_spike, int &phase)
                 // These neurons will be turned on right after refractory period
                 for (int i = 0; i < _numCity; i++)
                 {
-                    int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                    iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
                     visibleLayer._neurons[iso_WTA].WTAisoOFF();
                 }
             }
         }
         else // internal spike
         {    // (it->first == side_h) internal/external spike generated at hidden side
-            std::cout << "TURNING OFF " << it->second << " at hidden layer by hidden side spike" << std::endl;
+            // std::cout << "TURNING OFF " << it->second << " at hidden layer by hidden side spike" << std::endl;
             hiddenLayer._neurons[it->second].turnOFF();
             hiddenLayer._neurons[it->second].WTAisoOFF();
             // neurons other than spiking neuron will be isolated by WTA
@@ -537,9 +539,11 @@ void core::shootSpike(spike &run_spike, int &phase)
             {
                 for (int i = 0; i < _numCity; i++)
                 {
-                    int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
-                    std::cout << "WTA iso " << iso_WTA << " at hidden layer" << std::endl;
+                    iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
+                    // std::cout << hiddenLayer._neurons[iso_WTA]._WTAiso << std::endl;
+                    // std::cout << "WTA iso " << iso_WTA << " at hidden layer" << std::endl;
                     hiddenLayer._neurons[iso_WTA].WTAisoOFF();
+                    // std::cout << hiddenLayer._neurons[iso_WTA]._WTAiso << std::endl;
                 }
             }
         }
@@ -573,7 +577,7 @@ void core::shootSpike(spike &run_spike, int &phase)
                 for (int i = 0; i < _numCity; i++)
                 {
                     int iso_city = h_city + i * _numCity; // same city within different WTA module
-                    int iso_WTA = i + h_WTA * _numCity;   // other cities within the same WTA module
+                    iso_WTA = i + h_WTA * _numCity;       // other cities within the same WTA module
                     run_spike_st_pause->_spk.push_back(make_pair(side_h, iso_city));
                     run_spike_st_pause->_spk.push_back(make_pair(side_h, iso_WTA));
                 }
@@ -714,10 +718,6 @@ void core::shootSpike(spike &run_spike, int &phase)
                 delete run_spike_target_wup;
             }
         }
-        std::cout << run_spike_st_pause << std::endl;
-        std::cout << run_spike_reset << std::endl;
-        std::cout << run_spike_dummy << std::endl;
-        std::cout << run_spike_target_pup << std::endl;
     }
 }
 
@@ -745,32 +745,34 @@ void core::reloadSpike(double tnow)
         if (hiddenLayer._neurons[i]._memV >= hiddenLayer._neurons[i]._Vth && hiddenLayer._neurons[i]._active == true && hiddenLayer._neurons[i]._WTAiso == true)
         {
             std::cout << "--------------------HERE--------------------" << std::endl;
-            std::cout << "--------------------HERE--------------------" << std::endl;
-            std::cout << "--------------------HERE--------------------" << std::endl;
-            std::cout << "--------------------HERE--------------------" << std::endl;
-            std::cout << "--------------------HERE--------------------" << std::endl;
             std::cout << "<<<<<new spike at hidden layer neuron number : " << i << std::endl;
+
             // hiddenLayer._neurons[i].turnOFF();
 
             // WTAisoOFF should be performed in order to block other neurons inside the WTA to be spiking
             // step : h_WTA, city: h_city
             int h_WTA = i / _numCity;
             int h_city = i % _numCity;
+            int iso_sameWTA;
+            int iso_otherWTA;
 
             if (params.enable_WTA)
             {
-                // Turn OFF other neurons in the same WTA
+                // 1. iso_sameWTA  : Turn OFF other neurons in the same WTA
+                // 2. iso_otherWTA : Turn OFF other neurons in other WTA with same city number
                 // These neurons will be turned on right after refractory period
                 for (int j = 0; j < _numCity; j++)
                 {
-                    int iso_WTA = j + h_WTA * _numCity; // other cities within the same WTA module
-                    hiddenLayer._neurons[iso_WTA].WTAisoOFF();
+                    iso_sameWTA = j + h_WTA * _numCity;
+                    iso_otherWTA = h_city + j * _numCity;
+                    hiddenLayer._neurons[iso_sameWTA].WTAisoOFF();
+                    hiddenLayer._neurons[iso_otherWTA].WTAisoOFF();
                 }
             }
 
             spike *new_spike = new spike;
             // if BM structure, generated spike should be synchronized to the visible magazine
-            // ** For Boltzmann Machine mode, changed hidden spike to visible spike **
+            // ** For Boltzmann Machine mode, change spike side visible -> hidden **
             if (params.enable_BM)
             {
                 new_spike->_spikeTime = tnow;
@@ -834,9 +836,9 @@ void core::potentialUpdate(spike &run_spike)
                 {
                     if (hiddenLayer._neurons[i]._active)
                     {
-                        std::cout << "Neuron # : " << i << " potential before : " << hiddenLayer._neurons[i]._memV << std::endl;
+                        // std::cout << "Neuron # : " << i << " potential before : " << hiddenLayer._neurons[i]._memV << std::endl;
                         hiddenLayer._neurons[i]._memV += synapseArray.delta_G(it->second, i);
-                        std::cout << "Neuron # : " << i << " potential after  : " << hiddenLayer._neurons[i]._memV << std::endl;
+                        // std::cout << "Neuron # : " << i << " potential after  : " << hiddenLayer._neurons[i]._memV << std::endl;
                     }
                 }
             }
@@ -1052,7 +1054,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 3;
+    double tend = 5;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -1098,10 +1100,10 @@ void core::run_simulation()
         {
             if (run_spike->_reset) // (1,-)
             {
-                std::cout << "HERE 1,-" << std::endl;
+                // std::cout << "HERE 1,-" << std::endl;
                 if (run_spike->_st) // (1,1)
                 {
-                    std::cout << "HERE 1,1" << std::endl;
+                    // std::cout << "HERE 1,1" << std::endl;
                     if (params.enable_BM)
                     {
                         if (params.enable_learning)
@@ -1121,23 +1123,23 @@ void core::run_simulation()
                 }
                 else // (1,0)
                 {
-                    std::cout << "HERE 1,0" << std::endl;
+                    // std::cout << "HERE 1,0" << std::endl;
                     if (run_spike->_spk.begin()->first == side_v)
                     {
                         if (params.enable_BM)
                         {
-                            std::cout << "HERE 1,0 - before reset" << std::endl;
+                            // std::cout << "HERE 1,0 - before reset" << std::endl;
                             hiddenLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
                         }
                         else
                         {
-                            std::cout << "HERE 1,0 - before reset" << std::endl;
+                            // std::cout << "HERE 1,0 - before reset" << std::endl;
                             visibleLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
                         }
                     }
                     else // This is the case of BM
                     {
-                        std::cout << "Hidden Reset" << std::endl;
+                        // std::cout << "Hidden Reset" << std::endl;
                         hiddenLayer._neurons[run_spike->_spk.begin()->second].memV_Reset();
                     }
                     tpre = tnow;
@@ -1167,13 +1169,13 @@ void core::run_simulation()
                     {
                         if (run_spike->_spk.begin()->first == side_v)
                         {
-                            std::cout << "Turning on visible : " << run_spike->_spk.begin()->second << std::endl;
+                            // std::cout << "Turning on visible : " << run_spike->_spk.begin()->second << std::endl;
                             visibleLayer._neurons[run_spike->_spk.begin()->second].turnON();
                             tpre = tnow;
                         }
                         else // side_h
                         {
-                            std::cout << "Turning on hidden : " << run_spike->_spk.begin()->second << std::endl;
+                            // std::cout << "Turning on hidden : " << run_spike->_spk.begin()->second << std::endl;
                             hiddenLayer._neurons[run_spike->_spk.begin()->second].turnON();
 
                             // WTA turning on again
@@ -1184,7 +1186,7 @@ void core::run_simulation()
                                 for (int i = 0; i < _numCity; i++)
                                 {
                                     int iso_WTA = i + h_WTA * _numCity; // other cities within the same WTA module
-                                    std::cout << "Turning on hidden : " << iso_WTA << std::endl;
+                                    // std::cout << "Turning on hidden : " << iso_WTA << std::endl;
                                     hiddenLayer._neurons[iso_WTA].WTAisoON();
                                 }
                             }
@@ -1193,7 +1195,7 @@ void core::run_simulation()
                     }
                     else // (0,0) but spike derived from another side
                     {
-                        std::cout << "Potential Update on" << std::endl;
+                        // std::cout << "Potential Update on" << std::endl;
                         potentialUpdate(*run_spike);
                         reloadSpike(tnow);
                         tpre = tnow;
@@ -1456,6 +1458,147 @@ void core::exportPerformanceMostRecentSpikesToJson(const std::string &filename, 
     else
     {
         // Constraint not satisfied
+    }
+
+    // Create a JSON object for the spike history
+    nlohmann::json spikeData;
+
+    // Export to JSON file
+    for (const auto &spike : performance)
+    {
+        nlohmann::json spikeEntry;
+        spikeEntry["time"] = spike.first;
+        spikeEntry["performance"] = spike.second;
+        spikeData.push_back(spikeEntry);
+    }
+
+    // Write the JSON data to the file
+    std::ofstream outputFile(filename);
+    if (!outputFile.is_open())
+    {
+        std::cout << "Failed to open the output file." << std::endl;
+        return;
+    }
+
+    outputFile << std::setw(4) << spikeData << std::endl;
+    outputFile.close();
+}
+
+void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, double deltaTime, double tend)
+{
+    auto find_maximums = [](const std::vector<double> &v)
+    {
+        std::vector<size_t> indexes;
+
+        for (auto it_max = std::max_element(v.begin(), v.end()); it_max != v.end();
+             it_max = std::find(it_max + 1, v.end(), *it_max))
+        {
+            auto index = std::distance(v.begin(), it_max);
+            indexes.push_back(index);
+        }
+
+        return indexes;
+    };
+
+    // declare
+    std::vector<std::pair<double, double>> performance;
+    std::vector<int> route(_numCity);
+    std::vector<int> routeChecker(_numCity);
+    std::vector<std::vector<double>> spikeCounter;
+
+    double performanceTime = 0.0;
+    double performanceStep = tend / deltaTime;
+
+    double windowTime = 40e-3; // 40ms as default
+    double startTime = 0.0;
+    double endTime = windowTime;
+
+    int WTA_index;
+    int city_index;
+
+    // initialize
+    performance.push_back(std::make_pair(0, 0.0));
+    for (int i = 0; i < _numCity; i++)
+    {
+        route[i] = 0;
+        routeChecker[i] = i; // if 5 cities, 0 to 4 will be assigned as initial value
+    }
+
+    // Get most spike cities in the window
+    for (int i = 1; i < performanceStep; i++)
+    {
+        startTime = (i - 1) * deltaTime;
+        endTime = startTime + windowTime;
+        if (startTime < 0 || endTime > tend)
+            break;
+
+        // Count spikes within the windowTime(or window width)
+        for (const auto &spike : spikeRecorder)
+        {
+            if (spike.first < (performanceTime - deltaTime))
+            {
+                continue;
+            }
+            else if (startTime <= spike.first && spike.first < endTime)
+            { // the spike is inside the windowTime(or window width)
+                WTA_index = spike.second / _numCity;
+                city_index = spike.second % _numCity;
+                spikeCounter[WTA_index][city_index]++;
+            }
+            else if (endTime <= spike.first)
+            {
+                break;
+            }
+        }
+
+        // Get the most spike city route.
+        for (int j = 0; j < _numCity; j++)
+        {
+            // route[j] = std::distance(spikeCounter[j].begin(), std::max_element(spikeCounter[j].begin(), spikeCounter[j].end()));
+            auto max_indexes = find_maximums(spikeCounter[j]); // in the form of vector
+
+            if (max_indexes.size() == 1)
+            {
+                route[j] = max_indexes[0];
+            }
+            // (1) if there is no spike in the WTA
+            // this should put 0 in performance
+            else if (max_indexes.empty())
+            {
+                route[j] = 0; // 0 will be treated as 0 in performance value
+                // consider it as skip!
+            }
+            // (2) if there are multipe most spike cities
+            // we shall choose the city wisely to fulfill the constraints
+            else if (max_indexes.size() > 1)
+            {
+            }
+        }
+    }
+
+    std::vector<int> sortedrecentSpikes = route;
+    std::sort(sortedrecentSpikes.begin(), sortedrecentSpikes.end());
+
+    if (sortedrecentSpikes == route) // contains all the cities
+    {
+        // Calculate the distance
+        double _calcDistance = 0.0;
+        for (size_t i = 1; i < route.size(); ++i)
+        {
+            int from_city = route[i - 1] - 1;
+            int to_city = route[i] - 1;
+            _calcDistance += _distanceMatrix[from_city][to_city];
+        }
+
+        // Add the distance to return to the starting city
+        int last_city = route.back() - 1;
+        int start_city = route.front() - 1;
+        _calcDistance += _distanceMatrix[last_city][start_city];
+
+        performance.push_back(std::make_pair(performanceTime, _solutionDistance / _calcDistance));
+    }
+    else // Constraint not satisfied - skip
+    {
     }
 
     // Create a JSON object for the spike history
