@@ -6,15 +6,15 @@
 // Manual Setting from parameters file (JSON file)
 neuron::neuron()
 {
-	this->_memV = 0.0;					// first membrane potential voltage
-	this->_Vth = 1.0;					// threshold voltage
-	this->_Vreset = 0.9;				// reset potential		: 0.0
-	this->_refractoryPeriod = 4e-3;		// refractory period 	: 4 ms
+	this->_memV = 0.0;				// first membrane potential voltage
+	this->_Vth = 1.0;				// threshold voltage
+	this->_Vreset = 0.995;			// reset potential		: 0.0
+	this->_refractoryPeriod = 4e-3; // refractory period 	: 4 ms
 	this->_active = true;
 	this->_WTAiso = true;
 
 	//_rng = nullptr;
-	this->_randomWalkStep = 0.06;
+	this->_randomWalkStep = 0.12;
 	this->_randomWalkStepUp = 0.06;
 	this->_randomWalkStepDown = 0.06;
 }
@@ -161,10 +161,19 @@ void neuron::memV_RandomWalk(rng &_rng)
 //----------------------------------------------------
 void neuron::memV_Reset()
 {
-	std::cout << "RESET before : " << this->_memV << std::endl;
+	// std::cout << "RESET before : " << this->_memV << std::endl;
 	// this->_memV = this->_Vreset;
 	double _resetValue = this->_Vreset;
 	this->_memV = _resetValue;
-	std::cout << "RESET after  : " << this->_memV << std::endl;
+	// std::cout << "RESET after  : " << this->_memV << std::endl;
+}
+//----------------------------------------------------
+void neuron::randomWalkStepSizeSimulatedAnnealing(double &tpre, double &tnow)
+{
+	// std::cout << "before : " << this->_randomWalkStep << std::endl;
+	double _randomWalkSATemp = 10; // higher the value, slower the random walk step size decreases
+	double new_randomWalkStep = 0.06 + (this->_randomWalkStep - 0.06) * std::exp(-(tnow - tpre) / _randomWalkSATemp);
+	this->_randomWalkStep = new_randomWalkStep;
+	// std::cout << "after : " << this->_randomWalkStep << std::endl;
 }
 //----------------------------------------------------

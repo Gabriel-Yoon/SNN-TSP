@@ -64,6 +64,7 @@ public:
     void memV_WhiteNoise(rng &_rng);                // Update membrane potential by white noise
     void memV_RandomWalk(rng &_rng);                // Update membrane potential by random walk
     void memV_Reset();                              // Reset memV
+    void randomWalkStepSizeSimulatedAnnealing(double &tpre, double &tnow);    // Random Walk Step Size reduce by exponential function
 };
 //**************************************************************************************************************//
 #endif /* _NEURON_H_ */
