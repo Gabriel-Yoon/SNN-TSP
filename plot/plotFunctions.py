@@ -174,7 +174,6 @@ def plot_neuron_potentials(json_file):
     output_filename = f"NeuronPotentialPlot.png"
     plt.savefig(output_filename)
 
-
 def plotNeuronPotentialsFromJson(filename, output_file):
     # Load the JSON data from the file
     with open(filename, 'r') as file:
@@ -275,6 +274,71 @@ def plotSynapseWeightsFromJson(filename, output_file):
 
     print("weight figure named : " + output_file +" saved successfully")
 
+def plotPerformance(json_file, tsp_data_file):
+    with open(json_file, 'r') as f:
+        json_data = json.load(f)
+
+    with open(tsp_data_file, 'r') as f:
+        tsp_data = json.load(f)
+
+    distance_matrix = tsp_data.get("distance_matrix")
+    if distance_matrix is None:
+        raise ValueError("distance_matrix not found in the JSON file")
+
+    # Extract the number of groups and neurons per group
+    num_neurons = json_data[0]["num_of_neurons"]
+    num_groups = int(num_neurons ** 0.5)
+    neurons_per_group = num_neurons // num_groups
+
+    # Initialize a list to store the latest spike time for each group
+    latest_spike_times = [0] * num_groups
+
+    # Initialize a list to store the latest spike neuron index for each group
+    latest_spike_neurons = [-1] * num_groups
+
+    # Initialize the itinerary route
+    route = []
+
+    # Initialize the total distance
+    total_distance = 0
+
+    # Iterate through the JSON data to find the latest spike time for each group
+    # for entry in json_data[1:]:
+    #     neuron = entry["neuron"]
+    #     time = entry["time"]
+    #     group = neuron // num_groups
+    #     latest_spike_times[group] = max(latest_spike_times[group], time)
+
+    # Extract the spike data and update latest spike information
+    for entry in json_data[1:]:
+        neuron = entry["neuron"]
+        time = entry["time"]
+        group = neuron // neurons_per_group
+        if time > latest_spike_times[group]:
+            latest_spike_times[group] = time
+            latest_spike_neurons[group] = neuron
+
+        # Add the latest spike neuron index to the itinerary
+        route.append(latest_spike_neurons[group] // neurons_per_group + 1)
+    
+    for i in range(len(route) - 1):
+        city1 = route[i] - 1
+        city2 = route[i + 1] - 1
+        total_distance += distance_matrix[city1][city2]
+
+    print("route", route)
+
+    # spikes = [(entry['time'], entry['neuron']) for entry in data[1:]]
+
+    # spike_times = [[] for _ in range(num_of_neurons)]
+    # WTA_spike_times = [[] for _ in range(sqrt(num_of_neurons))]
+
+    # for time, neuron in spikes:
+    #     spike_times[neuron].append(time)
+
+    # plt.show()
+    # output_filename = f"Performance.png"
+    # plt.savefig(output_filename)
 
 #//**************************************************************************************************************//
 if __name__ == '__main__':
