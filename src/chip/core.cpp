@@ -1057,7 +1057,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 10;
+    double tend = 5;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -1223,7 +1223,8 @@ void core::run_simulation()
 
     // After the Loop
     exportSpikeHistoryToJson("spike_history.json");
-    exportPerformanceMostRecentSpikesToJson("performance.json", 1e-3, tend);
+    // exportPerformanceMostRecentSpikesToJson("performance.json", 1e-3, tend);
+    exportPerformanceMostFiringSpikesToJson("performance.json", 1e-3, tend);
     // exportSpikeRecorder();
 }
 
