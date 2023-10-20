@@ -14,7 +14,7 @@ neuron::neuron()
 	this->_WTAiso = true;
 
 	//_rng = nullptr;
-	this->_randomWalkStep = 0.12;
+	this->_randomWalkStep = 0.10;
 	this->_randomWalkStepUp = 0.06;
 	this->_randomWalkStepDown = 0.06;
 }

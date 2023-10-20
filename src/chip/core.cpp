@@ -388,7 +388,7 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
             if (hiddenLayer._neurons[i]._active)
             {
                 hiddenLayer._neurons[i].memV_Leak(tpre, tnow);
-                // hiddenLayer._neurons[i].randomWalkStepSizeSimulatedAnnealing(tpre, tnow);
+                hiddenLayer._neurons[i].randomWalkStepSizeSimulatedAnnealing(tpre, tnow);
             }
         }
 
@@ -486,6 +486,18 @@ void core::shootSpike(spike &run_spike, int &phase)
 
             if (params.enable_BM)
             {
+                // city number 0 will be all become 0
+                if (it->second == 0)
+                {
+                    for (int i = 0; i < _numCity; i++)
+                    {
+                        hiddenLayer._neurons[it->second + _numCity * i].turnOFF();
+                        hiddenLayer._neurons[it->second + _numCity * i].WTAisoOFF();
+                        hiddenLayer._neurons[it->second + _numCity * i].set_memV(-1.0);
+                        // Setting memV as -1.0 for absolute inhibition
+                    }
+                }
+
                 // std::cout << "TURNING OFF " << it->second << " at hidden layer" << std::endl;
                 hiddenLayer._neurons[it->second].turnOFF();
                 if (params.enable_WTA)
@@ -534,6 +546,7 @@ void core::shootSpike(spike &run_spike, int &phase)
             // std::cout << "TURNING OFF " << it->second << " at hidden layer by hidden side spike" << std::endl;
             hiddenLayer._neurons[it->second].turnOFF();
             hiddenLayer._neurons[it->second].WTAisoOFF();
+
             // neurons other than spiking neuron will be isolated by WTA
             if (params.enable_WTA)
             {
@@ -769,7 +782,7 @@ void core::reloadSpike(double tnow)
                     // std::cout << "Turning off : " << iso_sameWTA << std::endl;
                     // std::cout << "Turning off : " << iso_otherWTA << std::endl;
                     hiddenLayer._neurons[iso_sameWTA].WTAisoOFF();
-                    hiddenLayer._neurons[iso_otherWTA].WTAisoOFF();
+                    // hiddenLayer._neurons[iso_otherWTA].WTAisoOFF();
                 }
             }
 
@@ -792,7 +805,7 @@ void core::reloadSpike(double tnow)
                 new_spike->_st = true;
                 hiddenMagazine.push(make_pair(new_spike->_spikeTime, new_spike));
             }
-            spikeRecorder.push_back(std::make_pair(tnow, i));
+            // spikeRecorder.push_back(std::make_pair(tnow, i));
         }
     }
 }
@@ -848,13 +861,14 @@ void core::potentialUpdate(spike &run_spike)
         }
         else
         { // spike is from side_h so update potential in visible side
+            // For now, this is disabled for TSP application (231020)
             if (params.enable_gpgm)
             {
                 for (int i = 0; i < synapseArray._synapses.size(); i++)
                 {
                     if (visibleLayer._neurons[i]._active)
                     {
-                        visibleLayer._neurons[i]._memV += synapseArray.delta_G(i, it->second);
+                        // visibleLayer._neurons[i]._memV += synapseArray.delta_G(i, it->second);
                     }
                 }
             }
@@ -1057,7 +1071,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 5;
+    double tend = 3;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -1490,30 +1504,55 @@ void core::exportPerformanceMostRecentSpikesToJson(const std::string &filename, 
 
 void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, double deltaTime, double tend)
 {
-    auto find_maximums = [](const std::vector<double> &v)
+    // lambda functions
+    auto find_maximums = [](const std::vector<std::vector<int>> &spikeCounter)
     {
-        std::vector<size_t> indexes;
+        std::vector<size_t> maxIndexes; // Store the indices of maximum values for each row
 
-        for (auto it_max = std::max_element(v.begin(), v.end()); it_max != v.end();
-             it_max = std::find(it_max + 1, v.end(), *it_max))
+        for (const auto &row : spikeCounter)
         {
-            auto index = std::distance(v.begin(), it_max);
-            indexes.push_back(index);
+            auto it_max = std::max_element(row.begin(), row.end());
+            size_t maxIndex = std::distance(row.begin(), it_max);
+            maxIndexes.push_back(maxIndex);
         }
+        std::cout << "route : ";
+        for (int i = 0; i < maxIndexes.size(); i++)
+        {
+            std::cout << maxIndexes[i] + 1 << " ";
+        }
+        std::cout << "" << std::endl;
+        return maxIndexes;
+    };
 
-        return indexes;
+    auto initialize_2d_vector = [](std::vector<std::vector<int>> &vector_2d)
+    {
+        for (size_t i = 0; i < vector_2d.size(); ++i)
+        {
+            for (size_t j = 0; j < vector_2d[i].size(); ++j)
+            {
+                vector_2d[i][j] = 0;
+            }
+        }
+    };
+
+    auto initialize_1d_vector = [](std::vector<int> &vector_1d)
+    {
+        for (size_t i = 0; i < vector_1d.size(); ++i)
+        {
+            vector_1d[i] = 0;
+        }
     };
 
     // declare
     std::vector<std::pair<double, double>> performance;
     std::vector<int> route(_numCity);
     std::vector<int> routeChecker(_numCity);
-    std::vector<std::vector<double>> spikeCounter;
+    std::vector<std::vector<int>> spikeCounter(_numCity, std::vector<int>(_numCity, 0));
 
     double performanceTime = 0.0;
     double performanceStep = tend / deltaTime;
 
-    double windowTime = 40e-3; // 40ms as default
+    double windowTime = 120e-3; // 40ms as default
     double startTime = 0.0;
     double endTime = windowTime;
 
@@ -1522,20 +1561,23 @@ void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, 
 
     // initialize
     performance.push_back(std::make_pair(0, 0.0));
-    for (int i = 0; i < _numCity; i++)
-    {
-        route[i] = 0;
-        routeChecker[i] = i; // if 5 cities, 0 to 4 will be assigned as initial value
-    }
+    initialize_1d_vector(route);
+    initialize_1d_vector(routeChecker);
+    initialize_2d_vector(spikeCounter);
 
     // Get most spike cities in the window
     for (int i = 1; i < performanceStep; i++)
     {
+        initialize_1d_vector(route);
+        initialize_1d_vector(routeChecker);
+        initialize_2d_vector(spikeCounter);
+
         startTime = (i - 1) * deltaTime;
         endTime = startTime + windowTime;
         if (startTime < 0 || endTime > tend)
             break;
 
+        std::cout << "----------------" << std::endl;
         // Count spikes within the windowTime(or window width)
         for (const auto &spike : spikeRecorder)
         {
@@ -1547,6 +1589,7 @@ void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, 
             { // the spike is inside the windowTime(or window width)
                 WTA_index = spike.second / _numCity;
                 city_index = spike.second % _numCity;
+                // std::cout << "++ on " << WTA_index << " city num : " << city_index + 1 << std::endl;
                 spikeCounter[WTA_index][city_index]++;
             }
             else if (endTime <= spike.first)
@@ -1556,75 +1599,92 @@ void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, 
         }
 
         // Get the most spike city route.
+        auto max_indexes = find_maximums(spikeCounter);
         for (int j = 0; j < _numCity; j++)
         {
-            // route[j] = std::distance(spikeCounter[j].begin(), std::max_element(spikeCounter[j].begin(), spikeCounter[j].end()));
-            auto max_indexes = find_maximums(spikeCounter[j]); // in the form of vector
-
-            if (max_indexes.size() == 1)
-            {
-                route[j] = max_indexes[0];
-            }
-            // (1) if there is no spike in the WTA
-            // this should put 0 in performance
-            else if (max_indexes.empty())
-            {
-                route[j] = 0; // 0 will be treated as 0 in performance value
-                // consider it as skip!
-            }
-            // (2) if there are multipe most spike cities
-            // we shall choose the city wisely to fulfill the constraints
-            else if (max_indexes.size() > 1)
-            {
-            }
+            route[j] = max_indexes[j];
         }
+
+        // Calculate the total distance
+
+        // for (int j = 0; j < _numCity; j++)
+        // {
+        //     // route[j] = std::distance(spikeCounter[j].begin(), std::max_element(spikeCounter[j].begin(), spikeCounter[j].end()));
+        //     auto max_indexes = find_maximums(spikeCounter[j]); // in the form of vector
+
+        //     if (max_indexes.size() == 1)
+        //     {
+        //         std::cout << "Loop2 - 1" << std::endl;
+        //         std::cout << "At " << j << " city num: " << max_indexes[0] << std::endl;
+        //         route[j] = max_indexes[0];
+        //     }
+        //     // (1) if there is no spike in the WTA
+        //     // this should put 0 in performance
+        //     else if (max_indexes.empty())
+        //     {
+        //         std::cout << "Loop2 - 2" << std::endl;
+        //         route[j] = 0; // 0 will be treated as 0 in performance value
+        //         // consider it as skip!
+        //     }
+        //     // (2) if there are multipe most spike cities
+        //     // we shall choose the city wisely to fulfill the constraints
+        //     else if (max_indexes.size() > 1)
+        //     {
+        //         std::cout << "Loop2 - 3" << std::endl;
+        //         std::cout << max_indexes[0] << std::endl;
+        //         route[j] = max_indexes[0];
+        //     }
+        // }
     }
 
-    std::vector<int> sortedrecentSpikes = route;
-    std::sort(sortedrecentSpikes.begin(), sortedrecentSpikes.end());
+    // --- NEED MODIFICATION ---
+    /*
+        std::vector<int> sortedrecentSpikes = route;
+        std::sort(sortedrecentSpikes.begin(), sortedrecentSpikes.end());
 
-    if (sortedrecentSpikes == route) // contains all the cities
-    {
-        // Calculate the distance
-        double _calcDistance = 0.0;
-        for (size_t i = 1; i < route.size(); ++i)
+        if (sortedrecentSpikes == route) // contains all the cities
         {
-            int from_city = route[i - 1] - 1;
-            int to_city = route[i] - 1;
-            _calcDistance += _distanceMatrix[from_city][to_city];
+            // Calculate the distance
+            double _calcDistance = 0.0;
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                int from_city = route[i - 1] - 1;
+                int to_city = route[i] - 1;
+                _calcDistance += _distanceMatrix[from_city][to_city];
+            }
+
+            // Add the distance to return to the starting city
+            int last_city = route.back() - 1;
+            int start_city = route.front() - 1;
+            _calcDistance += _distanceMatrix[last_city][start_city];
+
+            performance.push_back(std::make_pair(performanceTime, _solutionDistance / _calcDistance));
+        }
+        else // Constraint not satisfied - skip
+        {
         }
 
-        // Add the distance to return to the starting city
-        int last_city = route.back() - 1;
-        int start_city = route.front() - 1;
-        _calcDistance += _distanceMatrix[last_city][start_city];
+        // Create a JSON object for the spike history
+        nlohmann::json spikeData;
 
-        performance.push_back(std::make_pair(performanceTime, _solutionDistance / _calcDistance));
-    }
-    else // Constraint not satisfied - skip
-    {
-    }
+        // Export to JSON file
+        for (const auto &spike : performance)
+        {
+            nlohmann::json spikeEntry;
+            spikeEntry["time"] = spike.first;
+            spikeEntry["performance"] = spike.second;
+            spikeData.push_back(spikeEntry);
+        }
 
-    // Create a JSON object for the spike history
-    nlohmann::json spikeData;
+        // Write the JSON data to the file
+        std::ofstream outputFile(filename);
+        if (!outputFile.is_open())
+        {
+            std::cout << "Failed to open the output file." << std::endl;
+            return;
+        }
 
-    // Export to JSON file
-    for (const auto &spike : performance)
-    {
-        nlohmann::json spikeEntry;
-        spikeEntry["time"] = spike.first;
-        spikeEntry["performance"] = spike.second;
-        spikeData.push_back(spikeEntry);
-    }
-
-    // Write the JSON data to the file
-    std::ofstream outputFile(filename);
-    if (!outputFile.is_open())
-    {
-        std::cout << "Failed to open the output file." << std::endl;
-        return;
-    }
-
-    outputFile << std::setw(4) << spikeData << std::endl;
-    outputFile.close();
+        outputFile << std::setw(4) << spikeData << std::endl;
+        outputFile.close();
+        */
 }
