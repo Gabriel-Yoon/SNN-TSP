@@ -23,6 +23,9 @@ for json_file in synapse_json_files:
 # REMOVE # BELOW
 spike_raster_plot(spike_history_file)
 # plotPerformance(spike_history_file, tsp_data_file)
+
+if os.path.exists(hidden_potential_file):
+    plot_neuron_potentials(hidden_potential_file)
 # plot_neuron_potentials(hidden_potential_file)
 
 #tsp_data_filename = "/Users/gabriel/Development/SNN-TSP/build/tsp_data.json"
