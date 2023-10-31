@@ -340,6 +340,21 @@ def plotPerformance(json_file, tsp_data_file):
     # output_filename = f"Performance.png"
     # plt.savefig(output_filename)
 
+def plotSpikeFiringRate(json_filename):
+    with open(json_filename, 'r') as json_file:
+        data = json.load(json_file)
+
+    Vrest = [entry['Vrest'] for entry in data[1:]]  # Exclude the first entry
+    spikes = [entry['spikes'] for entry in data[1:]]  # Exclude the first entry
+
+    sns.set(style="whitegrid")
+    plt.figure(figsize=(10, 6))  # Adjust the figure size as needed
+    sns.lineplot(x=Vrest, y=spikes)
+    plt.xlabel('Resting Voltage(V)')
+    plt.ylabel('Firing Rate(Hz)')
+    plt.title('LIF Neuron Firing Rate')
+    plt.savefig("LIN Neuron Firing Rate")
+
 #//**************************************************************************************************************//
 if __name__ == '__main__':
     if len(sys.argv) < 3:
