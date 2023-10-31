@@ -1402,6 +1402,7 @@ void core::exportSpikeFiringRateToJson(const std::string &filename, std::vector<
     randomWalkData["randomWalkStep"] = hiddenLayer._neurons[0]._randomWalkStep;
     randomWalkData["randomWalkStepUp"] = hiddenLayer._neurons[0]._randomWalkStepUp;
     randomWalkData["randomWalkStepDown"] = hiddenLayer._neurons[0]._randomWalkStepDown;
+    randomWalkData["leaky_tau"] = hiddenLayer._neurons[0]._leakyTau;
     spikeData.push_back(randomWalkData);
 
     // Add spike time and neuron number for each spike to the JSON object

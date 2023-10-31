@@ -23,61 +23,79 @@ template <typename NeuronType, std::enable_if_t<std::is_base_of<neuron, NeuronTy
 class neuron_layer
 {
     /*---------------------fields-----------------*/
-    public: std::vector<NeuronType> _neurons;
-    //private: int maxSize;
+public:
+    std::vector<NeuronType> _neurons;
+    // private: int maxSize;
     /*---------------------methods----------------*/
     // Constructor
-    public: neuron_layer(){}
+public:
+    neuron_layer() {}
     // Destructor
-    public: ~neuron_layer(){}
+public:
+    ~neuron_layer() {}
     //----------------------------------------------------
-    public: void ManualSet(param& _params){
-        for (auto _neuron : this->_neurons){
+public:
+    void ManualSet(param &_params)
+    {
+        for (auto _neuron : this->_neurons)
+        {
             _neuron.ManualSet(_params);
         }
     }
     //----------------------------------------------------
-    public: void addElement(const neuron& _neuron){
-        if (this->_neurons.size()) {
+public:
+    void addElement(const neuron &_neuron)
+    {
+        if (this->_neurons.size())
+        {
             this->_neurons.push_back(_neuron);
         }
     }
     //----------------------------------------------------
-    public: void WhiteNoise(rng *_rng){
-        for (auto _neuron : this->_neurons){
+public:
+    void WhiteNoise(rng *_rng)
+    {
+        for (auto _neuron : this->_neurons)
+        {
             _neuron.memV_WhiteNoise(_rng);
         }
     }
     //----------------------------------------------------
-	public: void RandomWalk(rng& _rng){
-        for (auto _neuron : this->_neurons){
+public:
+    void RandomWalk(rng &_rng)
+    {
+        for (auto _neuron : this->_neurons)
+        {
             _neuron.memV_RandomWalk(_rng);
         }
     }
     //----------------------------------------------------
-    public: void Reset(){
-        for (auto _neuron : this->_neurons){
+public:
+    void Reset()
+    {
+        for (auto _neuron : this->_neurons)
+        {
             _neuron.memV_Reset();
         }
     }
     //----------------------------------------------------
-	// template <typename U, std::enable_if_t<std::is_same<NeuronType, lif_neuron>::value, bool> == true>
+    // template <typename U, std::enable_if_t<std::is_same<NeuronType, lif_neuron>::value, bool> == true>
     // public: Leak(double& tpre, double& tnow){
     //     for (auto _neuron : this->elements){
     //         _neuron.memV_Leak(tpre, tnow);
     //     }
     // }
     //----------------------------------------------------
-	public: void saveNeuronLayerMemV(std::string& filename, neuron_layer _layers, double _time, int side);
+public:
+    void saveNeuronLayerMemV(std::string &filename, neuron_layer _layers, double _time, int side);
     //----------------------------------------------------
-    public: void writeNeuronLayerMemV(std::string& filename, neuron_layer _layers, double _time, int side);
+public:
+    void writeNeuronLayerMemV(std::string &filename, neuron_layer _layers, double _time, int side);
     //----------------------------------------------------
-    public: void loadSpikeToMagazine(){ // compare memV with Vth to generate spike
-        
+public:
+    void loadSpikeToMagazine()
+    { // compare memV with Vth to generate spike
     }
-
 };
-
-
 
 #endif
