@@ -8,18 +8,20 @@
 using namespace std;
 using json = nlohmann::json;
 
-void param::print_parameters(){
-    cout << this->pt_alpha << endl;
+void param::print_parameters()
+{
+	cout << this->pt_alpha << endl;
 }
 
-param::param(const char* param_file) {
+param::param(const char *param_file)
+{
 
-    // param_file == "params.json"
-    std::ifstream f(param_file);
-    json _SNNChipParam = json::parse(f);
-	
+	// param_file == "params.json"
+	std::ifstream f(param_file);
+	json _SNNChipParam = json::parse(f);
+
 	// timestep_injection = 30e-6;
-    
+
 	timestep = _SNNChipParam["timestep"];
 	timestep_rng = _SNNChipParam["timestep_rng"];
 	timestep_injection = _SNNChipParam["timestep_injection"];
@@ -40,7 +42,6 @@ param::param(const char* param_file) {
 	delay_spikeout2wlr_model_v = _SNNChipParam["delay_spikeout2wlr_model_v"];
 	delay_spikeout2wlr_model_h = _SNNChipParam["delay_spikeout2wlr_model_h"];
 
-
 	delay_spikeout2wup = _SNNChipParam["delay_spikeout2wup"];
 	delay_spikeout2wup_data = _SNNChipParam["delay_spikeout2wup_data"];
 	delay_spikeout2wup_model = _SNNChipParam["delay_spikeout2wup_model"];
@@ -48,7 +49,6 @@ param::param(const char* param_file) {
 
 	tset_width = _SNNChipParam["tset_width"];
 	treset_width = _SNNChipParam["treset_width"];
-
 
 	pt_init = _SNNChipParam["pt_init"];
 	pt_alpha = _SNNChipParam["pt_alpha"];
@@ -59,7 +59,6 @@ param::param(const char* param_file) {
 	wt_delta_g_set = _SNNChipParam["wt_delta_g_set"];
 
 	wt_delta_g_reset = _SNNChipParam["wt_delta_g_reset"];
-
 
 	max_weight = _SNNChipParam["max_weight"];
 	min_weight = _SNNChipParam["min_weight"];
@@ -138,4 +137,4 @@ param::param(const char* param_file) {
 	hw_RES_BLK = _SNNChipParam["hw_RES_BLK"];
 	enable_BM = _SNNChipParam["enable_BM"];
 	enable_WTA = _SNNChipParam["enable_WTA"];
-}  
+}

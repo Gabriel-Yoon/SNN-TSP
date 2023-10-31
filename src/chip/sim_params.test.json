@@ -27,7 +27,7 @@
   "tset_width": 4e-3,
   "treset_width": 4e-3,
 
-  "pt_init": 0.9,
+  "pt_init": 0.0,
   "pt_alpha": 0.1,
 
   "pt_lk_tau": 1e-2,
@@ -39,9 +39,9 @@
   "max_weight": 10.0,
   "min_weight": 0.0,
 
-  "random_walk_step": 0.0,
-  "random_walk_step_up": 0.0,
-  "random_walk_step_down": 0.0,
+  "random_walk_step": 0.06,
+  "random_walk_step_up": 0.04,
+  "random_walk_step_down": 0.0345,
 
   "sigmoid_mid": 0.5,
   "sigmoid_temp": 4,

@@ -27,8 +27,8 @@ neuron::~neuron()
 neuron::neuron(param &_params)
 {
 	std::cout << "Neuron Setting" << std::endl;
-	this->_memV = _params.pt_init;					   // membrane potential init to reset potential
-	this->_Vreset = _params.pt_init;				   // reset potential
+	this->_memV = _params.pt_init; // membrane potential init to reset potential
+	// this->_Vreset = _params.pt_init;				   // reset potential
 	this->_Vth = _params.pt_threshold;				   // threshold voltage
 	this->_refractoryPeriod = _params.refractory_time; // refractory period
 	this->_active = true;							   // ON
@@ -48,8 +48,8 @@ neuron::neuron(param &_params)
 void neuron::ManualSet(param &_params)
 {
 	std::cout << "Neuron Manual Set" << std::endl;
-	this->_memV = _params.pt_init;					   // membrane potential init to reset potential
-	this->_Vreset = _params.pt_init;				   // reset potential
+	this->_memV = _params.pt_init; // membrane potential init to reset potential
+	// this->_Vreset = _params.pt_init;				   // reset potential
 	this->_Vth = _params.pt_threshold;				   // threshold voltage
 	this->_refractoryPeriod = _params.refractory_time; // refractory period
 
