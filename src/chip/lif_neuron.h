@@ -28,7 +28,7 @@ public:
     void memV_LeakVrest(double &tpre, double &tnow);
 };
 
-inline lif_neuron::lif_neuron() : _leakyTau(4e-3) {} // default : 1e-3
+inline lif_neuron::lif_neuron() : _leakyTau(1e-3) {} // default : 1e-3
 inline lif_neuron::~lif_neuron() {}
 //**************************************************************************************************************//
 #endif
