@@ -286,7 +286,7 @@ namespace csp
 
                 if (v_idx == 0 && h_city == 1)
                 {
-                    weight_matrix[v_idx][h_idx].Gm = fabs(-0.3);
+                    weight_matrix[v_idx][h_idx].Gm = fabs(-0.9);
                 }
 
                 // Check for weight value if they touch the boundaries
