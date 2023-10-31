@@ -23,6 +23,7 @@ public:
     double _memV;             // membrane potential
     double _Vth;              // threshold voltage
     double _Vreset;           // reset voltage
+    double _Vrest;            // rest voltage
     double _refractoryPeriod; // refractory period
     bool _active;             // true = ON, false = OFF
     bool _WTAiso;             // in WTA, the iso should be true when a neuron in WTA module fires
@@ -60,11 +61,14 @@ public:
 
     void set_memV(double _newV); // Sets the membrane potential to new value
     void add_memV(double _updateV);
-    void updateLastSpkTime(double _newLastSpkTime); // Sets the last spike time to latest spike time
-    void memV_WhiteNoise(rng &_rng);                // Update membrane potential by white noise
-    void memV_RandomWalk(rng &_rng);                // Update membrane potential by random walk
-    void memV_Reset();                              // Reset memV
-    void randomWalkStepSizeSimulatedAnnealing(double &tpre, double &tnow);    // Random Walk Step Size reduce by exponential function
+    void subtract_memV(double _updateV);
+    void set_Vreset(double _newVreset);
+    void set_Vrest(double _newVrest);
+    void updateLastSpkTime(double _newLastSpkTime);                        // Sets the last spike time to latest spike time
+    void memV_WhiteNoise(rng &_rng);                                       // Update membrane potential by white noise
+    void memV_RandomWalk(rng &_rng);                                       // Update membrane potential by random walk
+    void memV_Reset();                                                     // Reset memV
+    void randomWalkStepSizeSimulatedAnnealing(double &tpre, double &tnow); // Random Walk Step Size reduce by exponential function
 };
 //**************************************************************************************************************//
 #endif /* _NEURON_H_ */

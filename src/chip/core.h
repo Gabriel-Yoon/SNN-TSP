@@ -20,6 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <cstdio>
+#include <random>
 
 #include "../utils/np.h"
 #include "../utils/fs.h"
@@ -101,7 +102,8 @@ public:
 	void initialize();
 	void print_params();
 	void run_simulation();
-	// public: void initialize_export();
+	void run_calcFiringRate(); // Calculate firing rate
+							   // public: void initialize_export();
 
 private:
 	std::tuple<np::array_2d<uint8_t>, np::array_2d<int8_t>> load_mnist_28(std::string dataset, np::array_1d<int> digits);
@@ -120,6 +122,7 @@ private:
 	void writeSpikeIntoFile(spike &run_spike);
 	void exportSpikeRecorder();
 	void exportSpikeHistoryToJson(const std::string &filename);
+	void exportSpikeFiringRateToJson(const std::string &filename, std::vector<std::pair<double, int>> spikeCount, double tend);
 	void exportNeuronPotentialToJson(double &tnow);
 	void exportSynapseWeightsToJson(const std::string &filename, double tnow);
 	void exportPerformanceMostRecentSpikesToJson(const std::string &filename, double deltaTime, double tend);
@@ -129,9 +132,6 @@ private:
 
 	// Learning Method
 	void STDP(spike &run_spike, int &phase);
-
-	// Calculate firing rate
-	void run_calcFiringRate();
 };
 
 #endif

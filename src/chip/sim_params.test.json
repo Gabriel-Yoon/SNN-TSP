@@ -30,7 +30,7 @@
   "pt_init": 0.9,
   "pt_alpha": 0.1,
 
-  "pt_lk_tau": 1e-3,
+  "pt_lk_tau": 1e-2,
   "pt_threshold": 1.0,
 
   "wt_delta_g_set": 0.01,
@@ -107,6 +107,6 @@
   "hw_RES_EN": true,
   "hw_RES_BLK": true,
 
-  "enable_BM": true,
-  "enable_WTA": true
+  "enable_BM": false,
+  "enable_WTA": false
 }

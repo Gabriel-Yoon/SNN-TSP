@@ -6,17 +6,18 @@
 // Manual Setting from parameters file (JSON file)
 neuron::neuron()
 {
-	this->_memV = 0.0;				// first membrane potential voltage
-	this->_Vth = 1.0;				// threshold voltage
-	this->_Vreset = 0.995;			// reset potential		: 0.0
+	this->_memV = 0.0;	 // first membrane potential voltage
+	this->_Vth = 1.0;	 // threshold voltage
+	this->_Vreset = 0.0; // reset potential		: 0.0
+	this->_Vrest = 0.0;
 	this->_refractoryPeriod = 4e-3; // refractory period 	: 4 ms
 	this->_active = true;
 	this->_WTAiso = true;
 
 	//_rng = nullptr;
-	this->_randomWalkStep = 0.10;
-	this->_randomWalkStepUp = 0.06;
-	this->_randomWalkStepDown = 0.06;
+	this->_randomWalkStep = 0.06;
+	this->_randomWalkStepUp = 0.06;	  // default : 0.06
+	this->_randomWalkStepDown = 0.06; // default : 0.06
 }
 //----------------------------------------------------
 neuron::~neuron()
@@ -77,11 +78,13 @@ void neuron::switchONOFF()
 void neuron::WTAisoON()
 {
 	this->_WTAiso = true;
+	add_memV(0.6);
 }
 //----------------------------------------------------
 void neuron::WTAisoOFF()
 {
 	this->_WTAiso = false;
+	subtract_memV(0.6);
 }
 //----------------------------------------------------
 double &neuron::memV()
@@ -114,6 +117,21 @@ void neuron::add_memV(double _updateV)
 	this->_memV = this->_memV + _updateV;
 }
 //----------------------------------------------------
+void neuron::subtract_memV(double _updateV)
+{ // set neuron potential to new memV
+	this->_memV = this->_memV - _updateV;
+}
+//----------------------------------------------------
+void neuron::set_Vreset(double _newVreset)
+{ // set Vreset to new Vreset
+	this->_Vreset = _newVreset;
+}
+//----------------------------------------------------
+void neuron::set_Vrest(double _newVrest)
+{ // set Vreset to new Vrest
+	this->_Vrest = _newVrest;
+}
+//----------------------------------------------------
 void neuron::updateLastSpkTime(double _newLastSpkTime)
 {
 	this->_lastSpkTime = _newLastSpkTime;
@@ -129,7 +147,7 @@ void neuron::memV_RandomWalk(rng &_rng)
 
 	// bool r = py::random::uniform_binary();
 	this->_randomWalkFlag = _rng.rng_randomwalk->get_val();
-	this->_isStepUpDownSame = (_randomWalkStepUp == _randomWalkStepDown);
+	this->_isStepUpDownSame = (this->_randomWalkStepUp == this->_randomWalkStepDown);
 	/*
 				  flag
 	UPDOWN     T		F
@@ -171,9 +189,9 @@ void neuron::memV_Reset()
 void neuron::randomWalkStepSizeSimulatedAnnealing(double &tpre, double &tnow)
 {
 	// std::cout << "before : " << this->_randomWalkStep << std::endl;
-	double _randomWalkSATemp = 10; // higher the value, slower the random walk step size decreases
+	double _randomWalkSATemp = 0.1; // higher the value, slower the random walk step size decreases
 	double new_randomWalkStep = 0.06 + (this->_randomWalkStep - 0.06) * std::exp(-(tnow - tpre) / _randomWalkSATemp);
 	this->_randomWalkStep = new_randomWalkStep;
-	// std::cout << "after : " << this->_randomWalkStep << std::endl;
+	// std::cout << this->_randomWalkStep << std::endl;
 }
 //----------------------------------------------------
