@@ -25,9 +25,10 @@ public:
     virtual void ManualSet(param &_params);
     double &leakyTau();                         // (outdated)Gets the leaky tau
     void memV_Leak(double &tpre, double &tnow); // Update membrane potential by leak
+    void memV_LeakVrest(double &tpre, double &tnow);
 };
 
-inline lif_neuron::lif_neuron() : _leakyTau(1e-3) {}
+inline lif_neuron::lif_neuron() : _leakyTau(4e-3) {} // default : 1e-3
 inline lif_neuron::~lif_neuron() {}
 //**************************************************************************************************************//
 #endif
