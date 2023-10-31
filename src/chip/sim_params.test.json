@@ -40,8 +40,8 @@
   "min_weight": 0.0,
 
   "random_walk_step": 0.06,
-  "random_walk_step_up": 0.04,
-  "random_walk_step_down": 0.0345,
+  "random_walk_step_up": 0.06,
+  "random_walk_step_down": 0.06,
 
   "sigmoid_mid": 0.5,
   "sigmoid_temp": 4,

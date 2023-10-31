@@ -16,8 +16,8 @@ neuron::neuron()
 
 	//_rng = nullptr;
 	this->_randomWalkStep = 0.06;
-	this->_randomWalkStepUp = 0.06;	  // default : 0.06
-	this->_randomWalkStepDown = 0.06; // default : 0.06
+	this->_randomWalkStepUp = 0.04;		// default : 0.06
+	this->_randomWalkStepDown = 0.0345; // default : 0.06
 }
 //----------------------------------------------------
 neuron::~neuron()
