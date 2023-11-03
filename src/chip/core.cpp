@@ -997,7 +997,7 @@ void core::run_calcFiringRate()
         spikeCount[i].first = _newVrest;
     }
 
-    double tend = 3;
+    double tend = 5;
     double tnow = 0.0;
     double tpre = 0.0;
 

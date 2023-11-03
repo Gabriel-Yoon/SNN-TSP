@@ -3,11 +3,12 @@
 
 #include "tsp.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
     std::filesystem::path CurrentPath = std::filesystem::current_path();
     CurrentPath /= "./tsp_data.json";
     // const char* _TSPDataJsonFilePath = CurrentPath.string().c_str();
-    //std::cout << _TSPDataJsonFilePath << std::endl;
+    // std::cout << _TSPDataJsonFilePath << std::endl;
 
     const std::string json_file_path = "tsp_data.json";
 
@@ -24,6 +25,6 @@ int main(int argc, char* argv[]) {
     std::cout << "TSP weight setting complete and file saved" << std::endl;
 
     // Time print 1
-    
+
     return 0;
 }
