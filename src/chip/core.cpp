@@ -400,6 +400,7 @@ int core::assignTask(spike **run_spike, double &tpre, double &tnow, double &tend
                 hiddenLayer._neurons[i].memV_LeakVrest(tpre, tnow);
             }
             hiddenLayer._neurons[i].randomWalkStepSizeSimulatedAnnealing(tpre, tnow);
+            hiddenLayer._neurons[i].memV_VrestAnnealing(tpre, tnow);
         }
 
         // Export Neuron Potential to JSON file every second
@@ -997,7 +998,7 @@ void core::run_calcFiringRate()
         spikeCount[i].first = _newVrest;
     }
 
-    double tend = 5;
+    double tend = 0.1;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -1123,7 +1124,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 3;
+    double tend = 1;
     double tnow = 0.0;
     double tpre = 0.0;
 

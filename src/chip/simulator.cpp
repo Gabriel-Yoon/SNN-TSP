@@ -46,8 +46,8 @@ int main(int argc, char *argv[])
     // mycore.print_params();
     mycore.initialize();
     mycore.print_params();
-    // mycore.run_simulation();
-    mycore.run_calcFiringRate();
+    mycore.run_simulation();
+    // mycore.run_calcFiringRate();
 
     std::cout << std::setprecision(4);
     std::cout << "simulation done" << std::endl;

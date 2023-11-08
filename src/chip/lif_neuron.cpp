@@ -39,5 +39,9 @@ void lif_neuron::memV_LeakVrest(double &tpre, double &tnow)
 	this->_memV = newmemV;
 }
 //----------------------------------------------------
+void lif_neuron::memV_VrestAnnealing(double &tpre, double &tnow)
+{
+	this->_Vrest = this->_Vrest * std::exp(-(tnow - tpre) / this->_restTau);
+}
 
 //**************************************************************************************************************//
