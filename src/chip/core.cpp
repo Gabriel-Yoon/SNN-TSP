@@ -1256,7 +1256,7 @@ void core::run_simulation()
                         {
                             // std::cout << "Turning on hidden : " << run_spike->_spk.begin()->second << std::endl;
                             hiddenLayer._neurons[run_spike->_spk.begin()->second].turnON();
-
+                            hiddenLayer._neurons[run_spike->_spk.begin()->second].set_Vrest(0.8);
                             // WTA turning on again
                             if (params.enable_WTA)
                             {
