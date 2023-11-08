@@ -107,6 +107,6 @@
   "hw_RES_EN": true,
   "hw_RES_BLK": true,
 
-  "enable_BM": false,
-  "enable_WTA": false
+  "enable_BM": true,
+  "enable_WTA": true
 }
