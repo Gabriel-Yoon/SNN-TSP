@@ -1,6 +1,8 @@
 import os
 from plotFunctions import plotSynapseWeightsFromJson, spike_raster_plot, plot_neuron_potentials, plotPerformance, plotSpikeFiringRate
 
+print("PLOT PYTHON ON THE WAY!!")
+
 # Get the path to the directory containing the JSON files
 json_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 

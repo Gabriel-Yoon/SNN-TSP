@@ -9,7 +9,7 @@ run_all:
 
 plots: run_all
 	@echo "Generating plots..."
-	@cd $(CMAKE_BINARY_DIR)/$(OUTPUT_FOLDER)/plot && python3 plot_script.py
+	@cd $(CMAKE_BINARY_DIR)/$(OUTPUT_FOLDER)/plot && python3 main.py
 
 clean:
 	@$(MAKE) -sC $(CMAKE_BINARY_DIR) clean

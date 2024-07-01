@@ -1124,7 +1124,7 @@ void core::run_calcFiringRate()
 void core::run_simulation()
 {
 
-    double tend = 1;
+    double tend = 0.01;
     double tnow = 0.0;
     double tpre = 0.0;
 
@@ -1614,13 +1614,41 @@ void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, 
             size_t maxIndex = std::distance(row.begin(), it_max);
             maxIndexes.push_back(maxIndex);
         }
-        std::cout << "route : ";
+        // std::cout << "route : ";
         for (int i = 0; i < maxIndexes.size(); i++)
         {
-            std::cout << maxIndexes[i] + 1 << " ";
+            // std::cout << maxIndexes[i] + 1 << " ";
         }
-        std::cout << "" << std::endl;
+        // std::cout << "" << std::endl;
         return maxIndexes;
+    };
+
+    std::vector<int> _optimalItineraryAlternative(this->_optimalItinerary.size());
+    for (int i = 1; i < this->_optimalItinerary.size(); i++)
+    {
+        _optimalItineraryAlternative[i] = this->_optimalItinerary[this->_optimalItinerary.size() - i];
+    }
+
+    auto initinerary_same_time = [&](const std::vector<int> &route)
+    {
+        bool flag = false;
+        bool same_flag = true;
+        bool same_flag_alternative_route = true;
+
+        for (int i = 0; i < route.size(); i++)
+        {
+            if (route[i] != this->_optimalItinerary[i])
+            {
+                same_flag = false;
+            }
+
+            if (route[i] != _optimalItineraryAlternative[i])
+            {
+                same_flag_alternative_route = false;
+            }
+        }
+        flag = (same_flag || same_flag_alternative_route);
+        return flag;
     };
 
     auto initialize_2d_vector = [](std::vector<std::vector<int>> &vector_2d)
@@ -1652,7 +1680,7 @@ void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, 
     double performanceTime = 0.0;
     double performanceStep = tend / deltaTime;
 
-    double windowTime = 80e-3; // 80e-3 (80ms) as default
+    double windowTime = 8e-3; // 8e-3 (8ms) as default
     double startTime = 0.0;
     double endTime = windowTime;
 
@@ -1677,7 +1705,7 @@ void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, 
         if (startTime < 0 || endTime > tend)
             break;
 
-        std::cout << "----------------" << std::endl;
+        // std::cout << "----------------" << std::endl;
         // Count spikes within the windowTime(or window width)
         for (const auto &spike : spikeRecorder)
         {
@@ -1703,6 +1731,11 @@ void core::exportPerformanceMostFiringSpikesToJson(const std::string &filename, 
         for (int j = 0; j < _numCity; j++)
         {
             route[j] = max_indexes[j];
+        }
+
+        if (initinerary_same_time(route))
+        {
+            std::cout << startTime << std::endl;
         }
 
         // Calculate the total distance
